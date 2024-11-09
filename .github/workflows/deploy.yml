@@ -1,0 +1,55 @@
+name: Update Deployment
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+jobs:
+  update-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          token: ${{ secrets.DEPLOY_PAT }}
+      
+      # Build and push container
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/michaelschmidle/lmix:latest
+            ${{ startsWith(github.ref, 'refs/tags/') && format('ghcr.io/michaelschmidle/lmix:{0}', github.ref_name) || '' }}
+
+      # Update deployment submodule
+      - name: Update versions
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        run: |
+          cd deploy
+          VERSION=${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'latest' }}
+          
+          # Update versions.json with new app version
+          jq --arg v "$VERSION" '.lmix.latest = $v' versions.json > tmp && mv tmp versions.json
+          
+          # Update docker-compose.yml with new image tag
+          sed -i "s|ghcr.io/michaelschmidle/lmix:.*|ghcr.io/michaelschmidle/lmix:${VERSION}|" docker-compose.yml
+          
+          # Commit and push changes
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add versions.json docker-compose.yml
+          git commit -m "chore: update to version ${VERSION}"
+          git push origin main

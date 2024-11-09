@@ -219,11 +219,9 @@ class ApiError extends LMiXError {
 
 ## Development Standards
 
-# Code Style Updates
+### TypeScript Conventions
 
-## TypeScript Conventions
-
-### Interface Definitions
+#### Interface Definitions
 
 ```ts
 // No trailing commas in interface definitions
@@ -238,7 +236,7 @@ interface Production {
 }
 ```
 
-### Array/Object Literals
+#### Array/Object Literals
 
 ```ts
 // Use trailing commas in array and object literals
@@ -255,9 +253,9 @@ const items = [
 ]
 ```
 
-## Pinia Conventions
+### Pinia Conventions
 
-### Setup Stores
+#### Setup Stores
 
 ```ts
 // stores/production.ts
@@ -304,7 +302,8 @@ export const useProductionStore = defineStore('production', () => {
 })
 ```
 
-### Store Organization
+#### Store Organization
+
 - One store per major feature/domain object
 - Keep related state together
 - Export store with 'use' prefix
@@ -329,7 +328,8 @@ declare module 'pinia' {
 }
 ```
 
-### Store Usage in Components
+#### Store Usage in Components
+
 ```vue
 <script setup lang="ts">
 const store = useProductionStore()

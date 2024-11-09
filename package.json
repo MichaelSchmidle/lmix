@@ -1,0 +1,42 @@
+{
+  "name": "lmix",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^0.0.72",
+    "@ai-sdk/vue": "^0.0.59",
+    "@formkit/addons": "^1.6.7",
+    "@formkit/auto-animate": "^0.8.2",
+    "@formkit/icons": "^1.6.7",
+    "@formkit/nuxt": "^1.6.7",
+    "@formkit/pro": "^0.127.6",
+    "@formkit/tempo": "^0.1.2",
+    "@nuxt/ui": "^2.19.2",
+    "@nuxt/ui-pro": "^1.5.0",
+    "@nuxtjs/google-fonts": "^3.2.0",
+    "@nuxtjs/supabase": "^1.4.2",
+    "@pinia/nuxt": "^0.7.0",
+    "ai": "^3.4.33",
+    "markdown-it": "^14.1.0",
+    "nuxt": "^3.14.159",
+    "pinia": "^2.2.6",
+    "tailwind-merge": "^2.5.4",
+    "vue": "latest",
+    "vue-router": "latest",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@iconify-json/ph": "^1.2.1",
+    "@types/markdown-it": "^14.1.2"
+  },
+  "overrides": {
+    "vue": "latest"
+  }
+}

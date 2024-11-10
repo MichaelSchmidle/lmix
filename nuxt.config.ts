@@ -4,9 +4,6 @@ export default defineNuxtConfig({
   devtools: {
     enabled: true,
   },
-  extends: [
-    '@nuxt/ui-pro',
-  ],
   formkit: {
     autoImport: true
   },

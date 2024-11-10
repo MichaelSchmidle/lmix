@@ -12,7 +12,7 @@ LMiX is a local-first web application built with:
 ### Technical Stack
 
 Core libraries:
-- NuxtUI and NuxtUI Pro (includes Tailwind ecosystem)
+- NuxtUI (includes Tailwind ecosystem)
 - FormKit and FormKit Pro with addons
 - Tailwind Merge
 - Vue I18n

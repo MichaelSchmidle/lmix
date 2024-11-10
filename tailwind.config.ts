@@ -2,11 +2,6 @@ import type { Config } from 'tailwindcss'
 
 export default {
   content: [
-    './components/**/*.vue',
-    './layouts/**/*.vue',
-    './pages/**/*.vue',
-    './app.vue',
-    './error.vue',
     './formkit.theme.ts',
   ],
   theme: {

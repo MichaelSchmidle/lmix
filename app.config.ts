@@ -31,6 +31,10 @@ export default defineAppConfig({
         loadingIcon: 'i-ph-circle-notch',
       },
     },
+    container: {
+      constrained: 'max-w-prose',
+      padding: '',
+    },
     notifications: {
       // Show toasts at the top right of the screen
       position: 'top-0 bottom-[unset]'

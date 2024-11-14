@@ -16,28 +16,19 @@ export default defineAppConfig({
       check: 'i-ph-check'
     },
 
+    accordion: {
+      default: {
+        class: 'hover:bg-gray-200 dark:hover:bg-gray-800 w-full',
+        closeIcon: 'i-ph-caret-up',
+        openIcon: 'i-ph-caret-down',
+      },
+      item: {
+        padding: '',
+      },
+    },
     button: {
       default: {
         loadingIcon: 'i-ph-circle-notch',
-      },
-    },
-    dashboard: {
-      navbar: {
-        wrapper: 'border-gray-200 dark:border-gray-800',
-      },
-      panel: {
-        border: 'border-none',
-      },
-      sidebar: {
-        links: {
-          active: 'before:bg-white dark:before:bg-black',
-          inactive: 'hover:before:bg-gray-200 dark:hover:before:bg-gray-800',
-          trailingIcon: {
-            base: 'h-4 w-4',
-            name: 'i-ph-caret-up',
-            inactive: 'rotate-180'
-          },
-        },
       },
     },
     notifications: {
@@ -65,6 +56,16 @@ export default defineAppConfig({
     },
     skeleton: {
       background: 'bg-gray-200 dark:bg-gray-800',
+    },
+    slideover: {
+      overlay: {
+        background: 'bg-white/80 dark:bg-black/80',
+        base: 'backdrop-blur-sm',
+      },
+    },
+    verticalNavigation: {
+      active: 'before:bg-white dark:before:bg-black',
+      inactive: 'hover:before:bg-gray-200 dark:hover:before:bg-gray-800',
     },
   },
 })

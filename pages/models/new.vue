@@ -1,20 +1,18 @@
 <script setup lang="ts">
 const { t } = useI18n({ useScope: 'local' })
 
-useHead(
-  {
-    title: t('title'),
-  }
-)
+useHead({
+  title: t('title'),
+})
 </script>
 
 <template>
   <UiPanel>
-    <UiPanelHeader>
+    <UiPanelHeader has-back-button>
+      {{ t('title') }}
       <template #toggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>
-      {{ t('title') }}
     </UiPanelHeader>
     <UiPanelContent />
   </UiPanel>
@@ -22,5 +20,5 @@ useHead(
 
 <i18n lang="yaml">
   en:
-    title: New Production
+    title: New Model
 </i18n>

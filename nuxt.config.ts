@@ -24,12 +24,17 @@ export default defineNuxtConfig({
       },
     },
   },
+  i18n: {
+    defaultLocale: 'en',
+  },
   modules: [
-    '@nuxt/ui',
     '@formkit/nuxt',
+    '@nuxt/ui',
     '@nuxtjs/google-fonts',
-    '@pinia/nuxt',
+    '@nuxtjs/i18n',
     '@nuxtjs/supabase',
+    '@pinia/nuxt',
+    '@nuxtjs/color-mode',
   ],
   runtimeConfig: {
     public: {
@@ -40,7 +45,7 @@ export default defineNuxtConfig({
       login: '/',
       callback: '/confirm',
       include: undefined,
-      exclude: [],
+      exclude: ['*'],
       cookieRedirect: false,
     },
   },

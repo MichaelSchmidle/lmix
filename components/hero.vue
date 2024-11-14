@@ -13,7 +13,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="prose prose-lg dark:prose-invert py-12">
+  <div class="prose lg:prose-lg xl:prose-xl dark:prose-invert py-12">
     <p>
       <UIcon v-if="icon" :name="icon" class="text-primary h-12 w-12" />
     </p>

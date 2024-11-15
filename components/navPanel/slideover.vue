@@ -9,7 +9,7 @@ const isOpen = ref(false)
     <UTooltip :text="t('navigation')">
       <UButton color="gray" icon="i-ph-list" variant="ghost" @click="isOpen = true" />
     </UTooltip>
-    <USlideover v-model="isOpen" :ui="{ background: 'bg-gray-100 dark:bg-gray-900', base: 'divide-y divide-gray-200 dark:divide-gray-800', width: 'max-w-[200px]' }">
+    <USlideover v-model="isOpen" :ui="{ background: 'bg-gray-100 dark:bg-gray-900', base: 'divide-y divide-gray-200 dark:divide-gray-800', width: 'max-w-[360px]' }">
       <NavPanel is-slideover @close="isOpen = false" />
     </USlideover>
   </div>

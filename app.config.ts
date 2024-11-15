@@ -32,8 +32,14 @@ export default defineAppConfig({
       },
     },
     container: {
+      base: 'space-y-6 lg:space-y-12',
       constrained: 'max-w-prose',
       padding: '',
+    },
+    divider: {
+      container: {
+        base: 'font-normal text-inherit dark:text-inherit prose prose-sm dark:prose-invert',
+      },
     },
     notifications: {
       // Show toasts at the top right of the screen

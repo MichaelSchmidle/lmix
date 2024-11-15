@@ -49,4 +49,10 @@ export default defineNuxtConfig({
       cookieRedirect: false,
     },
   },
+  ui: {
+    safelistColors: [
+      'cyan',
+      'indigo'
+    ],
+  }
 })

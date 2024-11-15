@@ -22,7 +22,7 @@ const modelItems = [
       {{ t('title') }}
     </UiPanelHeader>
     <UiPanelContent>
-      <UButton block icon="i-ph-circuitry" :label="t('newModel')" to="/models/new" />
+      <UButton block icon="i-ph-circuitry-duotone" :label="t('newModel')" to="/models/new" />
       <UAccordion color="gray" default-open :items="modelItems" variant="ghost" />
     </UiPanelContent>
   </UiPanel>

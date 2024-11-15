@@ -43,9 +43,14 @@ const productionItems = [
       </template>
     </UAccordion>
     <UButton block icon="i-ph-film-script-duotone" :label="t('newProduction')" to="/" />
-    <UAccordion color="gray" default-open :items="productionItems" variant="ghost"></UAccordion>
+    <UAccordion color="gray" default-open :items="productionItems" variant="ghost">
+      <template #productions>
+        <NoData :message="t('noProductions')" />
+      </template>
+    </UAccordion>
   </UiPanelContent>
   <UiPanelFooter>
+    <UiColorThemeToggle />
     <UiColorModeToggle />
   </UiPanelFooter>
 </template>
@@ -60,4 +65,5 @@ const productionItems = [
     worlds: Worlds
     newProduction: New Production
     productions: Productions
+    noProductions: No productions yet
 </i18n>

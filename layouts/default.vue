@@ -16,3 +16,7 @@ useHead({
     <NuxtPage />
   </UiPanelLayout>
 </template>
+
+<i18n lang="yaml">
+  en:
+</i18n>

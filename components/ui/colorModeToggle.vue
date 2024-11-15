@@ -12,14 +12,14 @@ const isDarkMode = computed({
 </script>
 
 <template>
-  <ClientOnly>
-    <UTooltip :text="t('toggle')">
+  <UTooltip :text="t('toggle')">
+    <ClientOnly>
       <UToggle :aria-label="t('toggle')" on-icon="i-ph-moon-fill" off-icon="i-ph-sun-fill" v-model="isDarkMode" />
-    </UTooltip>
-    <template #fallback>
-      <UToggle :aria-label="t('toggle')" off-icon="i-ph-sun-fill" />
-    </template>
-  </ClientOnly>
+      <template #fallback>
+        <UToggle :aria-label="t('toggle')" off-icon="i-ph-sun-fill" />
+      </template>
+    </ClientOnly>
+  </UTooltip>
 </template>
 
 <i18n lang="yaml">

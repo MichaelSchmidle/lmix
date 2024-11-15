@@ -3,7 +3,7 @@ useHead({
   templateParams: {
     separator: '·'
   },
-  titleTemplate: '%s %separator LMiX'
+  titleTemplate: 'LMiX %separator %s'
 })
 </script>
 

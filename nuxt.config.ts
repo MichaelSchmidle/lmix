@@ -1,6 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
+  devServer: {
+    port: parseInt(process.env.LMIX_PORT || '5649'),
+  },
   devtools: {
     enabled: true,
   },
@@ -43,9 +46,9 @@ export default defineNuxtConfig({
   supabase: {
     redirectOptions: {
       login: '/',
-      callback: '/confirm',
+      callback: '/',
       include: undefined,
-      exclude: ['*'],
+      exclude: [],
       cookieRedirect: false,
     },
   },

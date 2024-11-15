@@ -1,9 +1,10 @@
 <script setup lang="ts">
 const { t } = useI18n({ useScope: 'local' })
+const user = useSupabaseUser()
 
 useHead(
   {
-    title: t('title'),
+    title: t('meta.title'),
   }
 )
 </script>
@@ -17,7 +18,7 @@ useHead(
       {{ t('title') }}
     </UiPanelHeader>
     <UiPanelContent>
-      <UContainer>
+      <UContainer v-auto-animate>
         <Hero icon="i-ph-hand-waving-thin" :description="t('hero.description')">
           <template #title>
             <i18n-t class="font-serif" keypath="hero.title" tag="h1">
@@ -27,7 +28,7 @@ useHead(
             </i18n-t>
           </template>
         </Hero>
-        <OAuth />
+        <OAuth v-if="!user" />
       </UContainer>
     </UiPanelContent>
   </UiPanel>
@@ -36,6 +37,8 @@ useHead(
 <i18n lang="yaml">
   en:
     title: New Production
+    meta:
+      title: Dynamic Multi-Agent Productions
     hero:
       title: Welcome to your {lmix}
       lmix: LMiX

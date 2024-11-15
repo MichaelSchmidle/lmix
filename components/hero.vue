@@ -26,7 +26,7 @@ defineProps({
       <UIcon v-if="icon" :name="icon" class="text-primary h-12 w-12" />
     </p>
     <slot name="title">
-      <component :is="titleTag" class="font-serif">{{ title }}</component>
+      <component :is="titleTag" class="font-serif text-balance">{{ title }}</component>
     </slot>
     <slot name="description">
       <component :is="descriptionTag">{{ description }}</component>

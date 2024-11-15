@@ -1,14 +1,24 @@
 <script setup lang="ts">
 const { t } = useI18n({ useScope: 'local' })
 const appConfig = useAppConfig()
-const colorMode = useColorMode()
-
-// Get the correct shade based on color mode
-const colorShade = computed(() => colorMode.value === 'dark' ? '400' : '500')
 
 const setTheme = (color: 'cyan' | 'indigo') => {
+  // Set primary color
   appConfig.ui.primary = color
-  // Use useCookie instead of localStorage for consistency with color mode
+  // Set corresponding gray scale
+  appConfig.ui.gray = color === 'cyan' ? 'slate' : 'stone'
+
+  // Set CSS variables for black/white
+  document.documentElement.style.setProperty(
+    '--color-white',
+    color === 'cyan' ? '#e5e7e8' : '#e7e6e7'
+  )
+  document.documentElement.style.setProperty(
+    '--color-black',
+    color === 'cyan' ? '#181919' : '#19181b'
+  )
+
+  // Store preference
   const themeCookie = useCookie('nuxt-ui-primary')
   themeCookie.value = color
 }
@@ -17,7 +27,7 @@ const setTheme = (color: 'cyan' | 'indigo') => {
 onMounted(() => {
   const themeCookie = useCookie('nuxt-ui-primary')
   if (themeCookie.value) {
-    appConfig.ui.primary = themeCookie.value as 'cyan' | 'indigo'
+    setTheme(themeCookie.value as 'cyan' | 'indigo')
   }
 })
 

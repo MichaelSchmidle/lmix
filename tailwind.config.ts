@@ -7,9 +7,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        "white": "#ebebec",
-        "black": "#18141f",
-        "neutral": {
+        "white": "var(--color-white)",
+        "black": "var(--color-black)",
+        "stone": { // indigo-based gray scale
           "950": "#1d1a23",
           "900": "#201d25",
           "800": "#2a282d",
@@ -21,6 +21,19 @@ export default {
           "200": "#d0d0d1",
           "100": "#dededf",
           "50": "#e3e2e3"
+        },
+        "slate": { // cyan-based gray scale
+          "950": "#1b1c1c",
+          "900": "#1e1f1f",
+          "800": "#28292a",
+          "700": "#3a3c3d",
+          "600": "#545658",
+          "500": "#74787a",
+          "400": "#969b9d",
+          "300": "#b5b9bc",
+          "200": "#ced1d2",
+          "100": "#dddee0",
+          "50": "#e1e3e4"
         },
         "rose": {
           "950": "#370725",

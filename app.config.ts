@@ -40,6 +40,9 @@ export default defineAppConfig({
       container: {
         base: 'font-normal text-inherit dark:text-inherit prose prose-sm dark:prose-invert',
       },
+      default: {
+        type: 'dotted',
+      },
     },
     notifications: {
       // Show toasts at the top right of the screen

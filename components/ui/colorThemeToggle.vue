@@ -38,10 +38,10 @@ const isActive = (color: string) => appConfig.ui.primary === color
 <template>
   <div class="flex gap-[1ex]">
     <UTooltip :text="t('indigo')">
-      <UButton color="indigo" icon="i-ph-circle-fill" size="xs" :variant="isActive('indigo') ? 'solid' : 'ghost'" @click="setTheme('indigo')" />
+      <UButton color="gray" icon="i-ph-circle-fill" size="xs" :variant="isActive('indigo') ? 'solid' : 'ghost'" :ui="{ color: { gray: { solid: 'text-indigo-500 dark:text-indigo-400', ghost: 'text-indigo-500 hover:text-indigo-500 dark:text-indigo-400 hover:dark:text-indigo-400' } } }" @click="setTheme('indigo')" />
     </UTooltip>
     <UTooltip :text="t('cyan')">
-      <UButton color="cyan" icon="i-ph-circle-fill" size="xs" :variant="isActive('cyan') ? 'solid' : 'ghost'" @click="setTheme('cyan')" />
+      <UButton color="gray" icon="i-ph-circle-fill" size="xs" :variant="isActive('cyan') ? 'solid' : 'ghost'" :ui="{ color: { gray: { solid: 'text-cyan-500 dark:text-cyan-400', ghost: 'text-cyan-500 hover:text-cyan-500 dark:text-cyan-400 hover:dark:text-cyan-400' } } }" @click="setTheme('cyan')" />
     </UTooltip>
   </div>
 </template>

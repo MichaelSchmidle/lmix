@@ -34,9 +34,21 @@ const productionItems = [
 const userItems = [
   [
     {
-      disabled: true,
+      class: 'hover:bg-inherit cursor-auto select-text text-start',
       label: t('account'),
       slot: 'user',
+    },
+  ],
+  [
+    {
+      class: 'cursor-auto',
+      label: t('colorMode'),
+      slot: 'colorMode',
+    },
+    {
+      class: 'cursor-auto',
+      label: t('colorTheme'),
+      slot: 'colorTheme',
     },
   ],
   [
@@ -86,10 +98,24 @@ async function handleSignOut() {
     </UAccordion>
   </UiPanelContent>
   <UiPanelFooter>
-    <UDropdown v-if="user" :items="userItems" :ui="{ item: { disabled: 'cursor-text select-text' } }">
+    <UDropdown v-if="user" :items="userItems">
       <UAvatar :src="user.user_metadata.avatar_url" />
       <template #user>
-        <p class="text-start">{{ t('account', { email: user.email }) }}</p>
+        <i18n-t keypath="account" tag="span" @click.stop>
+          <template #email><strong>{{ user.email }}</strong></template>
+        </i18n-t>
+      </template>
+      <template #colorMode>
+        <div class="flex flex-1 items-center justify-between" @click.stop>
+          <span>{{ t('colorMode') }}</span>
+          <UiColorModeToggle />
+        </div>
+      </template>
+      <template #colorTheme>
+        <div class="flex flex-1 items-center justify-between" @click.stop>
+          <span>{{ t('colorTheme') }}</span>
+          <UiColorThemeToggle />
+        </div>
       </template>
     </UDropdown>
     <UModal v-model="isSigningOut" prevent-close>
@@ -102,8 +128,6 @@ async function handleSignOut() {
         </div>
       </UCard>
     </UModal>
-    <UiColorThemeToggle />
-    <UiColorModeToggle />
   </UiPanelFooter>
 </template>
 
@@ -119,6 +143,8 @@ async function handleSignOut() {
     productions: Productions
     noProductions: No productions yet
     account: Signed in as {email}
+    colorMode: Color Mode
+    colorTheme: Color Theme
     signOut: Sign Out
     signingOut: We are signing you out. Please wait.
 </i18n>

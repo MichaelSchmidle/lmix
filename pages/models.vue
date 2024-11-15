@@ -9,7 +9,7 @@ useHead(
 )
 
 const modelItems = [
-  { icon: 'i-ph-circuitry', label: 'Models' },
+  { icon: 'i-ph-circuitry', label: 'Models', slot: 'models' },
 ]
 </script>
 
@@ -23,7 +23,11 @@ const modelItems = [
     </UiPanelHeader>
     <UiPanelContent>
       <UButton block icon="i-ph-circuitry-duotone" :label="t('newModel')" to="/models/new" />
-      <UAccordion color="gray" default-open :items="modelItems" variant="ghost" />
+      <UAccordion color="gray" default-open :items="modelItems" variant="ghost">
+        <template #models>
+          <NoData :message="t('noModels')" />
+        </template>
+      </UAccordion>
     </UiPanelContent>
   </UiPanel>
   <UiPanel v-if="route.path === '/models'">
@@ -41,4 +45,5 @@ const modelItems = [
   en:
     title: Models
     newModel: New Model
+    noModels: No models yet
 </i18n>

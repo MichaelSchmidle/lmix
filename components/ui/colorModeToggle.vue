@@ -2,27 +2,28 @@
 const { t } = useI18n({ useScope: 'local' })
 const colorMode = useColorMode()
 
-// Computed property to bind to the toggle
-const isDarkMode = computed({
-  get: () => colorMode.value === 'dark',
-  set: (value) => {
-    colorMode.preference = value ? 'dark' : 'light'
-  }
-})
+// Determine if a mode is active
+const isActive = (mode: string) => colorMode.value === mode
+
+// Set the color mode
+const setMode = (mode: 'dark' | 'light') => {
+  colorMode.preference = mode
+}
 </script>
 
 <template>
-  <UTooltip :text="t('toggle')">
-    <ClientOnly>
-      <UToggle :aria-label="t('toggle')" on-icon="i-ph-moon-fill" off-icon="i-ph-sun-fill" v-model="isDarkMode" />
-      <template #fallback>
-        <UToggle :aria-label="t('toggle')" off-icon="i-ph-sun-fill" />
-      </template>
-    </ClientOnly>
-  </UTooltip>
+  <div class="flex gap-[1ex]">
+    <UTooltip :text="t('light')">
+      <UButton color="gray" icon="i-ph-sun-fill" size="xs" :variant="isActive('light') ? 'solid' : 'ghost'" @click="setMode('light')" />
+    </UTooltip>
+    <UTooltip :text="t('dark')">
+      <UButton color="gray" icon="i-ph-moon-fill" size="xs" :variant="isActive('dark') ? 'solid' : 'ghost'" @click="setMode('dark')" />
+    </UTooltip>
+  </div>
 </template>
 
 <i18n lang="yaml">
 en:
-  toggle: Dark mode
+  light: Light mode
+  dark: Dark mode
 </i18n>

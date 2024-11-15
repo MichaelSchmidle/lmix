@@ -44,6 +44,12 @@ export default defineAppConfig({
         type: 'dotted',
       },
     },
+    modal: {
+      overlay: {
+        background: 'bg-white/80 dark:bg-black/80',
+        base: 'backdrop-blur-sm',
+      },
+    },
     notifications: {
       // Show toasts at the top right of the screen
       position: 'top-0 bottom-[unset]'

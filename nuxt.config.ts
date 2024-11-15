@@ -31,6 +31,7 @@ export default defineNuxtConfig({
     defaultLocale: 'en',
   },
   modules: [
+    '@formkit/auto-animate/nuxt',
     '@formkit/nuxt',
     '@nuxt/ui',
     '@nuxtjs/google-fonts',

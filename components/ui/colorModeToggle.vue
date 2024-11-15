@@ -24,5 +24,5 @@ const isDarkMode = computed({
 
 <i18n lang="yaml">
 en:
-  toggle: Toggle dark mode
+  toggle: Dark mode
 </i18n>

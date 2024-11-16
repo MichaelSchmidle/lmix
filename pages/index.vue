@@ -4,7 +4,7 @@ const user = useSupabaseUser()
 
 useHead(
   {
-    title: t('meta.title'),
+    title: user ? t('title') : t('meta.title'),
   }
 )
 </script>
@@ -34,6 +34,7 @@ useHead(
           </template>
         </Hero>
         <OAuth v-if="!user" />
+        <FirstSteps v-else />
       </UContainer>
     </UiPanelContent>
   </UiPanel>

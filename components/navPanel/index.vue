@@ -31,32 +31,44 @@ const productionItems = [
   { icon: 'i-ph-film-script', label: t('productions'), slot: 'productions' },
 ]
 
-const userItems = [
-  [
-    {
-      class: 'hover:bg-inherit dark:hover:bg-inherit cursor-auto select-text text-start',
-      label: t('account'),
-      slot: 'user',
-    },
-  ],
-  [
-    {
-      label: t('colorMode'),
-      slot: 'colorMode',
-    },
-    {
-      label: t('colorTheme'),
-      slot: 'colorTheme',
-    },
-  ],
-  [
-    {
-      click: handleSignOut,
-      icon: 'i-ph-sign-out',
-      label: t('signOut'),
-    },
-  ],
-]
+const userItems = computed(() => {
+  const baseItems = [
+    [
+      {
+        class: 'cursor-auto',
+        label: t('colorMode'),
+        slot: 'colorMode',
+      },
+      {
+        class: 'cursor-auto',
+        label: t('colorTheme'),
+        slot: 'colorTheme',
+      },
+    ],
+  ]
+
+  if (user.value) {
+    return [
+      [
+        {
+          class: 'hover:bg-inherit dark:hover:bg-inherit cursor-auto select-text text-gray-500 dark:text-gray-400 text-start',
+          label: t('account', { email: user.value.email }),
+          slot: 'account',
+        },
+      ],
+      ...baseItems,
+      [
+        {
+          click: handleSignOut,
+          icon: 'i-ph-sign-out',
+          label: t('signOut'),
+        },
+      ],
+    ]
+  }
+
+  return baseItems
+})
 
 const isSigningOut = ref(false)
 
@@ -96,11 +108,12 @@ async function handleSignOut() {
     </UAccordion>
   </UiPanelContent>
   <UiPanelFooter>
-    <UDropdown v-if="user" :items="userItems">
-      <UAvatar :src="user.user_metadata.avatar_url" />
-      <template #user>
+    <UDropdown :items="userItems">
+      <UAvatar v-if="user?.user_metadata.avatar_url" :src="user.user_metadata.avatar_url" />
+      <UAvatar v-else icon="i-ph-user" :ui="{ background: 'bg-gray-200' }" />
+      <template v-if="user" #account>
         <i18n-t keypath="account" tag="span" @click.stop>
-          <template #email><strong>{{ user.email }}</strong></template>
+          <template #email><strong class="truncate">{{ user.email }}</strong></template>
         </i18n-t>
       </template>
       <template #colorMode>

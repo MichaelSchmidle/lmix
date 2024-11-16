@@ -1,47 +1,32 @@
 <script setup lang="ts">
 const { t } = useI18n({ useScope: 'local' })
-const appConfig = useAppConfig()
-
-const setTheme = (color: 'cyan' | 'indigo') => {
-  // Set primary color
-  appConfig.ui.primary = color
-  // Set corresponding gray scale
-  appConfig.ui.gray = color === 'cyan' ? 'slate' : 'stone'
-
-  // Set CSS variables for black/white
-  document.documentElement.style.setProperty(
-    '--color-white',
-    color === 'cyan' ? '#e5e7e8' : '#e7e6e7'
-  )
-  document.documentElement.style.setProperty(
-    '--color-black',
-    color === 'cyan' ? '#181919' : '#19181b'
-  )
-
-  // Store preference
-  const themeCookie = useCookie('nuxt-ui-primary')
-  themeCookie.value = color
-}
-
-// Initialize theme from cookie on load
-onMounted(() => {
-  const themeCookie = useCookie('nuxt-ui-primary')
-  if (themeCookie.value) {
-    setTheme(themeCookie.value as 'cyan' | 'indigo')
-  }
-})
+const { theme, setTheme } = useColorTheme()
 
 // Determine if a theme is active
-const isActive = (color: string) => appConfig.ui.primary === color
+const isActive = (color: string) => theme.value === color
 </script>
 
 <template>
   <div class="flex gap-[1ex]">
     <UTooltip :text="t('indigo')">
-      <UButton color="gray" icon="i-ph-circle-fill" size="xs" :variant="isActive('indigo') ? 'solid' : 'ghost'" :ui="{ color: { gray: { solid: 'text-indigo-500 dark:text-indigo-400', ghost: 'text-indigo-500 hover:text-indigo-500 dark:text-indigo-400 hover:dark:text-indigo-400' } } }" @click="setTheme('indigo')" />
+      <UButton color="gray" icon="i-ph-circle-fill" size="xs" :variant="isActive('indigo') ? 'solid' : 'ghost'" :ui="{
+        color: {
+          gray: {
+            solid: 'text-indigo-500 dark:text-indigo-400',
+            ghost: 'text-indigo-500 hover:text-indigo-500 dark:text-indigo-400 hover:dark:text-indigo-400'
+          }
+        }
+      }" @click="setTheme('indigo')" />
     </UTooltip>
     <UTooltip :text="t('cyan')">
-      <UButton color="gray" icon="i-ph-circle-fill" size="xs" :variant="isActive('cyan') ? 'solid' : 'ghost'" :ui="{ color: { gray: { solid: 'text-cyan-500 dark:text-cyan-400', ghost: 'text-cyan-500 hover:text-cyan-500 dark:text-cyan-400 hover:dark:text-cyan-400' } } }" @click="setTheme('cyan')" />
+      <UButton color="gray" icon="i-ph-circle-fill" size="xs" :variant="isActive('cyan') ? 'solid' : 'ghost'" :ui="{
+        color: {
+          gray: {
+            solid: 'text-cyan-500 dark:text-cyan-400',
+            ghost: 'text-cyan-500 hover:text-cyan-500 dark:text-cyan-400 hover:dark:text-cyan-400'
+          }
+        }
+      }" @click="setTheme('cyan')" />
     </UTooltip>
   </div>
 </template>

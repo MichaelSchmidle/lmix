@@ -267,14 +267,4 @@ enabled = true
 client_id = "env(GITHUB_CLIENT_ID)"
 secret = "env(GITHUB_OAUTH_SECRET)"
 # Callback URLs registered with GitHub
-redirect_uri = "http://localhost:5642/auth/v1/callback"
-additional_redirect_uris = [
-  # Direct ports
-  "http://localhost:5642/auth/v1/callback",
-  # Localhost domains
-  "http://lmix-api.localhost/auth/v1/callback",
-  "https://lmix-api.localhost/auth/v1/callback",
-  # Public domains
-  "http://api.lmix.ai/auth/v1/callback",
-  "https://api.lmix.ai/auth/v1/callback",
-]
+redirect_uri = "env(OAUTH_REDIRECT_URI)"

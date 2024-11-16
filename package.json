@@ -6,7 +6,7 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "dev:migration": "npx supabase db diff -s public,extentions,storage,auth -f migration",
-    "dev:types": "npx supabase gen types --lang=typescript --local --schema public > types/gravity.ts",
+    "dev:types": "npx supabase gen types --lang=typescript --local --schema public > types/api.ts",
     "dev:update": "npx npm-check-updates -u",
     "generate": "nuxt generate",
     "preview": "nuxt preview",

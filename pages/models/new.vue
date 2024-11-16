@@ -14,7 +14,9 @@ useHead({
         <NavPanelSlideover class="xl:hidden" />
       </template>
     </UiPanelHeader>
-    <UiPanelContent />
+    <UiPanelContent>
+      <ModelsInsert />
+    </UiPanelContent>
   </UiPanel>
 </template>
 

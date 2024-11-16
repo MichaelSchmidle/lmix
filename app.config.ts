@@ -31,6 +31,11 @@ export default defineAppConfig({
         loadingIcon: 'i-ph-circle-notch',
       },
     },
+    card: {
+      body: {
+        base: 'space-y-6',
+      },
+    },
     container: {
       base: 'space-y-6 lg:space-y-12',
       constrained: 'max-w-prose',

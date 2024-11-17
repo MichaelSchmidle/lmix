@@ -145,60 +145,6 @@ export const useModelStore = defineStore('model', () => {
   }
 
   /**
-   * Updates a model with optimistic updates
-   * @param uuid Model identifier
-   * @param updates Partial model updates
-   * @throws {LMiXError} If model not found or API request fails
-   */
-  async function updateModel(uuid: string, updates: Partial<ModelCreate>) {
-    loading.value = true
-    error.value = null
-
-    const original = models.value.find(m => m.uuid === uuid)
-    if (!original) {
-      throw new LMiXError('Model not found', 'VALIDATION_ERROR', { uuid })
-    }
-
-    const index = models.value.findIndex(m => m.uuid === uuid)
-    if (index !== -1) {
-      models.value[index] = { ...models.value[index], ...updates }
-    }
-
-    try {
-      const client = useSupabaseClient<Database>()
-      const { data, error: apiError } = await client
-        .from('models')
-        .update(updates)
-        .eq('uuid', uuid)
-        .select()
-        .single()
-
-      if (apiError) throw new LMiXError(
-        apiError.message,
-        'API_ERROR',
-        apiError
-      )
-
-      if (index !== -1 && data) {
-        models.value[index] = data
-      }
-    }
-    catch (e) {
-      if (index !== -1) {
-        models.value[index] = original
-      }
-      error.value = e as LMiXError
-      if (import.meta.dev) {
-        console.error('Model update failed:', e)
-      }
-      throw e
-    }
-    finally {
-      loading.value = false
-    }
-  }
-
-  /**
    * Deletes a model with optimistic updates
    * @param uuid Model identifier
    * @throws {LMiXError} If API request fails
@@ -268,7 +214,6 @@ export const useModelStore = defineStore('model', () => {
     // Actions
     selectModels,
     insertModels,
-    updateModel,
     deleteModel,
     transformToFormOptions
   }

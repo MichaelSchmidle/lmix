@@ -73,6 +73,6 @@ async function handleDelete() {
       inside: Remove Model
     deleteModelConfirmation: Are you sure you want to delete {id}? This action cannot be undone.
     cancel: Cancel
-    success: Model removed
-    error: Failed to remove model
+    success: Model removed.
+    error: Failed to remove model.
 </i18n>

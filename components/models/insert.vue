@@ -137,6 +137,6 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
       label: Available Models
       required: At least one model is required.
     alreadyConfigured: This model is already configured.
-    modelAdded: One model added | {count} models added
+    modelAdded: 1 model added. | {count} models added.
     addModelsFailed: Failed to add models.
 </i18n>

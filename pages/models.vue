@@ -8,9 +8,8 @@ useHead(
   }
 )
 
-const modelItems = [
-  { icon: 'i-ph-circuitry', label: 'Models', slot: 'models' },
-]
+const modelStore = useModelStore()
+const { getModelNavigation } = storeToRefs(modelStore)
 </script>
 
 <template>
@@ -21,13 +20,14 @@ const modelItems = [
     <UiPanelHeader>
       {{ t('title') }}
     </UiPanelHeader>
-    <UiPanelContent>
+    <UiPanelContent v-auto-animate>
       <UButton block icon="i-ph-circuitry-duotone" :label="t('newModel')" to="/models/new" />
-      <UAccordion color="gray" default-open :items="modelItems" variant="ghost">
-        <template #models>
-          <NoData :message="t('noModels')" />
+      <UAccordion color="gray" default-open :items="getModelNavigation" variant="ghost" v-auto-animate>
+        <template #item="{ item }">
+          <UVerticalNavigation :links="item.content" />
         </template>
       </UAccordion>
+      <NoData v-if="!getModelNavigation.length" :message="t('noModels')" />
     </UiPanelContent>
   </UiPanel>
   <UiPanel v-if="route.path === '/models'">
@@ -44,6 +44,6 @@ const modelItems = [
 <i18n lang="yaml">
   en:
     title: Models
-    newModel: New Model
+    newModel: New Models
     noModels: No models yet
 </i18n>

@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <div class="flex-1 px-4 py-3 overflow-y-auto space-y-6">
+  <div class="flex-1 p-4 overflow-y-auto space-y-8">
     <slot />
   </div>
 </template>

@@ -39,11 +39,6 @@ const userItems = computed(() => {
         label: t('colorMode'),
         slot: 'colorMode',
       },
-      {
-        class: 'cursor-auto',
-        label: t('colorTheme'),
-        slot: 'colorTheme',
-      },
     ],
   ]
 
@@ -120,12 +115,6 @@ async function handleSignOut() {
         <div class="flex flex-1 items-center justify-between" @click.stop>
           <span class="cursor-text">{{ t('colorMode') }}</span>
           <UiColorModeToggle />
-        </div>
-      </template>
-      <template #colorTheme>
-        <div class="flex flex-1 items-center justify-between" @click.stop>
-          <span class="cursor-text">{{ t('colorTheme') }}</span>
-          <UiColorThemeToggle />
         </div>
       </template>
     </UDropdown>

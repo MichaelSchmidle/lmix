@@ -7,8 +7,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        "white": "var(--color-white)",
-        "black": "var(--color-black)",
+        "white": "#e7e6e7",
+        "black": "#19181b",
         "stone": { // indigo-based gray scale
           "950": "#1d1a23",
           "900": "#201d25",

@@ -53,7 +53,7 @@ async function signInWithOAuth(provider: OAuthProvider) {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-8">
     <UDivider>{{ t('title') }}</UDivider>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3">
       <UButton v-for="provider in providers" :key="provider.id" block :icon="provider.icon" :label="provider.label" size="xl" variant="soft" :disabled="!provider.enabled" :loading="loading === provider.id" @click="signInWithOAuth(provider)" />

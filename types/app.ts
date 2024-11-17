@@ -1,5 +1,29 @@
 import type { Database } from '@/types/api'
 
+export type ApiConfiguration = {
+  api_endpoint: string
+  api_key?: string
+}
+
+export type ApiModelList = {
+  data: ApiModel[]
+  object: 'list'
+}
+
+export type ApiModel = {
+  id: string
+}
+
+export type ApiModelOption = {
+  label: string
+  value: string
+  help?: string
+  attrs?: {
+    disabled?: boolean
+    [key: string]: any
+  }
+}
+
 // Core entities
 export type Model = Database['public']['Tables']['models']['Row']
 export type ModelInsert = Database['public']['Tables']['models']['Insert']

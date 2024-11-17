@@ -1,106 +1,60 @@
 <script setup lang="ts">
-import type { PropType } from 'vue'
-import type { Button, DeepPartial } from '#ui/types'
-
-defineOptions({
-  inheritAttrs: false
-})
-
-const props = defineProps({
+defineProps({
   icon: {
     type: String,
-    default: undefined
   },
   title: {
     type: String,
-    default: undefined
   },
   description: {
     type: String,
-    default: undefined
-  },
-  links: {
-    type: Array as PropType<(Button & { click?: (...args: any[]) => void })[]>,
-    default: () => []
   },
   orientation: {
     type: String as PropType<'vertical' | 'horizontal'>,
-    default: 'vertical'
-  },
-  class: {
-    type: [String, Object, Array] as PropType<any>,
-    default: undefined
-  },
-  ui: {
-    type: Object as PropType<DeepPartial<typeof config.value>>,
-    default: () => ({})
+    default: 'horizontal'
   }
 })
 
-const config = computed(() => {
-  const wrapper: string = ({
-    vertical: 'divide-y divide-gray-200 dark:divide-gray-800 space-y-6 *:pt-6 first:*:pt-2 mb-6',
-    horizontal: 'grid lg:grid-cols-3 pt-2 pb-6 items-start first:*:col-span-2 lg:first:*:col-span-1 last:*:col-span-2 gap-6'
-  })[props.orientation]
-
-  const container: string = ({
-    vertical: 'flex flex-wrap items-center justify-between gap-4',
-    horizontal: 'flex lg:flex-col justify-between flex-row flex-wrap gap-4'
-  })[props.orientation]
-
-  return {
-    wrapper,
-    container,
-    inner: 'flex items-start gap-4',
-    title: 'text-black dark:text-white font-semibold',
-    description: 'mt-1 text-sm text-gray-500 dark:text-gray-400',
-    links: 'flex flex-wrap items-center gap-1.5',
-    icon: {
-      wrapper: 'inline-flex',
-      base: 'w-12 h-12 flex-shrink-0 text-black dark:text-white'
-    }
+// Compute styles based on orientation
+const styles = computed(() => ({
+  wrapper: {
+    vertical: 'divide-y divide-gray-200 dark:divide-gray-800 space-y-3',
+    horizontal: 'grid md:grid-cols-3 items-start gap-4'
+  },
+  container: {
+    vertical: 'items-center',
+    horizontal: 'md:col-span-1 md:flex-col flex-row'
+  },
+  content: {
+    vertical: '',
+    horizontal: 'md:col-span-2'
   }
-})
-
-const { ui, attrs } = useUI('dashboard.section', toRef(props, 'ui'), config, toRef(props, 'class'), true)
+}))
 </script>
 
 <template>
-  <div :class="ui.wrapper" v-bind="attrs">
-    <div :class="ui.container">
-      <div :class="ui.inner">
-        <div v-if="icon || $slots.icon" :class="ui.icon.wrapper">
+  <div :class="['max-w-7xl', styles.wrapper[orientation]]">
+    <div :class="['flex flex-wrap gap-4', styles.container[orientation]]">
+      <div class="flex items-start gap-2">
+        <div v-if="icon || $slots.icon" class="inline-flex">
           <slot name="icon">
-            <UIcon :name="(icon as string)" :class="ui.icon.base" />
+            <UIcon v-if="icon" :name="icon" class="w-12 h-12 flex-shrink-0 text-black dark:text-white" />
           </slot>
         </div>
-
         <div>
-          <p v-if="title || $slots.title" :class="ui.title">
-            <slot name="title">
-              {{ title }}
-            </slot>
-          </p>
-
-          <div v-if="description || $slots.description" :class="ui.description">
-            <slot name="description">
-              {{ description }}
-            </slot>
+          <h4 v-if="title || $slots.title" class="text-black dark:text-white font-semibold">
+            <slot name="title">{{ title }}</slot>
+          </h4>
+          <div v-if="description || $slots.description" class="text-sm text-gray-500 dark:text-gray-400">
+            <slot name="description">{{ description }}</slot>
           </div>
         </div>
       </div>
-
-      <div v-if="links?.length || $slots.links" :class="ui.links">
-        <slot name="links">
-          <UButton v-for="(link, index) in links" :key="index" v-bind="link" @click="link.click" />
-        </slot>
-      </div>
     </div>
-
-    <slot />
+    <div :class="styles.content[orientation]">
+      <UContainer :ui="{ base: 'mx-0' }">
+        <slot />
+      </UContainer>
+    </div>
   </div>
 </template>
-
-<i18n lang="yaml">
-en:
-</i18n>

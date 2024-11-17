@@ -33,12 +33,18 @@ export default defineAppConfig({
     },
     card: {
       body: {
-        base: 'space-y-6',
+        base: 'px-4 sm:px-4 py-3 sm:py-3 space-y-8',
+      },
+      footer: {
+        base: 'px-4 sm:px-4 py-3 sm:py-3',
+      },
+      header: {
+        base: 'px-4 sm:px-4 py-3 sm:py-3',
       },
     },
     container: {
-      base: 'space-y-6 lg:space-y-12',
-      constrained: 'max-w-prose',
+      base: 'space-y-8 lg:space-y-12',
+      constrained: 'md:max-w-prose',
       padding: '',
     },
     divider: {
@@ -58,14 +64,6 @@ export default defineAppConfig({
     notifications: {
       // Show toasts at the top right of the screen
       position: 'top-0 bottom-[unset]'
-    },
-    page: {
-      hero: {
-        icon: {
-          base: 'h-12 w-12',
-        },
-        title: 'font-serif font-normal',
-      },
     },
     select: {
       default: {

@@ -1,0 +1,275 @@
+import { defineStore } from 'pinia'
+import type { Database } from '~/types/api'
+import type { ApiConfiguration, ApiModel, ApiModelOption } from '~/types/app'
+import { LMiXError } from '~/types/errors'
+import type { AccordionItem, VerticalNavigationLink } from '#ui/types'
+
+type Model = Database['public']['Tables']['models']['Row']
+type ModelCreate = Database['public']['Tables']['models']['Insert']
+
+/**
+ * Store for managing API model configurations
+ * Handles CRUD operations with optimistic updates and error handling
+ */
+export const useModelStore = defineStore('model', () => {
+  // State
+  const models = ref<Model[]>([])
+  const loading = ref(false)
+  const error = ref<LMiXError | null>(null)
+
+  // Getters
+  const getModel = computed(() => {
+    return (uuid: string) => models.value.find(m => m.uuid === uuid)
+  })
+
+  const getModelNavigation = computed(() => {
+    // Group models by API endpoint
+    const groupedModels = models.value.reduce((acc, model) => {
+      if (!acc[model.api_endpoint]) {
+        acc[model.api_endpoint] = []
+      }
+      acc[model.api_endpoint].push(model)
+      return acc
+    }, {} as Record<string, Model[]>)
+
+    // Sort endpoints alphabetically by hostname
+    return Object.entries(groupedModels)
+      .sort(([a], [b]) => new URL(a).hostname.localeCompare(new URL(b).hostname))
+      .map(([endpoint, endpointModels]): AccordionItem => {
+        // Sort models alphabetically by ID
+        const links: VerticalNavigationLink[] = endpointModels
+          .sort((a, b) => a.id.localeCompare(b.id))
+          .map(model => ({
+            label: model.id,
+            to: `/models/${model.uuid}`,
+          }))
+
+        return {
+          icon: 'i-ph-hard-drive',
+          content: links,
+          label: new URL(endpoint).hostname,
+        }
+      })
+  })
+
+  // Actions
+  /**
+   * Fetches all models from the database if not already loaded
+   * @throws {LMiXError} If API request fails
+   */
+  async function selectModels() {
+    if (models.value.length > 0) return
+
+    loading.value = true
+    error.value = null
+
+    try {
+      const client = useSupabaseClient<Database>()
+      const { data, error: apiError } = await client
+        .from('models')
+        .select()
+        .order('created_at', { ascending: false })
+
+      if (apiError) throw new LMiXError(
+        apiError.message,
+        'API_ERROR',
+        apiError
+      )
+
+      models.value = data
+    }
+    catch (e) {
+      error.value = e as LMiXError
+      if (import.meta.dev) {
+        console.error('Model selection failed:', e)
+      }
+      throw e
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Creates new models with optimistic updates
+   * @param modelsToInsert Array of models to create
+   * @throws {LMiXError} If API request fails
+   */
+  async function insertModels(modelsToInsert: ModelCreate[]) {
+    loading.value = true
+    error.value = null
+
+    const tempIds = modelsToInsert.map(() => crypto.randomUUID() as Model['uuid'])
+    const optimisticModels: Model[] = modelsToInsert.map((model, index) => ({
+      ...model,
+      uuid: tempIds[index],
+      created_at: new Date().toISOString(),
+      api_key: model.api_key ?? null
+    }))
+
+    models.value.unshift(...optimisticModels)
+
+    try {
+      const client = useSupabaseClient<Database>()
+      const { data, error: apiError } = await client
+        .from('models')
+        .insert(modelsToInsert)
+        .select()
+
+      if (apiError) throw new LMiXError(
+        apiError.message,
+        'API_ERROR',
+        apiError
+      )
+
+      if (data) {
+        tempIds.forEach((tempId, index) => {
+          const modelIndex = models.value.findIndex(m => m.uuid === tempId)
+          if (modelIndex !== -1 && data[index]) {
+            models.value[modelIndex] = data[index]
+          }
+        })
+      }
+    }
+    catch (e) {
+      models.value = models.value.filter(m => !tempIds.includes(m.uuid))
+      error.value = e as LMiXError
+      if (import.meta.dev) {
+        console.error('Model insertion failed:', e)
+      }
+      throw e
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Updates a model with optimistic updates
+   * @param uuid Model identifier
+   * @param updates Partial model updates
+   * @throws {LMiXError} If model not found or API request fails
+   */
+  async function updateModel(uuid: string, updates: Partial<ModelCreate>) {
+    loading.value = true
+    error.value = null
+
+    const original = models.value.find(m => m.uuid === uuid)
+    if (!original) {
+      throw new LMiXError('Model not found', 'VALIDATION_ERROR', { uuid })
+    }
+
+    const index = models.value.findIndex(m => m.uuid === uuid)
+    if (index !== -1) {
+      models.value[index] = { ...models.value[index], ...updates }
+    }
+
+    try {
+      const client = useSupabaseClient<Database>()
+      const { data, error: apiError } = await client
+        .from('models')
+        .update(updates)
+        .eq('uuid', uuid)
+        .select()
+        .single()
+
+      if (apiError) throw new LMiXError(
+        apiError.message,
+        'API_ERROR',
+        apiError
+      )
+
+      if (index !== -1 && data) {
+        models.value[index] = data
+      }
+    }
+    catch (e) {
+      if (index !== -1) {
+        models.value[index] = original
+      }
+      error.value = e as LMiXError
+      if (import.meta.dev) {
+        console.error('Model update failed:', e)
+      }
+      throw e
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Deletes a model with optimistic updates
+   * @param uuid Model identifier
+   * @throws {LMiXError} If API request fails
+   */
+  async function deleteModel(uuid: string) {
+    loading.value = true
+    error.value = null
+
+    const original = [...models.value]
+    models.value = models.value.filter(m => m.uuid !== uuid)
+
+    try {
+      const client = useSupabaseClient<Database>()
+      const { error: apiError } = await client
+        .from('models')
+        .delete()
+        .eq('uuid', uuid)
+
+      if (apiError) throw new LMiXError(
+        apiError.message,
+        'API_ERROR',
+        apiError
+      )
+    }
+    catch (e) {
+      models.value = original
+      error.value = e as LMiXError
+      if (import.meta.dev) {
+        console.error('Model deletion failed:', e)
+      }
+      throw e
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Transforms API models into form options with disabled state for existing models
+   * @param apiModels Array of API models
+   * @returns Array of form options with disabled state and help text
+   */
+  function transformToFormOptions(apiConfiguration: ApiConfiguration, apiModels: ApiModel[], help: string): ApiModelOption[] {
+    return apiModels.map(apiModel => {
+      // Check if model already exists in store
+      const existingModel = models.value.find(m =>
+        m.api_endpoint === apiConfiguration.api_endpoint && m.id === apiModel.id
+      )
+
+      return {
+        label: apiModel.id,
+        value: apiModel.id,
+        help: existingModel && help,
+        attrs: existingModel ? { disabled: true } : undefined
+      }
+    })
+  }
+
+  return {
+    // State
+    models,
+    loading,
+    error,
+    // Getters
+    getModel,
+    getModelNavigation,
+    // Actions
+    selectModels,
+    insertModels,
+    updateModel,
+    deleteModel,
+    transformToFormOptions
+  }
+})

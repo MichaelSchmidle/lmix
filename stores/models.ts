@@ -1,11 +1,8 @@
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
-import type { ApiConfiguration, ApiModel, ApiModelOption } from '~/types/app'
+import type { ApiConfiguration, ApiModel, ApiModelOption, Model, ModelInsert } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 import type { AccordionItem, VerticalNavigationLink } from '#ui/types'
-
-type Model = Database['public']['Tables']['models']['Row']
-type ModelCreate = Database['public']['Tables']['models']['Insert']
 
 /**
  * Store for managing API model configurations
@@ -28,6 +25,7 @@ export const useModelStore = defineStore('model', () => {
       if (!acc[model.api_endpoint]) {
         acc[model.api_endpoint] = []
       }
+
       acc[model.api_endpoint].push(model)
       return acc
     }, {} as Record<string, Model[]>)
@@ -52,6 +50,34 @@ export const useModelStore = defineStore('model', () => {
       })
   })
 
+  // Add new getter for form options
+  const getModelOptions = computed(() => {
+    // Group models by API endpoint
+    const groupedModels = models.value.reduce((acc, model) => {
+      if (!acc[model.api_endpoint]) {
+        acc[model.api_endpoint] = []
+      }
+      acc[model.api_endpoint].push(model)
+      return acc
+    }, {} as Record<string, Model[]>)
+
+    // Create options array with groups
+    return [
+      { label: 'Select a model…', value: '' },
+      ...Object.entries(groupedModels)
+        .sort(([a], [b]) => new URL(a).hostname.localeCompare(new URL(b).hostname))
+        .map(([endpoint, endpointModels]) => ({
+          group: new URL(endpoint).hostname,
+          options: endpointModels
+            .sort((a, b) => a.id.localeCompare(b.id))
+            .map(model => ({
+              label: model.id,
+              value: model.uuid,
+            })),
+        })),
+    ]
+  })
+
   // Actions
   /**
    * Fetches all models from the database if not already loaded
@@ -65,6 +91,7 @@ export const useModelStore = defineStore('model', () => {
 
     try {
       const client = useSupabaseClient<Database>()
+
       const { data, error: apiError } = await client
         .from('models')
         .select()
@@ -80,9 +107,11 @@ export const useModelStore = defineStore('model', () => {
     }
     catch (e) {
       error.value = e as LMiXError
+
       if (import.meta.dev) {
         console.error('Model selection failed:', e)
       }
+
       throw e
     }
     finally {
@@ -95,11 +124,12 @@ export const useModelStore = defineStore('model', () => {
    * @param modelsToInsert Array of models to create
    * @throws {LMiXError} If API request fails
    */
-  async function insertModels(modelsToInsert: ModelCreate[]): Promise<void> {
+  async function insertModels(modelsToInsert: ModelInsert[]): Promise<void> {
     loading.value = true
     error.value = null
 
     const tempIds = modelsToInsert.map(() => crypto.randomUUID() as Model['uuid'])
+
     const optimisticModels: Model[] = modelsToInsert.map((model, index) => ({
       ...model,
       uuid: tempIds[index],
@@ -111,6 +141,7 @@ export const useModelStore = defineStore('model', () => {
 
     try {
       const client = useSupabaseClient<Database>()
+
       const { data, error: apiError } = await client
         .from('models')
         .insert(modelsToInsert)
@@ -125,6 +156,7 @@ export const useModelStore = defineStore('model', () => {
       if (data) {
         tempIds.forEach((tempId, index) => {
           const modelIndex = models.value.findIndex(m => m.uuid === tempId)
+
           if (modelIndex !== -1 && data[index]) {
             models.value[modelIndex] = data[index]
           }
@@ -134,9 +166,11 @@ export const useModelStore = defineStore('model', () => {
     catch (e) {
       models.value = models.value.filter(m => !tempIds.includes(m.uuid))
       error.value = e as LMiXError
+
       if (import.meta.dev) {
         console.error('Model insertion failed:', e)
       }
+
       throw e
     }
     finally {
@@ -172,9 +206,11 @@ export const useModelStore = defineStore('model', () => {
     catch (e) {
       models.value = original
       error.value = e as LMiXError
+
       if (import.meta.dev) {
         console.error('Model deletion failed:', e)
       }
+
       throw e
     }
     finally {
@@ -211,6 +247,7 @@ export const useModelStore = defineStore('model', () => {
     // Getters
     getModel,
     getModelNavigation,
+    getModelOptions,
     // Actions
     selectModels,
     insertModels,

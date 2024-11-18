@@ -1,45 +1,35 @@
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
-import type { Persona } from '~/types/app'
+import type { Assistant } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 import type { VerticalNavigationLink } from '#ui/types'
 
-type PersonaRow = Database['public']['Tables']['personas']['Row']
-type PersonaUpsert = Database['public']['Tables']['personas']['Insert']
+type AssistantRow = Database['public']['Tables']['assistants']['Row']
+type AssistantUpsert = Database['public']['Tables']['assistants']['Insert']
 
-export const usePersonaStore = defineStore('persona', () => {
+export const useAssistantStore = defineStore('assistant', () => {
   // State
-  const personas = ref<PersonaRow[]>([])
+  const assistants = ref<AssistantRow[]>([])
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
 
   // Getters
-  const getPersona = computed(() => {
-    return (uuid: string) => personas.value.find(p => p.uuid === uuid)
+  const getAssistant = computed(() => {
+    return (uuid: string) => assistants.value.find(a => a.uuid === uuid)
   })
 
-  const getPersonaNavigation = computed(() => {
-    return personas.value
+  const getAssistantNavigation = computed(() => {
+    return assistants.value
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map((persona): VerticalNavigationLink => ({
-        label: persona.name,
-        to: `/personas/${persona.uuid}`,
+      .map((assistant): VerticalNavigationLink => ({
+        label: assistant.name,
+        to: `/assistants/${assistant.uuid}`,
       }))
   })
 
-  const getPersonaOptions = computed(() => [
-    { label: 'Select a persona…', value: '' },
-    ...personas.value
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map(persona => ({
-        label: persona.name,
-        value: persona.uuid,
-      })),
-  ])
-
   // Actions
-  async function selectPersonas(): Promise<void> {
-    if (personas.value.length > 0) return
+  async function selectAssistants(): Promise<void> {
+    if (assistants.value.length > 0) return
 
     loading.value = true
     error.value = null
@@ -48,7 +38,7 @@ export const usePersonaStore = defineStore('persona', () => {
       const client = useSupabaseClient<Database>()
 
       const { data, error: apiError } = await client
-        .from('personas')
+        .from('assistants')
         .select()
         .order('created_at', { ascending: false })
 
@@ -58,13 +48,13 @@ export const usePersonaStore = defineStore('persona', () => {
         apiError
       )
 
-      personas.value = data
+      assistants.value = data
     }
     catch (e) {
       error.value = e as LMiXError
 
       if (import.meta.dev) {
-        console.error('Persona selection failed:', e)
+        console.error('Assistant selection failed:', e)
       }
 
       throw e
@@ -74,36 +64,36 @@ export const usePersonaStore = defineStore('persona', () => {
     }
   }
 
-  async function upsertPersona(persona: PersonaUpsert): Promise<string | null> {
+  async function upsertAssistant(assistant: AssistantUpsert): Promise<string | null> {
     loading.value = true
     error.value = null
 
-    const isUpdate = !!persona.uuid
-    const original = [...personas.value]
+    const isUpdate = !!assistant.uuid
+    const original = [...assistants.value]
 
     if (isUpdate) {
-      const index = personas.value.findIndex(p => p.uuid === persona.uuid)
+      const index = assistants.value.findIndex(a => a.uuid === assistant.uuid)
 
       if (index !== -1) {
-        personas.value[index] = { ...personas.value[index], ...persona }
+        assistants.value[index] = { ...assistants.value[index], ...assistant }
       }
     }
     else {
       const tempId = crypto.randomUUID()
 
-      personas.value.unshift({
-        ...persona,
+      assistants.value.unshift({
+        ...assistant,
         uuid: tempId,
         created_at: new Date().toISOString(),
-      } as PersonaRow)
+      } as AssistantRow)
     }
 
     try {
       const client = useSupabaseClient<Database>()
 
       const { data, error: apiError } = await client
-        .from('personas')
-        .upsert(persona)
+        .from('assistants')
+        .upsert(assistant)
         .select()
 
       if (apiError) throw new LMiXError(
@@ -114,14 +104,14 @@ export const usePersonaStore = defineStore('persona', () => {
 
       if (data?.[0]) {
         if (isUpdate) {
-          const index = personas.value.findIndex(p => p.uuid === data[0].uuid)
+          const index = assistants.value.findIndex(a => a.uuid === data[0].uuid)
 
           if (index !== -1) {
-            personas.value[index] = data[0]
+            assistants.value[index] = data[0]
           }
         }
         else {
-          personas.value[0] = data[0]
+          assistants.value[0] = data[0]
         }
 
         return data[0].uuid
@@ -130,11 +120,11 @@ export const usePersonaStore = defineStore('persona', () => {
       return null
     }
     catch (e) {
-      personas.value = original
+      assistants.value = original
       error.value = e as LMiXError
 
       if (import.meta.dev) {
-        console.error('Persona upsert failed:', e)
+        console.error('Assistant upsert failed:', e)
       }
 
       throw e
@@ -144,18 +134,18 @@ export const usePersonaStore = defineStore('persona', () => {
     }
   }
 
-  async function deletePersona(uuid: string): Promise<void> {
+  async function deleteAssistant(uuid: string): Promise<void> {
     loading.value = true
     error.value = null
 
-    const original = [...personas.value]
-    personas.value = personas.value.filter(p => p.uuid !== uuid)
+    const original = [...assistants.value]
+    assistants.value = assistants.value.filter(a => a.uuid !== uuid)
 
     try {
       const client = useSupabaseClient<Database>()
 
       const { error: apiError } = await client
-        .from('personas')
+        .from('assistants')
         .delete()
         .eq('uuid', uuid)
 
@@ -166,11 +156,11 @@ export const usePersonaStore = defineStore('persona', () => {
       )
     }
     catch (e) {
-      personas.value = original
+      assistants.value = original
       error.value = e as LMiXError
 
       if (import.meta.dev) {
-        console.error('Persona deletion failed:', e)
+        console.error('Assistant deletion failed:', e)
       }
 
       throw e
@@ -182,16 +172,15 @@ export const usePersonaStore = defineStore('persona', () => {
 
   return {
     // State
-    personas,
+    assistants,
     loading,
     error,
     // Getters
-    getPersona,
-    getPersonaNavigation,
-    getPersonaOptions,
+    getAssistant,
+    getAssistantNavigation,
     // Actions
-    selectPersonas,
-    upsertPersona,
-    deletePersona,
+    selectAssistants,
+    upsertAssistant,
+    deleteAssistant,
   }
-})
+}) 

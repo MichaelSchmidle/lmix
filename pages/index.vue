@@ -7,6 +7,13 @@ useHead(
     title: user ? t('title') : t('meta.title'),
   }
 )
+
+definePageMeta({
+  middleware: [
+    'assistants',
+    'personas',
+  ],
+})
 </script>
 
 <template>

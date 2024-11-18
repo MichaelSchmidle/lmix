@@ -1,7 +1,14 @@
 <script setup lang="ts">
 const { t } = useI18n({ useScope: 'local' })
 const modelStore = useModelStore()
+const personaStore = usePersonaStore()
+
+definePageMeta({
+  middleware: 'personas',
+})
+
 const { models } = storeToRefs(modelStore)
+const { personas } = storeToRefs(personaStore)
 </script>
 
 <template>
@@ -11,15 +18,16 @@ const { models } = storeToRefs(modelStore)
       <ul class="prose-a:no-underline list-none">
         <li class="flex items-center gap-2">
           <UIcon v-if="models.length" class="h-5 text-lime-500 dark:text-lime-400 w-5" name="i-ph-check-circle-fill" />
-          <UIcon v-else class="h-5 text-gray-500 dark:text-gray-400 w-5" name="i-ph-circle" />
+          <UIcon v-else class="h-5 text-gray-500 dark:text-gray-400 w-5" name="i-ph-circle-duotone" />
           <UButton icon="i-ph-circuitry-duotone" :label="t('newModel')" to="/models/new" />
         </li>
         <li class="flex items-center gap-2">
-          <UIcon class="h-5 text-gray-500 dark:text-gray-400 w-5" name="i-ph-circle" />
+          <UIcon v-if="personas.length" class="h-5 text-lime-500 dark:text-lime-400 w-5" name="i-ph-check-circle-fill" />
+          <UIcon v-else class="h-5 text-gray-500 dark:text-gray-400 w-5" name="i-ph-circle-duotone" />
           <UButton icon="i-ph-mask-happy-duotone" :label="t('newPersona')" to="/personas/new" />
         </li>
         <li class="flex items-center gap-2">
-          <UIcon class="h-5 text-gray-500 dark:text-gray-400 w-5" name="i-ph-circle" />
+          <UIcon class="h-5 text-gray-500 dark:text-gray-400 w-5" name="i-ph-circle-duotone" />
           <UButton icon="i-ph-head-circuit-duotone" :label="t('newAssistant')" to="/assistants/new" />
         </li>
       </ul>

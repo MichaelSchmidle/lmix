@@ -52,9 +52,7 @@ const styles = computed(() => ({
       </div>
     </div>
     <div :class="styles.content[orientation]">
-      <UContainer :ui="{ base: 'mx-0' }">
-        <slot />
-      </UContainer>
+      <slot />
     </div>
   </div>
 </template>

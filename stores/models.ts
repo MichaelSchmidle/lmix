@@ -57,7 +57,7 @@ export const useModelStore = defineStore('model', () => {
    * Fetches all models from the database if not already loaded
    * @throws {LMiXError} If API request fails
    */
-  async function selectModels() {
+  async function selectModels(): Promise<void> {
     if (models.value.length > 0) return
 
     loading.value = true
@@ -95,7 +95,7 @@ export const useModelStore = defineStore('model', () => {
    * @param modelsToInsert Array of models to create
    * @throws {LMiXError} If API request fails
    */
-  async function insertModels(modelsToInsert: ModelCreate[]) {
+  async function insertModels(modelsToInsert: ModelCreate[]): Promise<void> {
     loading.value = true
     error.value = null
 
@@ -149,7 +149,7 @@ export const useModelStore = defineStore('model', () => {
    * @param uuid Model identifier
    * @throws {LMiXError} If API request fails
    */
-  async function deleteModel(uuid: string) {
+  async function deleteModel(uuid: string): Promise<void> {
     loading.value = true
     error.value = null
 

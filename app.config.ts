@@ -18,7 +18,7 @@ export default defineAppConfig({
 
     accordion: {
       default: {
-        class: 'hover:bg-gray-200 dark:hover:bg-gray-800 w-full',
+        class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold w-full',
         closeIcon: 'i-ph-caret-up',
         openIcon: 'i-ph-caret-down',
       },
@@ -27,20 +27,29 @@ export default defineAppConfig({
       },
     },
     button: {
+      color: {
+        gray: {
+          ghost: 'hover:bg-gray-100',
+        },
+      },
       default: {
         loadingIcon: 'i-ph-circle-notch',
       },
     },
     card: {
+      background: 'bg-white dark:bg-gray-900',
+      base: 'max-w-prose',
       body: {
         base: 'px-4 sm:px-4 py-3 sm:py-3 space-y-8',
       },
+      divide: 'divide-gray-100 dark:divide-gray-800',
       footer: {
         base: 'px-4 sm:px-4 py-3 sm:py-3',
       },
       header: {
         base: 'px-4 sm:px-4 py-3 sm:py-3',
       },
+      ring: 'ring-0',
     },
     container: {
       base: 'space-y-8 lg:space-y-12',

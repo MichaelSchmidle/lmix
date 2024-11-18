@@ -22,7 +22,7 @@ const { getModelNavigation } = storeToRefs(modelStore)
     </UiPanelHeader>
     <UiPanelContent v-auto-animate>
       <UButton block icon="i-ph-circuitry-duotone" :label="t('newModel')" to="/models/new" />
-      <UAccordion color="gray" default-open :items="getModelNavigation" variant="ghost" v-auto-animate>
+      <UAccordion v-if="getModelNavigation.length" color="gray" default-open :items="getModelNavigation" variant="ghost" v-auto-animate>
         <template #item="{ item }">
           <UVerticalNavigation :links="item.content" />
         </template>

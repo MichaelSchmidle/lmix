@@ -28,7 +28,7 @@ export const usePersonaStore = defineStore('persona', () => {
   })
 
   // Actions
-  async function selectPersonas() {
+  async function selectPersonas(): Promise<void> {
     if (personas.value.length > 0) return
 
     loading.value = true
@@ -61,13 +61,13 @@ export const usePersonaStore = defineStore('persona', () => {
     }
   }
 
-  async function upsertPersona(persona: PersonaUpsert) {
+  async function upsertPersona(persona: PersonaUpsert): Promise<string | null> {
     loading.value = true
     error.value = null
 
     const isUpdate = !!persona.uuid
     const original = [...personas.value]
-    
+
     if (isUpdate) {
       const index = personas.value.findIndex(p => p.uuid === persona.uuid)
       if (index !== -1) {
@@ -101,10 +101,13 @@ export const usePersonaStore = defineStore('persona', () => {
           if (index !== -1) {
             personas.value[index] = data[0]
           }
-        } else {
+        }
+        else {
           personas.value[0] = data[0]
         }
+        return data[0].uuid
       }
+      return null
     }
     catch (e) {
       personas.value = original
@@ -119,7 +122,7 @@ export const usePersonaStore = defineStore('persona', () => {
     }
   }
 
-  async function deletePersona(uuid: string) {
+  async function deletePersona(uuid: string): Promise<void> {
     loading.value = true
     error.value = null
 

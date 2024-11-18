@@ -3,6 +3,7 @@ import type { FormKitNode } from '@formkit/core'
 import type { ApiConfiguration, ApiModelList, ApiModelOption } from '@/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
+const user = useSupabaseUser()
 const toast = useToast()
 const modelStore = useModelStore()
 
@@ -48,15 +49,20 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
       id: modelId,
       api_endpoint: apiConfiguration.value!.api_endpoint,
       api_key: apiConfiguration.value!.api_key,
-      user_uuid: useSupabaseUser().value!.id
+      user_uuid: user.value!.id
     }))
 
     await modelStore.insertModels(modelsToInsert)
 
+    // Update options to reflect newly added models
+    apiModelOptions.value = modelStore.transformToFormOptions(
+      apiConfiguration.value,
+      apiModelOptions.value.map(option => ({ id: option.value })),
+      t('alreadyConfigured')
+    )
+
     // Reset form state
-    apiConfiguration.value = null
-    apiModelOptions.value = []
-    node.clearErrors()
+    node.reset()
 
     // Show success message
     toast.add({
@@ -82,10 +88,10 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
             {{ t('configureApi') }}
           </div>
         </UDivider>
-        <FormKit :incomplete-message="false" type="form" @submit="handleDiscoverModels">
+        <FormKit :actions="false" :incomplete-message="false" type="form" @submit="handleDiscoverModels">
           <FormKit type="text" name="api_endpoint" :label="t('apiEndpoint.label')" :help="t('apiEndpoint.help')" validation="required" :validation-messages="{ required: t('apiEndpoint.required') }" :disabled="apiModelOptions.length > 0" />
           <FormKit type="text" name="api_key" :label="t('apiKey.label')" :help="t('apiKey.help')" :disabled="apiModelOptions.length > 0" />
-          <template #actions="{ disabled }">
+          <template v-if="!apiModelOptions.length" #actions="{ disabled }">
             <UiFormActions>
               <UButton color="cyan" icon="i-ph-list-magnifying-glass" :label="t('discoverModels')" :loading="disabled as boolean" :disabled="apiModelOptions.length > 0" type="submit" />
             </UiFormActions>

@@ -28,17 +28,15 @@ useHead({
     <UiPanelContent>
       <UiSection icon="i-ph-circuitry-thin" :title="t('manageModel.title')" :description="t('manageModel.description')">
         <UCard>
-          <dl class="prose dark:prose-invert">
+          <dl class="prose dark:prose-invert w-full">
             <dt>{{ t('modelId') }}</dt>
             <dd>{{ model?.id }}</dd>
             <dt>{{ t('modelApiEndpoint') }}</dt>
             <dd><code>{{ model?.api_endpoint }}</code></dd>
           </dl>
-          <template #footer>
-            <UiFormActions>
-              <ModelsDeleteModal v-if="model" :model="model" @success="navigateTo('/models')" />
-            </UiFormActions>
-          </template>
+          <UiFormActions>
+            <ModelsDeleteModal v-if="model" :model="model" @success="navigateTo('/models')" />
+          </UiFormActions>
         </UCard>
       </UiSection>
     </UiPanelContent>

@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { Model } from '@/types/app'
+import type { Persona } from '@/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
-const modelStore = useModelStore()
+const personaStore = usePersonaStore()
 
 const props = defineProps({
-  model: {
-    type: Object as PropType<Model>,
+  persona: {
+    type: Object as PropType<Persona>,
     required: true,
   },
 })
@@ -20,7 +20,7 @@ const isDeleting = ref(false)
 async function handleDelete() {
   try {
     isDeleting.value = true
-    await modelStore.deleteModel(props.model.uuid)
+    await personaStore.deletePersona(props.persona.uuid)
 
     toast.add({
       color: 'lime',
@@ -46,20 +46,20 @@ async function handleDelete() {
 
 <template>
   <div>
-    <UButton color="gray" icon="i-ph-trash-duotone" :label="t('deleteModel.outside')" variant="ghost" @click="isOpen = true" />
+    <UButton color="gray" icon="i-ph-trash-duotone" :label="t('deletePersona.outside')" variant="ghost" @click="isOpen = true" />
     <UModal v-model="isOpen">
       <UCard :ui="{ body: { base: 'space-y-4' } }">
         <template #header>
-          {{ t('deleteModel.inside') }}
+          {{ t('deletePersona.inside') }}
         </template>
-        <i18n-t keypath="deleteModelConfirmation" tag="p" class="prose dark:prose-invert">
-          <template #id>
-            <code>{{ model.id }}</code>
+        <i18n-t keypath="deletePersonaConfirmation" tag="p" class="prose dark:prose-invert">
+          <template #name>
+            <code>{{ persona.name }}</code>
           </template>
         </i18n-t>
         <UiFormActions>
           <UButton color="gray" variant="ghost" :label="t('cancel')" @click="isOpen = false" />
-          <UButton color="rose" icon="i-ph-trash-duotone" :label="t('deleteModel.inside')" :loading="isDeleting" @click="handleDelete" />
+          <UButton color="rose" icon="i-ph-trash-duotone" :label="t('deletePersona.inside')" :loading="isDeleting" @click="handleDelete" />
         </UiFormActions>
       </UCard>
     </UModal>
@@ -68,11 +68,11 @@ async function handleDelete() {
 
 <i18n lang="yaml">
   en:
-    deleteModel:
-      outside: Remove Model…
-      inside: Remove Model
-    deleteModelConfirmation: Are you sure you want to delete {id}? This action cannot be undone.
+    deletePersona:
+      outside: Remove Persona…
+      inside: Remove Persona
+    deletePersonaConfirmation: Are you sure you want to delete {name}? This action cannot be undone.
     cancel: Cancel
-    success: Model removed.
-    error: Failed to remove model.
+    success: Persona removed.
+    error: Failed to remove persona.
 </i18n>

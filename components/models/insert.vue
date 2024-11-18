@@ -111,9 +111,7 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
                 <UButton type="button" color="gray" icon="i-ph-skip-back" variant="ghost" @click="apiModelOptions = []">
                   {{ t('configureApi') }}
                 </UButton>
-                <UButton type="submit" color="cyan" icon="i-ph-plus" :loading="disabled as boolean">
-                  Add Models
-                </UButton>
+                <UButton type="submit" color="cyan" icon="i-ph-plus" :label="t('addModels')" :loading="disabled as boolean" />
               </UiFormActions>
             </template>
           </FormKit>
@@ -143,6 +141,7 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
       label: Available Models
       required: At least one model is required.
     alreadyConfigured: This model is already configured.
+    addModels: Add
     modelAdded: 1 model added. | {count} models added.
     addModelsFailed: Failed to add models.
 </i18n>

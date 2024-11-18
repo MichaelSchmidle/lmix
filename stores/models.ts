@@ -1,13 +1,13 @@
+/**
+ * Store for managing API model configurations in the application.
+ * Handles CRUD operations and state management for API models.
+ */
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
 import type { ApiConfiguration, ApiModel, ApiModelOption, Model, ModelInsert } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 import type { AccordionItem, VerticalNavigationLink } from '#ui/types'
 
-/**
- * Store for managing API model configurations
- * Handles CRUD operations with optimistic updates and error handling
- */
 export const useModelStore = defineStore('model', () => {
   // State
   const models = ref<Model[]>([])
@@ -15,10 +15,18 @@ export const useModelStore = defineStore('model', () => {
   const error = ref<LMiXError | null>(null)
 
   // Getters
+  /**
+   * Returns a function to find a model by UUID
+   * @returns {(uuid: string) => Model | undefined} Function that takes a UUID and returns the matching model or undefined
+   */
   const getModel = computed(() => {
     return (uuid: string) => models.value.find(m => m.uuid === uuid)
   })
 
+  /**
+   * Returns navigation links for all models, grouped by API endpoint and sorted alphabetically
+   * @returns {AccordionItem[]} Array of accordion items containing navigation links
+   */
   const getModelNavigation = computed(() => {
     // Group models by API endpoint
     const groupedModels = models.value.reduce((acc, model) => {
@@ -50,7 +58,10 @@ export const useModelStore = defineStore('model', () => {
       })
   })
 
-  // Add new getter for form options
+  /**
+   * Returns select options for all models, grouped by API endpoint and sorted alphabetically
+   * @returns {Array<{label: string, value: string} | {group: string, options: Array<{label: string, value: string}>}>} Array of select options
+   */
   const getModelOptions = computed(() => {
     // Group models by API endpoint
     const groupedModels = models.value.reduce((acc, model) => {
@@ -78,6 +89,10 @@ export const useModelStore = defineStore('model', () => {
     ]
   })
 
+  /**
+   * Returns the total number of models
+   * @returns {number} Total count of models
+   */
   const getModelCount = computed(() => models.value.length)
 
   // Actions
@@ -123,7 +138,7 @@ export const useModelStore = defineStore('model', () => {
 
   /**
    * Creates new models with optimistic updates
-   * @param modelsToInsert Array of models to create
+   * @param {ModelInsert[]} modelsToInsert - Array of models to create
    * @throws {LMiXError} If API request fails
    */
   async function insertModels(modelsToInsert: ModelInsert[]): Promise<void> {
@@ -182,7 +197,7 @@ export const useModelStore = defineStore('model', () => {
 
   /**
    * Deletes a model with optimistic updates
-   * @param uuid Model identifier
+   * @param {string} uuid - Model identifier
    * @throws {LMiXError} If API request fails
    */
   async function deleteModel(uuid: string): Promise<void> {
@@ -222,8 +237,10 @@ export const useModelStore = defineStore('model', () => {
 
   /**
    * Transforms API models into form options with disabled state for existing models
-   * @param apiModels Array of API models
-   * @returns Array of form options with disabled state and help text
+   * @param {ApiConfiguration} apiConfiguration - API configuration object
+   * @param {ApiModel[]} apiModels - Array of API models to transform
+   * @param {string} help - Help text to display for disabled options
+   * @returns {ApiModelOption[]} Array of form options with disabled state and help text
    */
   function transformToFormOptions(apiConfiguration: ApiConfiguration, apiModels: ApiModel[], help: string): ApiModelOption[] {
     return apiModels.map(apiModel => {

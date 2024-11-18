@@ -9,7 +9,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="prose prose-sm dark:prose-invert opacity-25 py-6 text-center">
+  <div class="prose prose-sm max-w-none dark:prose-invert opacity-25 py-6 text-center">
     <p>
       <UIcon name="i-ph-placeholder-thin" class="h-8 w-8" />
     </p>

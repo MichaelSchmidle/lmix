@@ -16,7 +16,7 @@ const user = useSupabaseUser()
 
 const isUpdate = computed(() => !!props.persona)
 
-const handleSubmit = async (form: Partial<PersonaInsert>, node: FormKitNode) => {
+const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
   try {
     const uuid = await personaStore.upsertPersona({
       ...form,
@@ -67,7 +67,7 @@ const handleSubmit = async (form: Partial<PersonaInsert>, node: FormKitNode) => 
     descriptionUpdate: Update this persona’s perceptions and knowledge states.
     name:
       label: Name
-      required: Name is required
+      required: Name is required.
     selfPerception:
       label: Self Perception
       help: How the persona views themselves
@@ -80,7 +80,7 @@ const handleSubmit = async (form: Partial<PersonaInsert>, node: FormKitNode) => 
     publicKnowledge:
       label: Public Knowledge
       help: What others know for a fact about the persona
-    createPersona: Create Persona
+    createPersona: Create
     updatePersona: Update
     personaCreated: Persona created.
     personaUpdated: Persona updated.

@@ -18,7 +18,7 @@ defineProps({
 // Compute styles based on orientation
 const styles = computed(() => ({
   wrapper: {
-    vertical: 'divide-y divide-gray-200 dark:divide-gray-800 space-y-3',
+    vertical: 'space-y-3',
     horizontal: 'grid md:grid-cols-3 items-start gap-4'
   },
   container: {

@@ -21,7 +21,7 @@ const isUpdate = computed(() => !!props.assistant)
 const { getModelOptions } = storeToRefs(modelStore)
 const { getPersonaOptions } = storeToRefs(personaStore)
 
-const handleSubmit = async (form: Partial<AssistantInsert>, node: FormKitNode) => {
+const handleSubmit = async (form: AssistantInsert, node: FormKitNode) => {
   try {
     const uuid = await assistantStore.upsertAssistant({
       ...form,
@@ -71,16 +71,16 @@ const handleSubmit = async (form: Partial<AssistantInsert>, node: FormKitNode) =
     name:
       label: Name
       placeholder: Enter assistant name…
-      required: Name is required
+      required: Name is required.
     model:
       label: Model
       placeholder: Select a model…
-      required: Model is required
+      required: Model is required.
     persona:
       label: Persona
       placeholder: Select a persona…
-      required: Persona is required
-    createAssistant: Create Assistant
+      required: Persona is required.
+    createAssistant: Create
     updateAssistant: Update
     assistantCreated: Assistant created.
     assistantUpdated: Assistant updated.

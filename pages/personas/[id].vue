@@ -15,6 +15,11 @@ if (!persona) {
 useHead({
   title: t('title', { name: persona?.name }),
 })
+
+// Use middleware instead of direct store calls
+definePageMeta({
+  middleware: ['personas', 'relationships']
+})
 </script>
 
 <template>
@@ -27,12 +32,13 @@ useHead({
     </UiPanelHeader>
     <UiPanelContent>
       <PersonasUpsert :persona="persona" />
+      <PersonasRelationships v-if="persona" :persona="persona" />
     </UiPanelContent>
   </UiPanel>
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Persona {name}
-    personaNotFound: Persona not found
+en:
+  title: Persona {name}
+  personaNotFound: Persona not found
 </i18n>

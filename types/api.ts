@@ -270,47 +270,68 @@ export type Database = {
           },
         ]
       }
-      relationships: {
+      relationship_personas: {
         Row: {
           created_at: string
-          description: string
-          persona1_uuid: string
-          persona2_uuid: string
+          persona_uuid: string
+          relationship_uuid: string
           user_uuid: string
           uuid: string
         }
         Insert: {
           created_at?: string
-          description: string
-          persona1_uuid: string
-          persona2_uuid: string
+          persona_uuid: string
+          relationship_uuid: string
           user_uuid: string
           uuid?: string
         }
         Update: {
           created_at?: string
-          description?: string
-          persona1_uuid?: string
-          persona2_uuid?: string
+          persona_uuid?: string
+          relationship_uuid?: string
           user_uuid?: string
           uuid?: string
         }
         Relationships: [
           {
-            foreignKeyName: "relationships_persona1_uuid_fkey"
-            columns: ["persona1_uuid"]
+            foreignKeyName: "relationship_members_persona_uuid_fkey"
+            columns: ["persona_uuid"]
             isOneToOne: false
             referencedRelation: "personas"
             referencedColumns: ["uuid"]
           },
           {
-            foreignKeyName: "relationships_persona2_uuid_fkey"
-            columns: ["persona2_uuid"]
+            foreignKeyName: "relationship_members_relationship_uuid_fkey"
+            columns: ["relationship_uuid"]
             isOneToOne: false
-            referencedRelation: "personas"
+            referencedRelation: "relationships"
             referencedColumns: ["uuid"]
           },
         ]
+      }
+      relationships: {
+        Row: {
+          created_at: string
+          private_description: string | null
+          public_description: string | null
+          user_uuid: string
+          uuid: string
+        }
+        Insert: {
+          created_at?: string
+          private_description?: string | null
+          public_description?: string | null
+          user_uuid: string
+          uuid?: string
+        }
+        Update: {
+          created_at?: string
+          private_description?: string | null
+          public_description?: string | null
+          user_uuid?: string
+          uuid?: string
+        }
+        Relationships: []
       }
       scenarios: {
         Row: {

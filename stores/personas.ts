@@ -1,3 +1,7 @@
+/**
+ * Store for managing personas in the application.
+ * Handles CRUD operations and state management for personas.
+ */
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
 import type { Persona, PersonaInsert } from '~/types/app'
@@ -11,10 +15,17 @@ export const usePersonaStore = defineStore('persona', () => {
   const error = ref<LMiXError | null>(null)
 
   // Getters
+  /**
+   * Returns a function to find a persona by UUID
+   * @returns {(uuid: string) => Persona | undefined} Function that takes a UUID and returns the matching persona or undefined
+   */
   const getPersona = computed(() => {
     return (uuid: string) => personas.value.find(p => p.uuid === uuid)
   })
 
+  /**
+   * Returns navigation links for all personas, sorted alphabetically
+   */
   const getPersonaNavigation = computed(() => {
     return personas.value
       .sort((a, b) => a.name.localeCompare(b.name))
@@ -24,6 +35,9 @@ export const usePersonaStore = defineStore('persona', () => {
       }))
   })
 
+  /**
+   * Returns select options for all personas, sorted alphabetically
+   */
   const getPersonaOptions = computed(() => [
     { label: 'Select a persona…', value: '' },
     ...personas.value
@@ -34,9 +48,16 @@ export const usePersonaStore = defineStore('persona', () => {
       })),
   ])
 
+  /**
+   * Returns the total number of personas
+   */
   const getPersonaCount = computed(() => personas.value.length)
 
   // Actions
+  /**
+   * Fetches all personas from the database if not already loaded
+   * @throws {LMiXError} If the API request fails
+   */
   async function selectPersonas(): Promise<void> {
     if (personas.value.length > 0) return
 
@@ -73,23 +94,27 @@ export const usePersonaStore = defineStore('persona', () => {
     }
   }
 
+  /**
+   * Creates or updates a persona
+   * @param {PersonaInsert} persona - The persona data to create or update
+   * @returns {Promise<string | null>} The UUID of the created/updated persona, or null if unsuccessful
+   * @throws {LMiXError} If the API request fails
+   */
   async function upsertPersona(persona: PersonaInsert): Promise<string | null> {
     loading.value = true
     error.value = null
 
     const isUpdate = !!persona.uuid
     const original = [...personas.value]
+    let tempId: string | null = null
 
     if (isUpdate) {
       const index = personas.value.findIndex(p => p.uuid === persona.uuid)
-
       if (index !== -1) {
         personas.value[index] = { ...personas.value[index], ...persona }
       }
-    }
-    else {
-      const tempId = crypto.randomUUID()
-
+    } else {
+      tempId = crypto.randomUUID()
       personas.value.unshift({
         ...persona,
         uuid: tempId,
@@ -114,15 +139,15 @@ export const usePersonaStore = defineStore('persona', () => {
       if (data?.[0]) {
         if (isUpdate) {
           const index = personas.value.findIndex(p => p.uuid === data[0].uuid)
-
           if (index !== -1) {
             personas.value[index] = data[0]
           }
+        } else if (tempId) {
+          const tempIndex = personas.value.findIndex(p => p.uuid === tempId)
+          if (tempIndex !== -1) {
+            personas.value[tempIndex] = data[0]
+          }
         }
-        else {
-          personas.value[0] = data[0]
-        }
-
         return data[0].uuid
       }
 
@@ -131,11 +156,9 @@ export const usePersonaStore = defineStore('persona', () => {
     catch (e) {
       personas.value = original
       error.value = e as LMiXError
-
       if (import.meta.dev) {
         console.error('Persona upsert failed:', e)
       }
-
       throw e
     }
     finally {
@@ -143,6 +166,11 @@ export const usePersonaStore = defineStore('persona', () => {
     }
   }
 
+  /**
+   * Deletes a persona by UUID
+   * @param {string} uuid - The UUID of the persona to delete
+   * @throws {LMiXError} If the API request fails
+   */
   async function deletePersona(uuid: string): Promise<void> {
     loading.value = true
     error.value = null

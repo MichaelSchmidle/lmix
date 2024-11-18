@@ -23,6 +23,7 @@ const links = [
   { icon: 'i-ph-circuitry', label: t('models'), to: '/models' },
   { icon: 'i-ph-mask-happy', label: t('personas'), to: '/personas' },
   { icon: 'i-ph-head-circuit', label: t('assistants'), to: '/assistants' },
+  { icon: 'i-ph-share-network', label: t('relationships'), to: '/relationships' },
   { icon: 'i-ph-panorama', label: t('scenarios'), to: '/scenarios' },
   { icon: 'i-ph-planet', label: t('worlds'), to: '/worlds' },
 ]
@@ -137,6 +138,7 @@ async function handleSignOut() {
     models: Models
     personas: Personas
     assistants: Assistants
+    relationships: Relationships
     scenarios: Scenarios
     worlds: Worlds
     newProduction: New Production

@@ -65,3 +65,7 @@ export type ProductionPersonaUpdate = Database['public']['Tables']['production_p
 export type ProductionRelationship = Database['public']['Tables']['production_relationships']['Row']
 export type ProductionRelationshipInsert = Database['public']['Tables']['production_relationships']['Insert']
 export type ProductionRelationshipUpdate = Database['public']['Tables']['production_relationships']['Update']
+
+export type RelationshipPersona = Database['public']['Tables']['relationship_personas']['Row']
+export type RelationshipPersonaInsert = Database['public']['Tables']['relationship_personas']['Insert']
+export type RelationshipPersonaUpdate = Database['public']['Tables']['relationship_personas']['Update']

@@ -41,7 +41,6 @@ export const useScenarioStore = defineStore('scenario', () => {
    * @returns {Array<{label: string, value: string}>} Array of select options
    */
   const getScenarioOptions = computed(() => [
-    { label: 'Select a scenario…', value: '' },
     ...scenarios.value
       .sort((a, b) => a.name.localeCompare(b.name))
       .map(scenario => ({

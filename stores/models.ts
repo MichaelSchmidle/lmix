@@ -25,37 +25,40 @@ export const useModelStore = defineStore('model', () => {
 
   /**
    * Returns navigation links for all models, grouped by API endpoint and sorted alphabetically
+   * @param {string} [icon] Optional icon to use for accordion items
    * @returns {AccordionItem[]} Array of accordion items containing navigation links
    */
   const getModelNavigation = computed(() => {
-    // Group models by API endpoint
-    const groupedModels = models.value.reduce((acc, model) => {
-      if (!acc[model.api_endpoint]) {
-        acc[model.api_endpoint] = []
-      }
-
-      acc[model.api_endpoint].push(model)
-      return acc
-    }, {} as Record<string, Model[]>)
-
-    // Sort endpoints alphabetically by hostname
-    return Object.entries(groupedModels)
-      .sort(([a], [b]) => new URL(a).hostname.localeCompare(new URL(b).hostname))
-      .map(([endpoint, endpointModels]): AccordionItem => {
-        // Sort models alphabetically by ID
-        const links: VerticalNavigationLink[] = endpointModels
-          .sort((a, b) => a.id.localeCompare(b.id))
-          .map(model => ({
-            label: model.id,
-            to: `/models/${model.uuid}`,
-          }))
-
-        return {
-          icon: 'i-ph-hard-drive',
-          content: links,
-          label: new URL(endpoint).hostname,
+    return (icon?: string) => {
+      // Group models by API endpoint
+      const groupedModels = models.value.reduce((acc, model) => {
+        if (!acc[model.api_endpoint]) {
+          acc[model.api_endpoint] = []
         }
-      })
+
+        acc[model.api_endpoint].push(model)
+        return acc
+      }, {} as Record<string, Model[]>)
+
+      // Sort endpoints alphabetically by hostname
+      return Object.entries(groupedModels)
+        .sort(([a], [b]) => new URL(a).hostname.localeCompare(new URL(b).hostname))
+        .map(([endpoint, endpointModels]): AccordionItem => {
+          // Sort models alphabetically by ID
+          const links: VerticalNavigationLink[] = endpointModels
+            .sort((a, b) => a.id.localeCompare(b.id))
+            .map(model => ({
+              label: model.id,
+              to: `/models/${model.uuid}`,
+            }))
+
+          return {
+            ...(icon && { icon }),
+            content: links,
+            label: new URL(endpoint).hostname,
+          }
+        })
+    }
   })
 
   /**

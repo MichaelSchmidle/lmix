@@ -61,7 +61,7 @@ const handleSubmit = async (form: Partial<WorldInsert>, node: FormKitNode) => {
     titleCreate: Create World
     titleUpdate: Update
     descriptionCreate: Create a new world to define the stage for your interactions.
-    descriptionUpdate: Update this world's configuration.
+    descriptionUpdate: Update this world’s configuration.
     name:
       label: Name
       placeholder: Enter world name…

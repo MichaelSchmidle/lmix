@@ -7,7 +7,9 @@ useHead({
 })
 
 definePageMeta({
-  middleware: ['assistants'],
+  middleware: [
+    'assistants',
+  ],
 })
 
 const assistantStore = useAssistantStore()
@@ -24,8 +26,8 @@ const { getAssistantNavigation } = storeToRefs(assistantStore)
     </UiPanelHeader>
     <UiPanelContent v-auto-animate>
       <UButton block icon="i-ph-head-circuit-duotone" :label="t('newAssistant')" to="/assistants/new" />
-      <UVerticalNavigation :links="getAssistantNavigation" />
-      <NoData v-if="!getAssistantNavigation.length" :message="t('noAssistants')" />
+      <UVerticalNavigation :links="getAssistantNavigation()" />
+      <NoData v-if="!getAssistantNavigation().length" :message="t('noAssistants')" />
     </UiPanelContent>
   </UiPanel>
   <UiPanel v-if="route.path === '/assistants'">

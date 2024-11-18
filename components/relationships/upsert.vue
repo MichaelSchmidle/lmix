@@ -53,6 +53,7 @@ const handleSubmit = async (form: RelationshipInsert, node: FormKitNode) => {
   <UiSection icon="i-ph-share-network-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleCreate')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionCreate')">
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="formData">
+        <FormKit type="text" name="name" :label="t('name.label')" />
         <FormKit type="taglist" :options="getPersonaOptions" v-model="selectedPersonas" :label="t('personas.label')" :placeholder="t('personas.placeholder')" validation="min:2" :validation-messages="{ min: t('personas.minimum') }" />
         <FormKit type="textarea" name="public_description" :label="t('publicDescription.label')" />
         <FormKit type="textarea" name="private_description" :label="t('privateDescription.label')" />
@@ -72,7 +73,9 @@ const handleSubmit = async (form: RelationshipInsert, node: FormKitNode) => {
     titleCreate: Create Relationship
     titleUpdate: Update
     descriptionCreate: Create a new relationship between personas.
-    descriptionUpdate: Update this relationship's configuration.
+    descriptionUpdate: Update this relationship’s configuration.
+    name:
+      label: Name
     personas:
       label: Personas
       placeholder: Select personas…

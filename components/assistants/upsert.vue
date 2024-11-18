@@ -49,8 +49,8 @@ const handleSubmit = async (form: AssistantInsert, node: FormKitNode) => {
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="assistant">
         <FormKit type="text" name="name" :label="t('name.label')" validation="required" :validation-messages="{ required: t('name.required') }" />
-        <FormKit type="select" name="model_uuid" :label="t('model.label')" :placeholder="t('model.placeholder')" validation="required" :validation-messages="{ required: t('model.required') }" :options="getModelOptions" />
-        <FormKit type="select" name="persona_uuid" :label="t('persona.label')" :placeholder="t('persona.placeholder')" validation="required" :validation-messages="{ required: t('persona.required') }" :options="getPersonaOptions" />
+        <FormKit type="dropdown" name="model_uuid" :label="t('model.label')" :placeholder="t('model.placeholder')" validation="required" :validation-messages="{ required: t('model.required') }" :options="getModelOptions" />
+        <FormKit type="dropdown" name="persona_uuid" :label="t('persona.label')" :placeholder="t('persona.placeholder')" validation="required" :validation-messages="{ required: t('persona.required') }" :options="getPersonaOptions" />
         <template #actions>
           <UiFormActions>
             <AssistantsDeleteModal v-if="assistant" :assistant="assistant" @success="navigateTo('/assistants/new')" />

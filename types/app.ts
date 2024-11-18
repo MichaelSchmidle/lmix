@@ -69,3 +69,34 @@ export type ProductionRelationshipUpdate = Database['public']['Tables']['product
 export type RelationshipPersona = Database['public']['Tables']['relationship_personas']['Row']
 export type RelationshipPersonaInsert = Database['public']['Tables']['relationship_personas']['Insert']
 export type RelationshipPersonaUpdate = Database['public']['Tables']['relationship_personas']['Update']
+
+// Extended insert type that includes relationship UUIDs
+export type ProductionWithRelationsInsert = ProductionInsert & {
+  // These match the form field names in the component
+  production_assistant_uuids?: string[]
+  production_persona_uuids?: string[]
+  production_relationship_uuids?: string[]
+}
+
+// Extended type with full relations (for responses)
+export type ProductionWithRelations = Production & {
+  world?: World | null
+  scenario?: Scenario | null
+  production_assistants: {
+    uuid: string
+    assistant: Assistant
+  }[]
+  production_personas?: {
+    uuid: string
+    persona: Persona
+  }[]
+  production_relationships?: {
+    uuid: string
+    relationship: Relationship & {
+      relationship_personas?: {
+        uuid: string
+        persona: Persona
+      }[]
+    }
+  }[]
+}

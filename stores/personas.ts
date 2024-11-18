@@ -24,22 +24,38 @@ export const usePersonaStore = defineStore('persona', () => {
   })
 
   /**
-   * Returns navigation links for all personas, sorted alphabetically
+   * Returns navigation links for personas, sorted alphabetically
+   * @param filterPersonas Optional array of personas to filter by
+   * @param icon Optional icon to use for navigation links
+   * @returns Array of navigation links for either all personas or specified personas
    */
   const getPersonaNavigation = computed(() => {
-    return personas.value
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((persona): VerticalNavigationLink => ({
-        label: persona.name,
-        to: `/personas/${persona.uuid}`,
-      }))
+    return (filterPersonas?: {
+      uuid: string;
+      persona: {
+        created_at: string;
+        name: string;
+        uuid: string;
+      };
+    }[], icon?: string) => {
+      const personaList = filterPersonas
+        ? filterPersonas.map(p => p.persona)
+        : personas.value
+
+      return personaList
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((persona): VerticalNavigationLink => ({
+          label: persona.name,
+          to: `/personas/${persona.uuid}`,
+          ...(icon && { icon }),
+        }))
+    }
   })
 
   /**
    * Returns select options for all personas, sorted alphabetically
    */
   const getPersonaOptions = computed(() => [
-    { label: 'Select a persona…', value: '' },
     ...personas.value
       .sort((a, b) => a.name.localeCompare(b.name))
       .map(persona => ({

@@ -14,8 +14,9 @@ const assistantStore = useAssistantStore()
 
 definePageMeta({
   middleware: [
-    'assistants',
     'personas',
+    'assistants',
+    'relationships',
     'scenarios',
     'worlds',
   ],
@@ -52,7 +53,7 @@ const { getAssistantCount } = assistantStore
         </Hero>
         <OAuth v-if="!user" />
         <FirstSteps v-else-if="!getModelCount || !getPersonaCount || !getAssistantCount" />
-        <ProductionsUpsert v-else orientation="vertical" />
+        <ProductionsUpsert v-else />
       </UContainer>
     </UiPanelContent>
   </UiPanel>

@@ -51,7 +51,7 @@ const styles = computed(() => ({
         </div>
       </div>
     </div>
-    <div :class="styles.content[orientation]">
+    <div :class="['space-y-3', styles.content[orientation]]">
       <slot />
     </div>
   </div>

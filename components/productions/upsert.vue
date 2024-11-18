@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FormKitNode } from '@formkit/core'
-import type { Production, ProductionInsert } from '@/types/app'
+import type { Production, ProductionWithRelationsInsert } from '@/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
@@ -10,6 +10,7 @@ const worldStore = useWorldStore()
 const scenarioStore = useScenarioStore()
 const assistantStore = useAssistantStore()
 const personaStore = usePersonaStore()
+const relationshipStore = useRelationshipStore()
 
 const props = defineProps({
   production: {
@@ -22,16 +23,24 @@ const { getWorldOptions } = storeToRefs(worldStore)
 const { getScenarioOptions } = storeToRefs(scenarioStore)
 const { getAssistantOptions } = storeToRefs(assistantStore)
 const { getPersonaOptions } = storeToRefs(personaStore)
-
+const { getRelationshipOptions } = storeToRefs(relationshipStore)
 const isUpdate = computed(() => !!props.production)
+const isExtended = ref(false)
 
-const handleSubmit = async (form: ProductionInsert, node: FormKitNode) => {
+const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNode) => {
   try {
-    const uuid = await productionStore.upsertProduction({
-      ...form,
-      uuid: props.production?.uuid,
-      user_uuid: user.value!.id,
-    } as ProductionInsert)
+    const uuid = await productionStore.upsertProduction(
+      {
+        ...form,
+        uuid: props.production?.uuid,
+        user_uuid: user.value!.id,
+      } as ProductionWithRelationsInsert,
+      {
+        assistantUuids: form.production_assistant_uuids || [],
+        personaUuids: form.production_persona_uuids || [],
+        relationshipUuids: form.production_relationship_uuids || [],
+      }
+    )
 
     toast.add({
       color: 'lime',
@@ -49,12 +58,20 @@ const handleSubmit = async (form: ProductionInsert, node: FormKitNode) => {
 </script>
 
 <template>
-  <UiSection icon="i-ph-film-script-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleCreate')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionCreate')">
+  <UiSection icon="i-ph-film-script-thin" :title="t('titleCreate')" :description="t('descriptionCreate')" orientation="vertical">
+    <div class="flex justify-end px-4">
+      <UCheckbox v-model="isExtended" :label="t('isExtended.label')" />
+    </div>
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="production">
         <FormKit type="text" name="name" :label="t('name.label')" />
-        <FormKit type="select" name="world_uuid" :label="t('world.label')" :options="getWorldOptions" />
-        <FormKit type="select" name="scenario_uuid" :label="t('scenario.label')" :options="getScenarioOptions" />
+        <FormKit type="taglist" name="production_assistant_uuids" :label="t('assistants.label')" :options="getAssistantOptions" :placeholder="t('assistants.placeholder')" validation="required" :validation-messages="{ required: t('assistants.required') }" />
+        <FormKit type="dropdown" name="scenario_uuid" :label="t('scenario.label')" :options="getScenarioOptions" :placeholder="t('scenario.placeholder')" />
+        <template v-if="isExtended">
+          <FormKit type="taglist" name="production_persona_uuids" :label="t('personas.label')" :help="t('personas.help')" :options="getPersonaOptions" :placeholder="t('personas.placeholder')" />
+          <FormKit type="taglist" name="production_relationship_uuids" :label="t('relationships.label')" :options="getRelationshipOptions" :placeholder="t('relationships.placeholder')" />
+          <FormKit type="dropdown" name="world_uuid" :label="t('world.label')" :options="getWorldOptions" :placeholder="t('world.placeholder')" />
+        </template>
         <template #actions>
           <UiFormActions>
             <ProductionsDeleteModal v-if="production" :production="production" @success="navigateTo('/productions/new')" />
@@ -70,15 +87,29 @@ const handleSubmit = async (form: ProductionInsert, node: FormKitNode) => {
   en:
     titleCreate: Create Production
     titleUpdate: Update Production
-    descriptionCreate: Create a new production and bring your personas to life.
-    descriptionUpdate: Update this production's configuration.
+    descriptionCreate: Bring personas, scenarios and worlds to life with a new production.
+    descriptionUpdate: Update this production’s configuration.
     name:
       label: Name
-      required: Name is required.
-    world:
-      label: World
+    assistants:
+      label: Assistants
+      placeholder: Select an assistant…
+      required: At least one assistant is required.
     scenario:
       label: Scenario
+      placeholder: Select a scenario…
+    personas:
+      label: Personas
+      help: Add the personas that you as user will represent in this production.
+      placeholder: Select a persona…
+    relationships:
+      label: Relationships
+      placeholder: Select a relationship…
+    world:
+      label: World
+      placeholder: Select a world…
+    isExtended:
+      label: Show extended settings
     createProduction: Create
     updateProduction: Update
     productionCreated: Production created.

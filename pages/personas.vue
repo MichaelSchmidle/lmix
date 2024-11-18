@@ -24,8 +24,8 @@ const { getPersonaNavigation } = storeToRefs(personaStore)
     </UiPanelHeader>
     <UiPanelContent v-auto-animate>
       <UButton block icon="i-ph-mask-happy-duotone" :label="t('newPersona')" to="/personas/new" />
-      <UVerticalNavigation :links="getPersonaNavigation" />
-      <NoData v-if="!getPersonaNavigation.length" :message="t('noPersonas')" />
+      <UVerticalNavigation :links="getPersonaNavigation()" />
+      <NoData v-if="!getPersonaNavigation().length" :message="t('noPersonas')" />
     </UiPanelContent>
   </UiPanel>
   <UiPanel v-if="route.path === '/personas'">

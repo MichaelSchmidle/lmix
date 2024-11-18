@@ -4,6 +4,7 @@ import type { Production } from '@/types/app'
 const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
 const productionStore = useProductionStore()
+const { getProductionLabel } = storeToRefs(productionStore)
 
 const props = defineProps({
   production: {
@@ -53,8 +54,8 @@ async function handleDelete() {
           {{ t('title') }}
         </template>
         <i18n-t keypath="deleteProductionConfirmation" tag="p" class="prose dark:prose-invert">
-          <template #name>
-            <code>{{ production.name }}</code>
+          <template #label>
+            <code>{{ getProductionLabel(production) }}</code>
           </template>
         </i18n-t>
         <UiFormActions>
@@ -72,7 +73,7 @@ async function handleDelete() {
     deleteProduction:
       outside: Remove…
       inside: Remove
-    deleteProductionConfirmation: Are you sure you want to remove {name}? This action cannot be undone.
+    deleteProductionConfirmation: Are you sure you want to remove {label}? This action cannot be undone.
     cancel: Cancel
     success: Production removed.
     error: Failed to remove production.

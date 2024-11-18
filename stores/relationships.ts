@@ -38,11 +38,20 @@ export const useRelationshipStore = defineStore('relationship', () => {
   })
 
   /**
-   * Returns a formatted label for a relationship by combining persona names
+   * Returns a formatted label for a relationship, using either the relationship name
+   * or a concatenation of persona names as fallback
    * @returns {(relationshipUuid: string) => string} Function that takes a relationship UUID and returns formatted label
    */
   const getRelationshipLabel = computed(() => {
     return (relationshipUuid: string) => {
+      const relationship = getRelationship.value(relationshipUuid)
+
+      // Return relationship name if it exists
+      if (relationship?.name) {
+        return relationship.name
+      }
+
+      // Fall back to persona names concatenation
       const personaUuids = getRelationshipPersonas.value(relationshipUuid)
       return personaUuids
         .map(uuid => getPersona.value(uuid)?.name ?? 'Unknown')
@@ -52,17 +61,51 @@ export const useRelationshipStore = defineStore('relationship', () => {
   })
 
   /**
-   * Returns navigation links for all relationships, sorted alphabetically by label
-   * @returns {VerticalNavigationLink[]} Array of navigation links
+   * Returns navigation links for relationships, sorted alphabetically
+   * @param filterRelationships Optional array of relationships to filter by
+   * @param icon Optional icon to use for navigation links
+   * @returns Array of navigation links for either all relationships or specified relationships
    */
   const getRelationshipNavigation = computed(() => {
-    return relationships.value
-      .sort((a, b) => getRelationshipLabel.value(a.uuid).localeCompare(getRelationshipLabel.value(b.uuid)))
-      .map((relationship): VerticalNavigationLink => ({
-        label: getRelationshipLabel.value(relationship.uuid),
-        to: `/relationships/${relationship.uuid}`,
-      }))
+    return (filterRelationships?: {
+      uuid: string;
+      relationship: {
+        created_at: string;
+        name: string | null;
+        private_description: string | null;
+        public_description: string | null;
+        user_uuid: string;
+        uuid: string;
+        relationship_personas?: {
+          [key: string]: any;
+        }[] | undefined;
+      };
+    }[], icon?: string) => {
+      const relationshipList = filterRelationships
+        ? filterRelationships.map(r => r.relationship)
+        : relationships.value
+
+      return relationshipList
+        .sort((a, b) => getRelationshipLabel.value(a.uuid).localeCompare(getRelationshipLabel.value(b.uuid)))
+        .map((relationship): VerticalNavigationLink => ({
+          label: getRelationshipLabel.value(relationship.uuid),
+          to: `/relationships/${relationship.uuid}`,
+          ...(icon && { icon }),
+        }))
+    }
   })
+
+  /**
+   * Returns select options for all relationships, sorted alphabetically by name
+   */
+  const getRelationshipOptions = computed(() => [
+    ...relationships.value
+      .sort((a, b) => getRelationshipLabel.value(a.uuid).localeCompare(getRelationshipLabel.value(b.uuid)))
+      .map(relationship => ({
+        label: getRelationshipLabel.value(relationship.uuid),
+        value: relationship.uuid,
+      })),
+  ])
 
   /**
    * Returns relationships associated with a specific persona
@@ -327,6 +370,7 @@ export const useRelationshipStore = defineStore('relationship', () => {
     getRelationshipPersonas,
     getRelationshipLabel,
     getRelationshipNavigation,
+    getRelationshipOptions,
     getRelationshipsByPersona,
     // Actions
     selectRelationships,

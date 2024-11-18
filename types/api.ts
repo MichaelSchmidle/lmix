@@ -312,6 +312,7 @@ export type Database = {
       relationships: {
         Row: {
           created_at: string
+          name: string | null
           private_description: string | null
           public_description: string | null
           user_uuid: string
@@ -319,6 +320,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          name?: string | null
           private_description?: string | null
           public_description?: string | null
           user_uuid: string
@@ -326,6 +328,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          name?: string | null
           private_description?: string | null
           public_description?: string | null
           user_uuid?: string
@@ -386,7 +389,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      upsert_production_with_relationships: {
+        Args: {
+          production_data: Json
+          assistant_uuids: string[]
+          persona_uuids: string[]
+          relationship_uuids: string[]
+        }
+        Returns: Json[]
+      }
     }
     Enums: {
       [_ in never]: never

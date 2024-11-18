@@ -18,7 +18,7 @@ export default defineAppConfig({
 
     accordion: {
       default: {
-        class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold w-full',
+        class: 'w-full',
         closeIcon: 'i-ph-caret-up',
         openIcon: 'i-ph-caret-down',
       },

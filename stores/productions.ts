@@ -4,13 +4,13 @@
  */
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
-import type { Production, ProductionInsert } from '~/types/app'
+import type { Production, ProductionInsert, ProductionWithRelations } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 import type { VerticalNavigationLink } from '#ui/types'
 
 export const useProductionStore = defineStore('production', () => {
   // State
-  const productions = ref<Production[]>([])
+  const productions = ref<ProductionWithRelations[]>([])
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
 
@@ -24,14 +24,30 @@ export const useProductionStore = defineStore('production', () => {
   })
 
   /**
-   * Returns navigation links for all productions, sorted alphabetically by name
+   * Returns a formatted label for a production, using either the production name
+   * or the creation date/time as fallback
+   * @returns {(production: Production) => string} Function that returns formatted label
+   */
+  const getProductionLabel = computed(() => {
+    return (production: Production) => {
+      if (production.name) {
+        return production.name
+      }
+
+      // Fall back to formatted creation date and time
+      return new Date(production.created_at).toLocaleString()
+    }
+  })
+
+  /**
+   * Returns navigation links for all productions, sorted alphabetically by label
    * @returns {VerticalNavigationLink[]} Array of navigation links
    */
   const getProductionNavigation = computed(() => {
     return productions.value
-      .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''))
+      .sort((a, b) => getProductionLabel.value(a).localeCompare(getProductionLabel.value(b)))
       .map((production): VerticalNavigationLink => ({
-        label: production.name ?? '',
+        label: getProductionLabel.value(production),
         to: `/productions/${production.uuid}`,
       }))
   })
@@ -44,9 +60,8 @@ export const useProductionStore = defineStore('production', () => {
 
   // Actions
   /**
-   * Fetches all productions from the database if not already loaded
-   * Includes related world, scenario and assistant data
-   * @throws {LMiXError} If the API request fails
+   * Fetches all productions with their relationships from the database
+   * Includes related world, scenario, assistants, personas, and relationships data
    */
   async function selectProductions(): Promise<void> {
     if (productions.value.length > 0) return
@@ -63,17 +78,31 @@ export const useProductionStore = defineStore('production', () => {
           *,
           world:worlds(*),
           scenario:scenarios(*),
-          assistants:production_assistants(*)
+          production_assistants(
+            uuid,
+            assistant:assistants(*)
+          ),
+          production_personas(
+            uuid,
+            persona:personas(*)
+          ),
+          production_relationships(
+            uuid,
+            relationship:relationships(
+              *,
+              relationship_personas(
+                uuid,
+                persona:personas(*)
+              )
+            )
+          )
         `)
         .order('created_at', { ascending: false })
+        .returns<ProductionWithRelations[]>()
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
-        'API_ERROR',
-        apiError
-      )
+      if (apiError) throw new LMiXError(apiError.message, 'API_ERROR', apiError)
 
-      productions.value = data
+      productions.value = data ?? []
     }
     catch (e) {
       error.value = e as LMiXError
@@ -86,12 +115,21 @@ export const useProductionStore = defineStore('production', () => {
   }
 
   /**
-   * Creates or updates a production in the database
+   * Creates or updates a production with its relationships
    * @param {ProductionInsert} production - The production data to upsert
-   * @returns {Promise<string | null>} The UUID of the upserted production, or null if unsuccessful
-   * @throws {LMiXError} If the API request fails
+   * @param {Object} options - Additional options for related data
+   * @param {string[]} options.assistantUuids - UUIDs of related assistants
+   * @param {string[]} options.personaUuids - UUIDs of related personas
+   * @param {string[]} options.relationshipUuids - UUIDs of related relationships
    */
-  async function upsertProduction(production: ProductionInsert): Promise<string | null> {
+  async function upsertProduction(
+    production: ProductionInsert,
+    options: {
+      assistantUuids?: string[]
+      personaUuids?: string[]
+      relationshipUuids?: string[]
+    } = {}
+  ): Promise<string | null> {
     loading.value = true
     error.value = null
 
@@ -102,44 +140,53 @@ export const useProductionStore = defineStore('production', () => {
     if (isUpdate) {
       const index = productions.value.findIndex(p => p.uuid === production.uuid)
       if (index !== -1) {
-        productions.value[index] = { ...productions.value[index], ...production }
+        productions.value[index] = {
+          ...productions.value[index],
+          ...production
+        }
       }
     } else {
       tempId = crypto.randomUUID()
+      // Create a temporary production with required relations
       productions.value.unshift({
         ...production,
         uuid: tempId,
         created_at: new Date().toISOString(),
-      } as Production)
+        // Add required production_assistants array
+        production_assistants: [],
+        // Add optional relations as empty arrays
+        production_personas: [],
+        production_relationships: []
+      } as ProductionWithRelations)
     }
 
     try {
       const client = useSupabaseClient<Database>()
 
       const { data, error: apiError } = await client
-        .from('productions')
-        .upsert(production)
-        .select()
+        .rpc('upsert_production_with_relationships', {
+          production_data: production,
+          assistant_uuids: options.assistantUuids || [],
+          persona_uuids: options.personaUuids || [],
+          relationship_uuids: options.relationshipUuids || []
+        })
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
-        'API_ERROR',
-        apiError
-      )
+      if (apiError) throw new LMiXError(apiError.message, 'API_ERROR', apiError)
 
       if (data?.[0]) {
+        const updatedProduction = data[0] as ProductionWithRelations // Type the response
         if (isUpdate) {
-          const index = productions.value.findIndex(p => p.uuid === data[0].uuid)
+          const index = productions.value.findIndex(p => p.uuid === updatedProduction.uuid)
           if (index !== -1) {
-            productions.value[index] = data[0]
+            productions.value[index] = updatedProduction
           }
         } else if (tempId) {
           const tempIndex = productions.value.findIndex(p => p.uuid === tempId)
           if (tempIndex !== -1) {
-            productions.value[tempIndex] = data[0]
+            productions.value[tempIndex] = updatedProduction
           }
         }
-        return data[0].uuid
+        return updatedProduction.uuid
       }
 
       return null
@@ -147,9 +194,7 @@ export const useProductionStore = defineStore('production', () => {
     catch (e) {
       productions.value = original
       error.value = e as LMiXError
-      if (import.meta.dev) {
-        console.error('Production upsert failed:', e)
-      }
+      if (import.meta.dev) console.error('Production upsert failed:', e)
       throw e
     }
     finally {
@@ -199,6 +244,7 @@ export const useProductionStore = defineStore('production', () => {
     loading,
     error,
     getProduction,
+    getProductionLabel,
     getProductionNavigation,
     getProductionCount,
     selectProductions,

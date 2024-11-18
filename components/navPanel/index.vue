@@ -2,6 +2,8 @@
 const { t } = useI18n({ useScope: 'local' })
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
+const productionStore = useProductionStore()
+const { getProductionNavigation } = productionStore
 
 const props = defineProps({
   isSlideover: {
@@ -12,10 +14,10 @@ const props = defineProps({
 
 defineEmits(['close'])
 
-const stageItems = [
+const repertoireItems = [
   {
-    label: t('stage'),
-    slot: 'stage',
+    label: t('repertoire'),
+    slot: 'repertoire',
   },
 ]
 
@@ -29,7 +31,7 @@ const links = [
 ]
 
 const productionItems = [
-  { icon: 'i-ph-film-script', label: t('productions'), slot: 'productions' },
+  { icon: 'i-ph-film-script-duotone', label: t('productions'), slot: 'productions' },
 ]
 
 const userItems = computed(() => {
@@ -91,15 +93,16 @@ async function handleSignOut() {
     </template>
   </UiPanelHeader>
   <UiPanelContent>
-    <UAccordion color="gray" default-open :items="stageItems" variant="ghost">
-      <template #stage>
+    <UAccordion color="gray" default-open :items="repertoireItems" variant="ghost" :ui="{ default: { class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold' } }">
+      <template #repertoire>
         <UVerticalNavigation :links="links" />
       </template>
     </UAccordion>
     <UButton block icon="i-ph-film-script-duotone" :label="t('newProduction')" to="/" />
-    <UAccordion color="gray" default-open :items="productionItems" variant="ghost">
+    <UAccordion color="gray" default-open :items="productionItems" variant="ghost" :ui="{ default: { class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold' } }">
       <template #productions>
-        <NoData :message="t('noProductions')" />
+        <UVerticalNavigation v-if="getProductionNavigation.length" :links="getProductionNavigation" />
+        <NoData v-else :message="t('noProductions')" />
       </template>
     </UAccordion>
   </UiPanelContent>
@@ -134,7 +137,7 @@ async function handleSignOut() {
 
 <i18n lang="yaml">
   en:
-    stage: Stage
+    repertoire: Repertoire
     models: Models
     personas: Personas
     assistants: Assistants

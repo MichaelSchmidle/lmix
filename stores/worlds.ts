@@ -39,7 +39,6 @@ export const useWorldStore = defineStore('world', () => {
    * Returns select options for all worlds, sorted alphabetically
    */
   const getWorldOptions = computed(() => [
-    { label: 'Select a world…', value: '' },
     ...worlds.value
       .sort((a, b) => a.name.localeCompare(b.name))
       .map(world => ({

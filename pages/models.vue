@@ -22,12 +22,12 @@ const { getModelNavigation } = storeToRefs(modelStore)
     </UiPanelHeader>
     <UiPanelContent v-auto-animate>
       <UButton block icon="i-ph-circuitry-duotone" :label="t('newModel')" to="/models/new" />
-      <UAccordion v-if="getModelNavigation.length" color="gray" default-open :items="getModelNavigation" variant="ghost" v-auto-animate>
+      <UAccordion color="gray" default-open :items="getModelNavigation('i-ph-hard-drive-duotone')" variant="ghost" :ui="{ default: { class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold' } }">
         <template #item="{ item }">
           <UVerticalNavigation :links="item.content" />
         </template>
       </UAccordion>
-      <NoData v-if="!getModelNavigation.length" :message="t('noModels')" />
+      <NoData v-if="!getModelNavigation().length" :message="t('noModels')" />
     </UiPanelContent>
   </UiPanel>
   <UiPanel v-if="route.path === '/models'">

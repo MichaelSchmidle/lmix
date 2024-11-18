@@ -24,22 +24,41 @@ export const useAssistantStore = defineStore('assistant', () => {
   })
 
   /**
-   * Returns navigation links for all assistants, sorted alphabetically
+   * Returns navigation links for assistants, sorted alphabetically
+   * @param filterAssistants Optional array of assistants to filter by
+   * @param icon Optional icon to use for navigation links
+   * @returns Array of navigation links for either all assistants or specified assistants
    */
   const getAssistantNavigation = computed(() => {
-    return assistants.value
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((assistant): VerticalNavigationLink => ({
-        label: assistant.name,
-        to: `/assistants/${assistant.uuid}`,
-      }))
+    return (filterAssistants?: {
+      uuid: string;
+      assistant: {
+        created_at: string;
+        model_uuid: string;
+        name: string;
+        persona_uuid: string;
+        user_uuid: string;
+        uuid: string;
+      };
+    }[], icon?: string) => {
+      const assistantList = filterAssistants
+        ? filterAssistants.map(a => a.assistant)
+        : assistants.value
+
+      return assistantList
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((assistant): VerticalNavigationLink => ({
+          label: assistant.name,
+          to: `/assistants/${assistant.uuid}`,
+          ...(icon && { icon }),
+        }))
+    }
   })
 
   /**
    * Returns select options for all assistants, sorted alphabetically
    */
   const getAssistantOptions = computed(() => [
-    { label: 'Select an assistant…', value: '' },
     ...assistants.value
       .sort((a, b) => a.name.localeCompare(b.name))
       .map(assistant => ({

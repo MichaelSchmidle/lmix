@@ -2,16 +2,11 @@
 const { t } = useI18n({ useScope: 'local' })
 const modelStore = useModelStore()
 const personaStore = usePersonaStore()
-
-definePageMeta({
-  middleware: [
-    'personas',
-    'assistants',
-  ],
-})
+const assistantStore = useAssistantStore()
 
 const { models } = storeToRefs(modelStore)
 const { personas } = storeToRefs(personaStore)
+const { assistants } = storeToRefs(assistantStore)
 </script>
 
 <template>
@@ -30,7 +25,7 @@ const { personas } = storeToRefs(personaStore)
           <UButton icon="i-ph-mask-happy-duotone" :label="t('newPersona')" to="/personas/new" />
         </li>
         <li class="flex items-center gap-2">
-          <UIcon v-if="models.length && personas.length" class="h-5 text-lime-500 dark:text-lime-400 w-5" name="i-ph-check-circle-fill" />
+          <UIcon v-if="assistants.length" class="h-5 text-lime-500 dark:text-lime-400 w-5" name="i-ph-check-circle-fill" />
           <UIcon v-else class="h-5 text-gray-500 dark:text-gray-400 w-5" name="i-ph-circle-duotone" />
           <UButton icon="i-ph-head-circuit-duotone" :label="t('newAssistant')" to="/assistants/new" />
         </li>

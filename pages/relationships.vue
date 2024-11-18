@@ -24,8 +24,8 @@ const { getRelationshipNavigation } = storeToRefs(relationshipStore)
     </UiPanelHeader>
     <UiPanelContent v-auto-animate>
       <UButton block icon="i-ph-share-network-duotone" :label="t('newRelationship')" to="/relationships/new" />
-      <UVerticalNavigation :links="getRelationshipNavigation" />
-      <NoData v-if="!getRelationshipNavigation.length" :message="t('noRelationships')" />
+      <UVerticalNavigation :links="getRelationshipNavigation()" />
+      <NoData v-if="!getRelationshipNavigation().length" :message="t('noRelationships')" />
     </UiPanelContent>
   </UiPanel>
   <UiPanel v-if="route.path === '/relationships'">

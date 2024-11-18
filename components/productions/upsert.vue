@@ -70,7 +70,7 @@ const handleSubmit = async (form: ProductionInsert, node: FormKitNode) => {
   en:
     titleCreate: Create Production
     titleUpdate: Update Production
-    descriptionCreate: Create a new production to bring your world and scenario to life.
+    descriptionCreate: Create a new production and bring your personas to life.
     descriptionUpdate: Update this production's configuration.
     name:
       label: Name

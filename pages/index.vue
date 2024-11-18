@@ -8,12 +8,20 @@ useHead(
   }
 )
 
+const modelStore = useModelStore()
+const personaStore = usePersonaStore()
+const assistantStore = useAssistantStore()
+
 definePageMeta({
   middleware: [
     'assistants',
     'personas',
   ],
 })
+
+const { getModelCount } = modelStore
+const { getPersonaCount } = personaStore
+const { getAssistantCount } = assistantStore
 </script>
 
 <template>
@@ -41,7 +49,7 @@ definePageMeta({
           </template>
         </Hero>
         <OAuth v-if="!user" />
-        <FirstSteps v-else />
+        <FirstSteps v-else-if="!getModelCount || !getPersonaCount || !getAssistantCount" />
       </UContainer>
     </UiPanelContent>
   </UiPanel>

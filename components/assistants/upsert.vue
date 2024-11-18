@@ -65,8 +65,8 @@ const handleSubmit = async (form: Partial<AssistantInsert>, node: FormKitNode) =
 <i18n lang="yaml">
   en:
     titleCreate: Create Assistant
-    titleUpdate: Update Assistant
-    descriptionCreate: Create a new assistant by combining a model with a persona.
+    titleUpdate: Update
+    descriptionCreate: Create a new assistant to enact a persona powered by a model.
     descriptionUpdate: Update this assistant’s configuration.
     name:
       label: Name
@@ -81,7 +81,7 @@ const handleSubmit = async (form: Partial<AssistantInsert>, node: FormKitNode) =
       placeholder: Select a persona…
       required: Persona is required
     createAssistant: Create Assistant
-    updateAssistant: Update Assistant
+    updateAssistant: Update
     assistantCreated: Assistant created.
     assistantUpdated: Assistant updated.
     saveFailed: Failed to save assistant.

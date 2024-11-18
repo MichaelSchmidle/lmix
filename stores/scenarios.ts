@@ -1,34 +1,34 @@
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
-import type { Assistant, AssistantInsert } from '~/types/app'
+import type { Scenario, ScenarioInsert } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 import type { VerticalNavigationLink } from '#ui/types'
 
-export const useAssistantStore = defineStore('assistant', () => {
+export const useScenarioStore = defineStore('scenario', () => {
   // State
-  const assistants = ref<Assistant[]>([])
+  const scenarios = ref<Scenario[]>([])
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
 
   // Getters
-  const getAssistant = computed(() => {
-    return (uuid: string) => assistants.value.find(a => a.uuid === uuid)
+  const getScenario = computed(() => {
+    return (uuid: string) => scenarios.value.find(s => s.uuid === uuid)
   })
 
-  const getAssistantNavigation = computed(() => {
-    return assistants.value
+  const getScenarioNavigation = computed(() => {
+    return scenarios.value
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map((assistant): VerticalNavigationLink => ({
-        label: assistant.name,
-        to: `/assistants/${assistant.uuid}`,
+      .map((scenario): VerticalNavigationLink => ({
+        label: scenario.name,
+        to: `/scenarios/${scenario.uuid}`,
       }))
   })
 
-  const getAssistantCount = computed(() => assistants.value.length)
+  const getScenarioCount = computed(() => scenarios.value.length)
 
   // Actions
-  async function selectAssistants(): Promise<void> {
-    if (assistants.value.length > 0) return
+  async function selectScenarios(): Promise<void> {
+    if (scenarios.value.length > 0) return
 
     loading.value = true
     error.value = null
@@ -37,7 +37,7 @@ export const useAssistantStore = defineStore('assistant', () => {
       const client = useSupabaseClient<Database>()
 
       const { data, error: apiError } = await client
-        .from('assistants')
+        .from('scenarios')
         .select()
         .order('created_at', { ascending: false })
 
@@ -47,15 +47,11 @@ export const useAssistantStore = defineStore('assistant', () => {
         apiError
       )
 
-      assistants.value = data
+      scenarios.value = data
     }
     catch (e) {
       error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('Assistant selection failed:', e)
-      }
-
+      if (import.meta.dev) console.error('Scenario selection failed:', e)
       throw e
     }
     finally {
@@ -63,36 +59,34 @@ export const useAssistantStore = defineStore('assistant', () => {
     }
   }
 
-  async function upsertAssistant(assistant: AssistantInsert): Promise<string | null> {
+  async function upsertScenario(scenario: ScenarioInsert): Promise<string | null> {
     loading.value = true
     error.value = null
 
-    const isUpdate = !!assistant.uuid
-    const original = [...assistants.value]
+    const isUpdate = !!scenario.uuid
+    const original = [...scenarios.value]
 
     if (isUpdate) {
-      const index = assistants.value.findIndex(a => a.uuid === assistant.uuid)
-
+      const index = scenarios.value.findIndex(s => s.uuid === scenario.uuid)
       if (index !== -1) {
-        assistants.value[index] = { ...assistants.value[index], ...assistant }
+        scenarios.value[index] = { ...scenarios.value[index], ...scenario }
       }
     }
     else {
       const tempId = crypto.randomUUID()
-
-      assistants.value.unshift({
-        ...assistant,
+      scenarios.value.unshift({
+        ...scenario,
         uuid: tempId,
         created_at: new Date().toISOString(),
-      } as Assistant)
+      } as Scenario)
     }
 
     try {
       const client = useSupabaseClient<Database>()
 
       const { data, error: apiError } = await client
-        .from('assistants')
-        .upsert(assistant)
+        .from('scenarios')
+        .upsert(scenario)
         .select()
 
       if (apiError) throw new LMiXError(
@@ -103,29 +97,23 @@ export const useAssistantStore = defineStore('assistant', () => {
 
       if (data?.[0]) {
         if (isUpdate) {
-          const index = assistants.value.findIndex(a => a.uuid === data[0].uuid)
-
+          const index = scenarios.value.findIndex(s => s.uuid === data[0].uuid)
           if (index !== -1) {
-            assistants.value[index] = data[0]
+            scenarios.value[index] = data[0]
           }
         }
         else {
-          assistants.value[0] = data[0]
+          scenarios.value[0] = data[0]
         }
-
         return data[0].uuid
       }
 
       return null
     }
     catch (e) {
-      assistants.value = original
+      scenarios.value = original
       error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('Assistant upsert failed:', e)
-      }
-
+      if (import.meta.dev) console.error('Scenario upsert failed:', e)
       throw e
     }
     finally {
@@ -133,18 +121,18 @@ export const useAssistantStore = defineStore('assistant', () => {
     }
   }
 
-  async function deleteAssistant(uuid: string): Promise<void> {
+  async function deleteScenario(uuid: string): Promise<void> {
     loading.value = true
     error.value = null
 
-    const original = [...assistants.value]
-    assistants.value = assistants.value.filter(a => a.uuid !== uuid)
+    const original = [...scenarios.value]
+    scenarios.value = scenarios.value.filter(s => s.uuid !== uuid)
 
     try {
       const client = useSupabaseClient<Database>()
 
       const { error: apiError } = await client
-        .from('assistants')
+        .from('scenarios')
         .delete()
         .eq('uuid', uuid)
 
@@ -155,13 +143,9 @@ export const useAssistantStore = defineStore('assistant', () => {
       )
     }
     catch (e) {
-      assistants.value = original
+      scenarios.value = original
       error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('Assistant deletion failed:', e)
-      }
-
+      if (import.meta.dev) console.error('Scenario deletion failed:', e)
       throw e
     }
     finally {
@@ -170,17 +154,14 @@ export const useAssistantStore = defineStore('assistant', () => {
   }
 
   return {
-    // State
-    assistants,
+    scenarios,
     loading,
     error,
-    // Getters
-    getAssistant,
-    getAssistantNavigation,
-    getAssistantCount,
-    // Actions
-    selectAssistants,
-    upsertAssistant,
-    deleteAssistant,
+    getScenario,
+    getScenarioNavigation,
+    getScenarioCount,
+    selectScenarios,
+    upsertScenario,
+    deleteScenario,
   }
 }) 

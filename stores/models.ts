@@ -78,6 +78,8 @@ export const useModelStore = defineStore('model', () => {
     ]
   })
 
+  const getModelCount = computed(() => models.value.length)
+
   // Actions
   /**
    * Fetches all models from the database if not already loaded
@@ -248,6 +250,7 @@ export const useModelStore = defineStore('model', () => {
     getModel,
     getModelNavigation,
     getModelOptions,
+    getModelCount,
     // Actions
     selectModels,
     insertModels,

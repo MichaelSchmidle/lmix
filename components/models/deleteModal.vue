@@ -50,7 +50,7 @@ async function handleDelete() {
     <UModal v-model="isOpen">
       <UCard :ui="{ body: { base: 'space-y-4' } }">
         <template #header>
-          {{ t('deleteModel.inside') }}
+          {{ t('title') }}
         </template>
         <i18n-t keypath="deleteModelConfirmation" tag="p" class="prose dark:prose-invert">
           <template #id>
@@ -68,10 +68,11 @@ async function handleDelete() {
 
 <i18n lang="yaml">
   en:
+    title: Remove Model
     deleteModel:
-      outside: Remove Model…
-      inside: Remove Model
-    deleteModelConfirmation: Are you sure you want to delete {id}? This action cannot be undone.
+      outside: Remove…
+      inside: Remove
+    deleteModelConfirmation: Are you sure you want to remove {id}? This action cannot be undone.
     cancel: Cancel
     success: Model removed.
     error: Failed to remove model.

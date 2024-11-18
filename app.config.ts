@@ -47,7 +47,7 @@ export default defineAppConfig({
         base: 'px-4 sm:px-4 py-3 sm:py-3',
       },
       header: {
-        base: 'px-4 sm:px-4 py-3 sm:py-3',
+        base: 'font-bold px-4 sm:px-4 py-3 sm:py-3',
       },
       ring: 'ring-0',
     },

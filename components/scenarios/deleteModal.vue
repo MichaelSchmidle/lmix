@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { Persona } from '@/types/app'
+import type { Scenario } from '@/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
-const personaStore = usePersonaStore()
+const scenarioStore = useScenarioStore()
 
 const props = defineProps({
-  persona: {
-    type: Object as PropType<Persona>,
+  scenario: {
+    type: Object as PropType<Scenario>,
     required: true,
   },
 })
@@ -20,7 +20,7 @@ const isDeleting = ref(false)
 async function handleDelete() {
   try {
     isDeleting.value = true
-    await personaStore.deletePersona(props.persona.uuid)
+    await scenarioStore.deleteScenario(props.scenario.uuid)
 
     toast.add({
       color: 'lime',
@@ -46,20 +46,20 @@ async function handleDelete() {
 
 <template>
   <div>
-    <UButton color="gray" icon="i-ph-trash-duotone" :label="t('deletePersona.outside')" variant="ghost" @click="isOpen = true" />
+    <UButton color="gray" icon="i-ph-trash-duotone" :label="t('deleteScenario.outside')" variant="ghost" @click="isOpen = true" />
     <UModal v-model="isOpen">
       <UCard :ui="{ body: { base: 'space-y-4' } }">
         <template #header>
           {{ t('title') }}
         </template>
-        <i18n-t keypath="deletePersonaConfirmation" tag="p" class="prose dark:prose-invert">
+        <i18n-t keypath="deleteScenarioConfirmation" tag="p" class="prose dark:prose-invert">
           <template #name>
-            <code>{{ persona.name }}</code>
+            <code>{{ scenario.name }}</code>
           </template>
         </i18n-t>
         <UiFormActions>
           <UButton color="gray" variant="ghost" :label="t('cancel')" @click="isOpen = false" />
-          <UButton color="rose" icon="i-ph-trash-duotone" :label="t('deletePersona.inside')" :loading="isDeleting" @click="handleDelete" />
+          <UButton color="rose" icon="i-ph-trash-duotone" :label="t('deleteScenario.inside')" :loading="isDeleting" @click="handleDelete" />
         </UiFormActions>
       </UCard>
     </UModal>
@@ -68,12 +68,12 @@ async function handleDelete() {
 
 <i18n lang="yaml">
   en:
-    title: Remove Persona
-    deletePersona:
+    title: Remove Scenario
+    deleteScenario:
       outside: Remove…
       inside: Remove
-    deletePersonaConfirmation: Are you sure you want to remove {name}? This action cannot be undone.
+    deleteScenarioConfirmation: Are you sure you want to remove {name}? This action cannot be undone.
     cancel: Cancel
-    success: Persona removed.
-    error: Failed to remove persona.
+    success: Scenario removed.
+    error: Failed to remove scenario.
 </i18n>

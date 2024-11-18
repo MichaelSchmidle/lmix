@@ -50,7 +50,6 @@ useHead({
     manageModel:
       title: Manage Model
       description: View the configuration of this model or remove it from LMiX.
-    deleteModel: Remove Model
     modelId: Model ID
     modelApiEndpoint: API Endpoint
 </i18n>

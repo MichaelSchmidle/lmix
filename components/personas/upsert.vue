@@ -62,7 +62,7 @@ const handleSubmit = async (form: Partial<PersonaInsert>, node: FormKitNode) => 
 <i18n lang="yaml">
   en:
     titleCreate: Create Persona
-    titleUpdate: Update Persona
+    titleUpdate: Update
     descriptionCreate: Create a new persona with their own perceptions and knowledge states.
     descriptionUpdate: Update this persona’s perceptions and knowledge states.
     name:
@@ -81,7 +81,7 @@ const handleSubmit = async (form: Partial<PersonaInsert>, node: FormKitNode) => 
       label: Public Knowledge
       help: What others know for a fact about the persona
     createPersona: Create Persona
-    updatePersona: Update Persona
+    updatePersona: Update
     personaCreated: Persona created.
     personaUpdated: Persona updated.
     saveFailed: Failed to save persona.

@@ -4,7 +4,10 @@ const modelStore = useModelStore()
 const personaStore = usePersonaStore()
 
 definePageMeta({
-  middleware: 'personas',
+  middleware: [
+    'personas',
+    'assistants',
+  ],
 })
 
 const { models } = storeToRefs(modelStore)
@@ -27,7 +30,8 @@ const { personas } = storeToRefs(personaStore)
           <UButton icon="i-ph-mask-happy-duotone" :label="t('newPersona')" to="/personas/new" />
         </li>
         <li class="flex items-center gap-2">
-          <UIcon class="h-5 text-gray-500 dark:text-gray-400 w-5" name="i-ph-circle-duotone" />
+          <UIcon v-if="models.length && personas.length" class="h-5 text-lime-500 dark:text-lime-400 w-5" name="i-ph-check-circle-fill" />
+          <UIcon v-else class="h-5 text-gray-500 dark:text-gray-400 w-5" name="i-ph-circle-duotone" />
           <UButton icon="i-ph-head-circuit-duotone" :label="t('newAssistant')" to="/assistants/new" />
         </li>
       </ul>

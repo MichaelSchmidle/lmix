@@ -1,15 +1,12 @@
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
-import type { Persona } from '~/types/app'
+import type { Persona, PersonaInsert } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 import type { VerticalNavigationLink } from '#ui/types'
 
-type PersonaRow = Database['public']['Tables']['personas']['Row']
-type PersonaUpsert = Database['public']['Tables']['personas']['Insert']
-
 export const usePersonaStore = defineStore('persona', () => {
   // State
-  const personas = ref<PersonaRow[]>([])
+  const personas = ref<Persona[]>([])
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
 
@@ -36,6 +33,8 @@ export const usePersonaStore = defineStore('persona', () => {
         value: persona.uuid,
       })),
   ])
+
+  const getPersonaCount = computed(() => personas.value.length)
 
   // Actions
   async function selectPersonas(): Promise<void> {
@@ -74,7 +73,7 @@ export const usePersonaStore = defineStore('persona', () => {
     }
   }
 
-  async function upsertPersona(persona: PersonaUpsert): Promise<string | null> {
+  async function upsertPersona(persona: PersonaInsert): Promise<string | null> {
     loading.value = true
     error.value = null
 
@@ -95,7 +94,7 @@ export const usePersonaStore = defineStore('persona', () => {
         ...persona,
         uuid: tempId,
         created_at: new Date().toISOString(),
-      } as PersonaRow)
+      } as Persona)
     }
 
     try {
@@ -189,6 +188,7 @@ export const usePersonaStore = defineStore('persona', () => {
     getPersona,
     getPersonaNavigation,
     getPersonaOptions,
+    getPersonaCount,
     // Actions
     selectPersonas,
     upsertPersona,

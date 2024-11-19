@@ -3,24 +3,41 @@
  * Handles CRUD operations and state management for productions.
  */
 import { defineStore } from 'pinia'
-import type { Database } from '~/types/api'
-import type { Production, ProductionInsert, ProductionWithRelations } from '~/types/app'
-import { LMiXError } from '~/types/errors'
 import type { VerticalNavigationLink } from '#ui/types'
+import type { Database } from '~/types/api'
+import type { Assistant, Persona, Production, ProductionAssistant, ProductionInsert, ProductionPersona, ProductionRelationship, ProductionWithRelations, Relationship } from '~/types/app'
+import { LMiXError } from '~/types/errors'
 
 export const useProductionStore = defineStore('production', () => {
   // State
-  const productions = ref<ProductionWithRelations[]>([])
+  const productions = ref<Production[]>([])
+  const productionAssistants = ref<ProductionAssistant[]>([])
+  const productionPersonas = ref<ProductionPersona[]>([])
+  const productionRelationships = ref<ProductionRelationship[]>([])
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
 
   // Getters
-  /**
-   * Returns a function to find a production by UUID
-   * @returns {(uuid: string) => Production | undefined} Function that takes a UUID and returns the matching production or undefined
-   */
   const getProduction = computed(() => {
-    return (uuid: string) => productions.value.find(p => p.uuid === uuid)
+    return (uuid: string): Production | undefined => productions.value.find(p => p.uuid === uuid)
+  })
+
+  const getProductionAssistants = computed(() => {
+    return (productionUuid: string): string[] => productionAssistants.value
+      .filter(pa => pa.production_uuid === productionUuid)
+      .map(pa => pa.assistant_uuid)
+  })
+
+  const getProductionPersonas = computed(() => {
+    return (productionUuid: string): string[] => productionPersonas.value
+      .filter(pp => pp.production_uuid === productionUuid)
+      .map(pp => pp.persona_uuid)
+  })
+
+  const getProductionRelationships = computed(() => {
+    return (productionUuid: string): string[] => productionRelationships.value
+      .filter(pr => pr.production_uuid === productionUuid)
+      .map(pr => pr.relationship_uuid)
   })
 
   /**
@@ -29,7 +46,7 @@ export const useProductionStore = defineStore('production', () => {
    * @returns {(production: Production) => string} Function that returns formatted label
    */
   const getProductionLabel = computed(() => {
-    return (production: Production) => {
+    return (production: Production): string => {
       if (production.name) {
         return production.name
       }
@@ -60,8 +77,8 @@ export const useProductionStore = defineStore('production', () => {
 
   // Actions
   /**
-   * Fetches all productions with their relationships from the database
-   * Includes related world, scenario, assistants, personas, and relationships data
+   * Fetches basic production data for all productions
+   * Used for navigation and overview purposes
    */
   async function selectProductions(): Promise<void> {
     if (productions.value.length > 0) return
@@ -71,42 +88,199 @@ export const useProductionStore = defineStore('production', () => {
 
     try {
       const client = useSupabaseClient<Database>()
+      const { data, error: apiError } = await client
+        .from('productions')
+        .select('*')
+        .order('created_at', { ascending: false })
 
+      if (apiError) throw new LMiXError(apiError.message, 'API_ERROR', apiError)
+      if (!data) return
+
+      productions.value = data
+    }
+    catch (e) {
+      error.value = e as LMiXError
+      if (import.meta.dev) console.error('Productions fetch failed:', e)
+      throw e
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Fetches detailed production data including all relationships
+   * @param {string} uuid - UUID of the production to fetch
+   */
+  async function selectProduction(uuid: string): Promise<void> {
+    if (loading.value) return
+
+    loading.value = true
+    error.value = null
+
+    try {
+      const client = useSupabaseClient<Database>()
       const { data, error: apiError } = await client
         .from('productions')
         .select(`
           *,
-          world:worlds(*),
-          scenario:scenarios(*),
-          production_assistants(
+          world:worlds (*),
+          scenario:scenarios (*),
+          production_assistants (
             uuid,
-            assistant:assistants(*)
+            created_at,
+            production_uuid,
+            assistant_uuid,
+            user_uuid,
+            assistant:assistants (*)
           ),
-          production_personas(
+          production_personas (
             uuid,
-            persona:personas(*)
+            created_at,
+            production_uuid,
+            persona_uuid,
+            user_uuid,
+            persona:personas (*)
           ),
-          production_relationships(
+          production_relationships (
             uuid,
-            relationship:relationships(
+            created_at,
+            production_uuid,
+            relationship_uuid,
+            user_uuid,
+            relationship:relationships (
               *,
-              relationship_personas(
+              relationship_personas (
                 uuid,
-                persona:personas(*)
+                created_at,
+                user_uuid,
+                persona:personas (*)
               )
             )
           )
         `)
-        .order('created_at', { ascending: false })
-        .returns<ProductionWithRelations[]>()
+        .eq('uuid', uuid)
+        .single()
 
       if (apiError) throw new LMiXError(apiError.message, 'API_ERROR', apiError)
+      if (!data) return
 
-      productions.value = data ?? []
+      const item = data as ProductionWithRelations
+
+      // Update related stores
+      const worldStore = useWorldStore()
+      const scenarioStore = useScenarioStore()
+      const assistantStore = useAssistantStore()
+      const personaStore = usePersonaStore()
+      const relationshipStore = useRelationshipStore()
+
+      const promises: Promise<void>[] = []
+
+      if (item.world) {
+        promises.push(worldStore.addWorlds([item.world]))
+      }
+      if (item.scenario) {
+        promises.push(scenarioStore.addScenarios([item.scenario]))
+      }
+
+      const assistants = item.production_assistants
+        ?.map(pa => pa.assistant)
+        .filter((a): a is Assistant => a !== null)
+      if (assistants?.length) {
+        promises.push(assistantStore.addAssistants(assistants))
+      }
+
+      const personas = item.production_personas
+        ?.map(pp => pp.persona)
+        .filter((p): p is Persona => p !== null)
+      if (personas?.length) {
+        promises.push(personaStore.addPersonas(personas))
+      }
+
+      const relationships = item.production_relationships
+        ?.map(pr => pr.relationship)
+        .filter((r): r is Relationship => r !== null)
+      if (relationships?.length) {
+        const relationshipPersonas = relationships.flatMap(r => {
+          const personas = (r as Relationship & {
+            relationship_personas?: Array<{
+              uuid: string
+              created_at: string
+              user_uuid: string
+              persona: Persona | null
+            }>
+          })?.relationship_personas
+
+          return personas?.map(rp => ({
+            relationship_uuid: r.uuid,
+            persona_uuid: rp.persona?.uuid ?? '',
+            uuid: rp.uuid,
+            created_at: rp.created_at,
+            user_uuid: rp.user_uuid
+          })) ?? []
+        }).filter(rp => rp.persona_uuid)
+
+        promises.push(relationshipStore.addRelationships(relationships, relationshipPersonas))
+      }
+
+      // Wait for all store updates to complete
+      await Promise.all(promises)
+
+      // Update production in store if it exists, otherwise add it
+      const index = productions.value.findIndex(p => p.uuid === uuid)
+      const { production_assistants, production_personas, production_relationships, world, scenario, ...production } = item
+
+      if (index !== -1) {
+        productions.value[index] = production
+      } else {
+        productions.value.push(production)
+      }
+
+      // Update relationships
+      productionAssistants.value = productionAssistants.value.filter(
+        pa => pa.production_uuid !== uuid
+      )
+      productionPersonas.value = productionPersonas.value.filter(
+        pp => pp.production_uuid !== uuid
+      )
+      productionRelationships.value = productionRelationships.value.filter(
+        pr => pr.production_uuid !== uuid
+      )
+
+      // Add new relationships
+      if (item.production_assistants?.length) {
+        productionAssistants.value.push(...item.production_assistants.map(pa => ({
+          uuid: pa.uuid,
+          created_at: pa.created_at,
+          production_uuid: uuid,
+          assistant_uuid: pa.assistant?.uuid ?? '',
+          user_uuid: pa.user_uuid
+        })))
+      }
+
+      if (item.production_personas?.length) {
+        productionPersonas.value.push(...item.production_personas.map(pp => ({
+          uuid: pp.uuid,
+          created_at: pp.created_at,
+          production_uuid: uuid,
+          persona_uuid: pp.persona?.uuid ?? '',
+          user_uuid: pp.user_uuid
+        })))
+      }
+
+      if (item.production_relationships?.length) {
+        productionRelationships.value.push(...item.production_relationships.map(pr => ({
+          uuid: pr.uuid,
+          created_at: pr.created_at,
+          production_uuid: uuid,
+          relationship_uuid: pr.relationship?.uuid ?? '',
+          user_uuid: pr.user_uuid
+        })))
+      }
     }
     catch (e) {
       error.value = e as LMiXError
-      if (import.meta.dev) console.error('Production selection failed:', e)
+      if (import.meta.dev) console.error('Production fetch failed:', e)
       throw e
     }
     finally {
@@ -134,65 +308,146 @@ export const useProductionStore = defineStore('production', () => {
     error.value = null
 
     const isUpdate = !!production.uuid
-    const original = [...productions.value]
+    const original = {
+      productions: [...productions.value],
+      productionAssistants: [...productionAssistants.value],
+      productionPersonas: [...productionPersonas.value],
+      productionRelationships: [...productionRelationships.value]
+    }
     let tempId: string | null = null
 
+    // Handle optimistic updates for core production data only
     if (isUpdate) {
       const index = productions.value.findIndex(p => p.uuid === production.uuid)
       if (index !== -1) {
-        productions.value[index] = {
-          ...productions.value[index],
-          ...production
-        }
+        productions.value[index] = { ...productions.value[index], ...production }
       }
     } else {
       tempId = crypto.randomUUID()
-      // Create a temporary production with required relations
       productions.value.unshift({
         ...production,
         uuid: tempId,
         created_at: new Date().toISOString(),
-        // Add required production_assistants array
-        production_assistants: [],
-        // Add optional relations as empty arrays
-        production_personas: [],
-        production_relationships: []
-      } as ProductionWithRelations)
+      } as Production)
     }
 
     try {
       const client = useSupabaseClient<Database>()
 
-      const { data, error: apiError } = await client
-        .rpc('upsert_production_with_relationships', {
-          production_data: production,
-          assistant_uuids: options.assistantUuids || [],
-          persona_uuids: options.personaUuids || [],
-          relationship_uuids: options.relationshipUuids || []
+      // 1. Upsert core production data only
+      const { data: productionData, error: productionError } = await client
+        .from('productions')
+        .upsert({
+          uuid: production.uuid,
+          user_uuid: production.user_uuid,
+          name: production.name,
+          world_uuid: production.world_uuid,
+          scenario_uuid: production.scenario_uuid,
         })
+        .select()
 
-      if (apiError) throw new LMiXError(apiError.message, 'API_ERROR', apiError)
+      if (productionError) throw new LMiXError(productionError.message, 'API_ERROR', productionError)
+      if (!productionData?.[0]) return null
 
-      if (data?.[0]) {
-        const updatedProduction = data[0] as ProductionWithRelations // Type the response
-        if (isUpdate) {
-          const index = productions.value.findIndex(p => p.uuid === updatedProduction.uuid)
-          if (index !== -1) {
-            productions.value[index] = updatedProduction
-          }
-        } else if (tempId) {
-          const tempIndex = productions.value.findIndex(p => p.uuid === tempId)
-          if (tempIndex !== -1) {
-            productions.value[tempIndex] = updatedProduction
-          }
-        }
-        return updatedProduction.uuid
+      const productionUuid = productionData[0].uuid
+
+      // 2. If updating, remove existing relationships
+      if (isUpdate) {
+        const deletePromises = [
+          client.from('production_assistants').delete().eq('production_uuid', productionUuid),
+          client.from('production_personas').delete().eq('production_uuid', productionUuid),
+          client.from('production_relationships').delete().eq('production_uuid', productionUuid)
+        ]
+        const deleteResults = await Promise.all(deletePromises)
+        deleteResults.forEach(({ error }) => {
+          if (error) throw new LMiXError(error.message, 'API_ERROR', error)
+        })
       }
 
-      return null
+      // 3. Insert new relationships
+      const now = new Date().toISOString()
+      const insertPromises = []
+
+      if (options.assistantUuids?.length) {
+        const assistantRelations = options.assistantUuids.map(uuid => ({
+          production_uuid: productionUuid,
+          assistant_uuid: uuid,
+          user_uuid: production.user_uuid,
+          created_at: now
+        }))
+        insertPromises.push(
+          client.from('production_assistants').insert(assistantRelations).select()
+        )
+      }
+
+      if (options.personaUuids?.length) {
+        const personaRelations = options.personaUuids.map(uuid => ({
+          production_uuid: productionUuid,
+          persona_uuid: uuid,
+          user_uuid: production.user_uuid,
+          created_at: now
+        }))
+        insertPromises.push(
+          client.from('production_personas').insert(personaRelations).select()
+        )
+      }
+
+      if (options.relationshipUuids?.length) {
+        const relationshipRelations = options.relationshipUuids.map(uuid => ({
+          production_uuid: productionUuid,
+          relationship_uuid: uuid,
+          user_uuid: production.user_uuid,
+          created_at: now
+        }))
+        insertPromises.push(
+          client.from('production_relationships').insert(relationshipRelations).select()
+        )
+      }
+
+      const insertResults = await Promise.all(insertPromises)
+      insertResults.forEach(({ error }) => {
+        if (error) throw new LMiXError(error.message, 'API_ERROR', error)
+      })
+
+      // 4. Update store state
+      if (isUpdate) {
+        const index = productions.value.findIndex(p => p.uuid === productionUuid)
+        if (index !== -1) {
+          productions.value[index] = productionData[0]
+        }
+      } else if (tempId) {
+        const tempIndex = productions.value.findIndex(p => p.uuid === tempId)
+        if (tempIndex !== -1) {
+          productions.value[tempIndex] = productionData[0]
+        }
+      }
+
+      // Update junction table states
+      productionAssistants.value = productionAssistants.value.filter(pa => pa.production_uuid !== productionUuid)
+      productionPersonas.value = productionPersonas.value.filter(pp => pp.production_uuid !== productionUuid)
+      productionRelationships.value = productionRelationships.value.filter(pr => pr.production_uuid !== productionUuid)
+
+      insertResults.forEach(({ data }) => {
+        if (!data?.length) return
+
+        // Check first item to determine the type of relation
+        const firstItem = data[0]
+        if ('assistant_uuid' in firstItem) {
+          productionAssistants.value.push(...(data as ProductionAssistant[]))
+        } else if ('persona_uuid' in firstItem) {
+          productionPersonas.value.push(...(data as ProductionPersona[]))
+        } else if ('relationship_uuid' in firstItem) {
+          productionRelationships.value.push(...(data as ProductionRelationship[]))
+        }
+      })
+
+      return productionUuid
     }
     catch (e) {
-      productions.value = original
+      productions.value = original.productions
+      productionAssistants.value = original.productionAssistants
+      productionPersonas.value = original.productionPersonas
+      productionRelationships.value = original.productionRelationships
       error.value = e as LMiXError
       if (import.meta.dev) console.error('Production upsert failed:', e)
       throw e
@@ -240,14 +495,21 @@ export const useProductionStore = defineStore('production', () => {
   }
 
   return {
+    // State
     productions,
     loading,
     error,
+    // Getters
     getProduction,
     getProductionLabel,
     getProductionNavigation,
     getProductionCount,
+    getProductionAssistants,
+    getProductionPersonas,
+    getProductionRelationships,
+    // Actions
     selectProductions,
+    selectProduction,
     upsertProduction,
     deleteProduction,
   }

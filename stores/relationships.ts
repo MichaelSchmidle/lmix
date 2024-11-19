@@ -3,10 +3,10 @@
  * Handles CRUD operations and state management for relationships.
  */
 import { defineStore } from 'pinia'
-import type { Database } from '~/types/api'
-import type { Relationship, RelationshipInsert, RelationshipPersona } from '~/types/app'
-import { LMiXError } from '~/types/errors'
 import type { VerticalNavigationLink } from '#ui/types'
+import type { Database } from '~/types/api'
+import type { Persona, Relationship, RelationshipInsert, RelationshipPersona, RelationshipWithRelations } from '~/types/app'
+import { LMiXError } from '~/types/errors'
 
 export const useRelationshipStore = defineStore('relationship', () => {
   const personaStore = usePersonaStore()
@@ -62,27 +62,14 @@ export const useRelationshipStore = defineStore('relationship', () => {
 
   /**
    * Returns navigation links for relationships, sorted alphabetically
-   * @param filterRelationships Optional array of relationships to filter by
+   * @param filterUuids Optional array of relationship UUIDs to filter by
    * @param icon Optional icon to use for navigation links
    * @returns Array of navigation links for either all relationships or specified relationships
    */
   const getRelationshipNavigation = computed(() => {
-    return (filterRelationships?: {
-      uuid: string;
-      relationship: {
-        created_at: string;
-        name: string | null;
-        private_description: string | null;
-        public_description: string | null;
-        user_uuid: string;
-        uuid: string;
-        relationship_personas?: {
-          [key: string]: any;
-        }[] | undefined;
-      };
-    }[], icon?: string) => {
-      const relationshipList = filterRelationships
-        ? filterRelationships.map(r => r.relationship)
+    return (filterUuids?: string[], icon?: string): VerticalNavigationLink[] => {
+      const relationshipList = filterUuids
+        ? relationships.value.filter(r => filterUuids.includes(r.uuid))
         : relationships.value
 
       return relationshipList
@@ -359,6 +346,42 @@ export const useRelationshipStore = defineStore('relationship', () => {
     }
   }
 
+  async function addRelationships(
+    newRelationships: (Relationship | RelationshipWithRelations)[],
+    newRelationshipPersonas: RelationshipPersona[] = []
+  ): Promise<void> {
+    const personaStore = usePersonaStore()
+
+    // Extract and add personas from relationship_personas if present
+    const personas = newRelationships
+      .flatMap(r => (r as RelationshipWithRelations).relationship_personas || [])
+      .map(rp => rp.persona)
+      .filter((p): p is Persona => p !== null)
+
+    if (personas.length > 0) {
+      await personaStore.addPersonas(personas)
+    }
+
+    // Add relationships
+    const relationshipsToAdd = newRelationships.filter(newRelationship =>
+      !relationships.value.some(r => r.uuid === newRelationship.uuid)
+    )
+    if (relationshipsToAdd.length > 0) {
+      relationships.value = [...relationships.value, ...relationshipsToAdd]
+    }
+
+    // Add relationship personas
+    const relationshipPersonasToAdd = newRelationshipPersonas.filter(newRp =>
+      !relationshipPersonas.value.some(rp =>
+        rp.relationship_uuid === newRp.relationship_uuid &&
+        rp.persona_uuid === newRp.persona_uuid
+      )
+    )
+    if (relationshipPersonasToAdd.length > 0) {
+      relationshipPersonas.value = [...relationshipPersonas.value, ...relationshipPersonasToAdd]
+    }
+  }
+
   return {
     // State
     relationships,
@@ -377,5 +400,6 @@ export const useRelationshipStore = defineStore('relationship', () => {
     upsertRelationship,
     deleteRelationship,
     removePersonaFromRelationship,
+    addRelationships,
   }
 })

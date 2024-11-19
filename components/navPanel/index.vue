@@ -3,7 +3,7 @@ const { t } = useI18n({ useScope: 'local' })
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const productionStore = useProductionStore()
-const { getProductionNavigation } = productionStore
+const { getProductionNavigation } = storeToRefs(productionStore)
 
 const props = defineProps({
   isSlideover: {

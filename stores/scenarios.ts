@@ -24,16 +24,25 @@ export const useScenarioStore = defineStore('scenario', () => {
   })
 
   /**
-   * Returns navigation links for all scenarios, sorted alphabetically by name
-   * @returns {VerticalNavigationLink[]} Array of navigation links
+   * Returns navigation links for scenarios, sorted alphabetically
+   * @param filterUuids Optional array of scenario UUIDs to filter by
+   * @param icon Optional icon to use for navigation links
+   * @returns Array of navigation links for either all scenarios or specified scenarios
    */
   const getScenarioNavigation = computed(() => {
-    return scenarios.value
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((scenario): VerticalNavigationLink => ({
-        label: scenario.name,
-        to: `/scenarios/${scenario.uuid}`,
-      }))
+    return (filterUuids?: string[], icon?: string): VerticalNavigationLink[] => {
+      const scenarioList = filterUuids
+        ? scenarios.value.filter(s => filterUuids.includes(s.uuid))
+        : scenarios.value
+
+      return scenarioList
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((scenario): VerticalNavigationLink => ({
+          label: scenario.name,
+          to: `/scenarios/${scenario.uuid}`,
+          ...(icon && { icon }),
+        }))
+    }
   })
 
   /**
@@ -201,6 +210,20 @@ export const useScenarioStore = defineStore('scenario', () => {
     }
   }
 
+  /**
+   * Adds scenarios to the store
+   * @param {Scenario[]} newScenarios - The new scenarios to add
+   * @throws {LMiXError} If the API request fails
+   */
+  async function addScenarios(newScenarios: Scenario[]): Promise<void> {
+    const scenariosToAdd = newScenarios.filter(newScenario =>
+      !scenarios.value.some(s => s.uuid === newScenario.uuid)
+    )
+    if (scenariosToAdd.length > 0) {
+      scenarios.value.push(...scenariosToAdd)
+    }
+  }
+
   return {
     // State
     scenarios,
@@ -215,5 +238,6 @@ export const useScenarioStore = defineStore('scenario', () => {
     selectScenarios,
     upsertScenario,
     deleteScenario,
+    addScenarios,
   }
 })

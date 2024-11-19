@@ -20,26 +20,19 @@ export const usePersonaStore = defineStore('persona', () => {
    * @returns {(uuid: string) => Persona | undefined} Function that takes a UUID and returns the matching persona or undefined
    */
   const getPersona = computed(() => {
-    return (uuid: string) => personas.value.find(p => p.uuid === uuid)
+    return (uuid: string): Persona | undefined => personas.value.find(p => p.uuid === uuid)
   })
 
   /**
    * Returns navigation links for personas, sorted alphabetically
-   * @param filterPersonas Optional array of personas to filter by
+   * @param filterUuids Optional array of persona UUIDs to filter by
    * @param icon Optional icon to use for navigation links
    * @returns Array of navigation links for either all personas or specified personas
    */
   const getPersonaNavigation = computed(() => {
-    return (filterPersonas?: {
-      uuid: string;
-      persona: {
-        created_at: string;
-        name: string;
-        uuid: string;
-      };
-    }[], icon?: string) => {
-      const personaList = filterPersonas
-        ? filterPersonas.map(p => p.persona)
+    return (filterUuids?: string[], icon?: string): VerticalNavigationLink[] => {
+      const personaList = filterUuids
+        ? personas.value.filter(p => filterUuids.includes(p.uuid))
         : personas.value
 
       return personaList
@@ -223,6 +216,15 @@ export const usePersonaStore = defineStore('persona', () => {
     }
   }
 
+  async function addPersonas(newPersonas: Persona[]): Promise<void> {
+    const personasToAdd = newPersonas.filter(newPersona =>
+      !personas.value.some(p => p.uuid === newPersona.uuid)
+    )
+    if (personasToAdd.length > 0) {
+      personas.value = [...personas.value, ...personasToAdd]
+    }
+  }
+
   return {
     // State
     personas,
@@ -237,5 +239,6 @@ export const usePersonaStore = defineStore('persona', () => {
     selectPersonas,
     upsertPersona,
     deletePersona,
+    addPersonas,
   }
 })

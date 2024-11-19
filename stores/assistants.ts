@@ -4,7 +4,7 @@
  */
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
-import type { Assistant, AssistantInsert } from '~/types/app'
+import type { Assistant, AssistantInsert, AssistantWithRelations, Persona } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 import type { VerticalNavigationLink } from '#ui/types'
 
@@ -25,24 +25,14 @@ export const useAssistantStore = defineStore('assistant', () => {
 
   /**
    * Returns navigation links for assistants, sorted alphabetically
-   * @param filterAssistants Optional array of assistants to filter by
+   * @param filterUuids Optional array of assistant UUIDs to filter by
    * @param icon Optional icon to use for navigation links
    * @returns Array of navigation links for either all assistants or specified assistants
    */
   const getAssistantNavigation = computed(() => {
-    return (filterAssistants?: {
-      uuid: string;
-      assistant: {
-        created_at: string;
-        model_uuid: string;
-        name: string;
-        persona_uuid: string;
-        user_uuid: string;
-        uuid: string;
-      };
-    }[], icon?: string) => {
-      const assistantList = filterAssistants
-        ? filterAssistants.map(a => a.assistant)
+    return (filterUuids?: string[], icon?: string) => {
+      const assistantList = filterUuids
+        ? assistants.value.filter(a => filterUuids.includes(a.uuid))
         : assistants.value
 
       return assistantList
@@ -226,6 +216,32 @@ export const useAssistantStore = defineStore('assistant', () => {
     }
   }
 
+  async function addAssistants(newAssistants: (Assistant | AssistantWithRelations)[]): Promise<void> {
+    const personaStore = usePersonaStore()
+
+    // Extract and add personas if present
+    const personas = newAssistants
+      .map(a => (a as AssistantWithRelations).persona)
+      .filter((p): p is Persona => p !== null && p !== undefined)
+
+    if (personas.length > 0) {
+      await personaStore.addPersonas(personas)
+    }
+
+    // Add assistants (strip out nested persona data to avoid duplicates)
+    const assistantsToAdd = newAssistants.filter(newAssistant =>
+      !assistants.value.some(a => a.uuid === newAssistant.uuid)
+    ).map(assistant => {
+      // Remove nested persona data before adding to store
+      const { persona: _, ...assistantData } = assistant as AssistantWithRelations
+      return assistantData
+    })
+
+    if (assistantsToAdd.length > 0) {
+      assistants.value.unshift(...assistantsToAdd)
+    }
+  }
+
   return {
     // State
     assistants,
@@ -240,5 +256,6 @@ export const useAssistantStore = defineStore('assistant', () => {
     selectAssistants,
     upsertAssistant,
     deleteAssistant,
+    addAssistants,
   }
 })

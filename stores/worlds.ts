@@ -24,15 +24,25 @@ export const useWorldStore = defineStore('world', () => {
   })
 
   /**
-   * Returns navigation links for all worlds, sorted alphabetically
+   * Returns navigation links for worlds, sorted alphabetically
+   * @param filterUuids Optional array of world UUIDs to filter by
+   * @param icon Optional icon to use for navigation links
+   * @returns Array of navigation links for either all worlds or specified worlds
    */
   const getWorldNavigation = computed(() => {
-    return worlds.value
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((world): VerticalNavigationLink => ({
-        label: world.name,
-        to: `/worlds/${world.uuid}`,
-      }))
+    return (filterUuids?: string[], icon?: string): VerticalNavigationLink[] => {
+      const worldList = filterUuids
+        ? worlds.value.filter(w => filterUuids.includes(w.uuid))
+        : worlds.value
+
+      return worldList
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((world): VerticalNavigationLink => ({
+          label: world.name,
+          to: `/worlds/${world.uuid}`,
+          ...(icon && { icon }),
+        }))
+    }
   })
 
   /**
@@ -206,6 +216,15 @@ export const useWorldStore = defineStore('world', () => {
     }
   }
 
+  async function addWorlds(newWorlds: World[]): Promise<void> {
+    const worldsToAdd = newWorlds.filter(newWorld =>
+      !worlds.value.some(w => w.uuid === newWorld.uuid)
+    )
+    if (worldsToAdd.length > 0) {
+      worlds.value.push(...worldsToAdd)
+    }
+  }
+
   return {
     // State
     worlds,
@@ -220,5 +239,6 @@ export const useWorldStore = defineStore('world', () => {
     selectWorlds,
     upsertWorld,
     deleteWorld,
+    addWorlds,
   }
 })

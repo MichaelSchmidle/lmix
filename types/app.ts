@@ -78,25 +78,36 @@ export type ProductionWithRelationsInsert = ProductionInsert & {
   production_relationship_uuids?: string[]
 }
 
+// Extended types with relations
+export type AssistantWithRelations = Assistant & {
+  persona?: Persona | null
+}
+
+export type ProductionAssistantWithRelations = ProductionAssistant & {
+  assistant: Assistant
+}
+
+export type ProductionPersonaWithRelations = ProductionPersona & {
+  persona: Persona
+}
+
+export type ProductionRelationshipWithRelations = ProductionRelationship & {
+  relationship: RelationshipWithRelations
+}
+
+export type RelationshipPersonaWithRelations = RelationshipPersona & {
+  persona: Persona
+}
+
+export type RelationshipWithRelations = Relationship & {
+  relationship_personas?: RelationshipPersonaWithRelations[]
+}
+
 // Extended type with full relations (for responses)
 export type ProductionWithRelations = Production & {
   world?: World | null
   scenario?: Scenario | null
-  production_assistants: {
-    uuid: string
-    assistant: Assistant
-  }[]
-  production_personas?: {
-    uuid: string
-    persona: Persona
-  }[]
-  production_relationships?: {
-    uuid: string
-    relationship: Relationship & {
-      relationship_personas?: {
-        uuid: string
-        persona: Persona
-      }[]
-    }
-  }[]
+  production_assistants?: ProductionAssistantWithRelations[]
+  production_personas?: ProductionPersonaWithRelations[]
+  production_relationships?: ProductionRelationshipWithRelations[]
 }

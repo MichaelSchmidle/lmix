@@ -1,46 +1,46 @@
 <script setup lang="ts">
 import type { FormKitNode } from '@formkit/core'
-import type { Relationship, RelationshipInsert } from '@/types/app'
+import type { Relation, RelationInsert } from '@/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
 const user = useSupabaseUser()
-const relationshipStore = useRelationshipStore()
+const relationStore = useRelationStore()
 const personaStore = usePersonaStore()
 const { getPersonaOptions } = storeToRefs(personaStore)
-const { getRelationshipPersonas } = storeToRefs(relationshipStore)
+const { getRelationPersonas } = storeToRefs(relationStore)
 
 const props = defineProps({
-  relationship: {
-    type: Object as PropType<Relationship>,
+  relation: {
+    type: Object as PropType<Relation>,
     default: undefined,
   },
 })
 
-const isUpdate = computed(() => !!props.relationship)
-const selectedPersonas = ref<string[]>(props.relationship ? getRelationshipPersonas.value(props.relationship.uuid) : [])
+const isUpdate = computed(() => !!props.relation)
+const selectedPersonas = ref<string[]>(props.relation ? getRelationPersonas.value(props.relation.uuid) : [])
 
 const formData = computed(() => ({
-  public_description: props.relationship?.public_description ?? '',
-  private_description: props.relationship?.private_description ?? '',
+  public_description: props.relation?.public_description ?? '',
+  private_description: props.relation?.private_description ?? '',
 }))
 
-const handleSubmit = async (form: RelationshipInsert, node: FormKitNode) => {
+const handleSubmit = async (form: RelationInsert, node: FormKitNode) => {
   try {
-    const uuid = await relationshipStore.upsertRelationship({
+    const uuid = await relationStore.upsertRelation({
       public_description: form.public_description,
       private_description: form.private_description,
-      uuid: props.relationship?.uuid,
+      uuid: props.relation?.uuid,
       user_uuid: user.value!.id,
-    } as RelationshipInsert, selectedPersonas.value)
+    } as RelationInsert, selectedPersonas.value)
 
     toast.add({
       color: 'lime',
       icon: 'i-ph-check-circle',
-      title: t(isUpdate.value ? 'relationshipUpdated' : 'relationshipCreated'),
+      title: t(isUpdate.value ? 'relationUpdated' : 'relationCreated'),
     })
 
-    navigateTo(`/relationships/${uuid}`)
+    navigateTo(`/relations/${uuid}`)
   }
   catch (error) {
     console.error(error)
@@ -59,8 +59,8 @@ const handleSubmit = async (form: RelationshipInsert, node: FormKitNode) => {
         <FormKit type="textarea" name="private_description" :label="t('privateDescription.label')" />
         <template #actions>
           <UiFormActions>
-            <RelationshipsDeleteModal v-if="relationship" :relationship="relationship" @success="navigateTo('/relationships/new')" />
-            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateRelationship' : 'createRelationship')" type="submit" />
+            <RelationsDeleteModal v-if="relation" :relation="relation" @success="navigateTo('/relations/new')" />
+            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateRelation' : 'createRelation')" type="submit" />
           </UiFormActions>
         </template>
       </FormKit>
@@ -70,10 +70,10 @@ const handleSubmit = async (form: RelationshipInsert, node: FormKitNode) => {
 
 <i18n lang="yaml">
   en:
-    titleCreate: Create Relationship
+    titleCreate: Create Relation
     titleUpdate: Update
-    descriptionCreate: Create a new relationship between personas.
-    descriptionUpdate: Update this relationship’s configuration.
+    descriptionCreate: Create a new relation between personas.
+    descriptionUpdate: Update this relation’s configuration.
     name:
       label: Name
     personas:
@@ -86,9 +86,9 @@ const handleSubmit = async (form: RelationshipInsert, node: FormKitNode) => {
     privateDescription:
       label: Private Description
       placeholder: Enter private description…
-    createRelationship: Create
-    updateRelationship: Update
-    relationshipCreated: Relationship created.
-    relationshipUpdated: Relationship updated.
-    saveFailed: Failed to save relationship.
+    createRelation: Create
+    updateRelation: Update
+    relationCreated: Relation created.
+    relationUpdated: Relation updated.
+    saveFailed: Failed to save relation.
 </i18n>

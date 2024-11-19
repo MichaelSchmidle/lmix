@@ -3,10 +3,10 @@
  * Handles CRUD operations and state management for personas.
  */
 import { defineStore } from 'pinia'
+import type { VerticalNavigationLink } from '#ui/types'
 import type { Database } from '~/types/api'
 import type { Persona, PersonaInsert } from '~/types/app'
 import { LMiXError } from '~/types/errors'
-import type { VerticalNavigationLink } from '#ui/types'
 
 export const usePersonaStore = defineStore('persona', () => {
   // State
@@ -242,3 +242,7 @@ export const usePersonaStore = defineStore('persona', () => {
     addPersonas,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(usePersonaStore, import.meta.hot))
+}

@@ -1,5 +1,5 @@
 import type { StoreDefinition } from 'pinia'
-import type { World, Scenario, Production, Model, Assistant, Persona, Relationship } from './app'
+import type { World, Scenario, Production, Model, Assistant, Persona, Relation } from './app'
 
 export interface BaseState<T> {
   items: T[]
@@ -17,7 +17,7 @@ export interface BaseActions {
   select(): Promise<void>
 }
 
-export type StoreNames = 'world' | 'scenario' | 'production' | 'model' | 'assistant' | 'persona' | 'relationship'
+export type StoreNames = 'world' | 'scenario' | 'production' | 'model' | 'assistant' | 'persona' | 'relation'
 
 export type StoreTypes = {
   world: World
@@ -26,7 +26,7 @@ export type StoreTypes = {
   model: Model
   assistant: Assistant
   persona: Persona
-  relationship: Relationship
+  relation: Relation
 }
 
 declare module 'pinia' {

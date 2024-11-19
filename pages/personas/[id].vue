@@ -18,7 +18,10 @@ useHead({
 
 // Use middleware instead of direct store calls
 definePageMeta({
-  middleware: ['personas', 'relationships']
+  middleware: [
+    'personas',
+    'relations',
+  ],
 })
 </script>
 
@@ -32,7 +35,7 @@ definePageMeta({
     </UiPanelHeader>
     <UiPanelContent>
       <PersonasUpsert :persona="persona" />
-      <PersonasRelationships v-if="persona" :persona="persona" />
+      <PersonasRelations v-if="persona" :persona="persona" />
     </UiPanelContent>
   </UiPanel>
 </template>

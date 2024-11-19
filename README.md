@@ -27,7 +27,7 @@ Create assistants with:
 ### Scenarios
 Bring it all together with natural language descriptions of:
 - Current situation
-- Relationships and tensions
+- Relations and tensions
 - Hidden agendas
 - Stakes and motivations
 

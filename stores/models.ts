@@ -3,10 +3,10 @@
  * Handles CRUD operations and state management for API models.
  */
 import { defineStore } from 'pinia'
+import type { AccordionItem, VerticalNavigationLink } from '#ui/types'
 import type { Database } from '~/types/api'
 import type { ApiConfiguration, ApiModel, ApiModelOption, Model, ModelInsert } from '~/types/app'
 import { LMiXError } from '~/types/errors'
-import type { AccordionItem, VerticalNavigationLink } from '#ui/types'
 
 export const useModelStore = defineStore('model', () => {
   // State
@@ -278,3 +278,7 @@ export const useModelStore = defineStore('model', () => {
     transformToFormOptions
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useModelStore, import.meta.hot))
+}

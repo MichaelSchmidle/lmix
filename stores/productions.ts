@@ -5,7 +5,7 @@
 import { defineStore } from 'pinia'
 import type { VerticalNavigationLink } from '#ui/types'
 import type { Database } from '~/types/api'
-import type { Assistant, Persona, Production, ProductionAssistant, ProductionInsert, ProductionPersona, ProductionRelationship, ProductionWithRelations, Relationship } from '~/types/app'
+import type { Assistant, Persona, Production, ProductionAssistant, ProductionInsert, ProductionPersona, ProductionRelation, ProductionWithRelations, Relation } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 
 export const useProductionStore = defineStore('production', () => {
@@ -13,7 +13,7 @@ export const useProductionStore = defineStore('production', () => {
   const productions = ref<Production[]>([])
   const productionAssistants = ref<ProductionAssistant[]>([])
   const productionPersonas = ref<ProductionPersona[]>([])
-  const productionRelationships = ref<ProductionRelationship[]>([])
+  const productionRelations = ref<ProductionRelation[]>([])
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
 
@@ -34,10 +34,10 @@ export const useProductionStore = defineStore('production', () => {
       .map(pp => pp.persona_uuid)
   })
 
-  const getProductionRelationships = computed(() => {
-    return (productionUuid: string): string[] => productionRelationships.value
+  const getProductionRelations = computed(() => {
+    return (productionUuid: string): string[] => productionRelations.value
       .filter(pr => pr.production_uuid === productionUuid)
-      .map(pr => pr.relationship_uuid)
+      .map(pr => pr.relation_uuid)
   })
 
   /**
@@ -109,7 +109,7 @@ export const useProductionStore = defineStore('production', () => {
   }
 
   /**
-   * Fetches detailed production data including all relationships
+   * Fetches detailed production data including all relations
    * @param {string} uuid - UUID of the production to fetch
    */
   async function selectProduction(uuid: string): Promise<void> {
@@ -142,15 +142,15 @@ export const useProductionStore = defineStore('production', () => {
             user_uuid,
             persona:personas (*)
           ),
-          production_relationships (
+          production_relations (
             uuid,
             created_at,
             production_uuid,
-            relationship_uuid,
+            relation_uuid,
             user_uuid,
-            relationship:relationships (
+            relation:relations (
               *,
-              relationship_personas (
+              relation_personas (
                 uuid,
                 created_at,
                 user_uuid,
@@ -172,7 +172,7 @@ export const useProductionStore = defineStore('production', () => {
       const scenarioStore = useScenarioStore()
       const assistantStore = useAssistantStore()
       const personaStore = usePersonaStore()
-      const relationshipStore = useRelationshipStore()
+      const relationStore = useRelationStore()
 
       const promises: Promise<void>[] = []
 
@@ -197,22 +197,22 @@ export const useProductionStore = defineStore('production', () => {
         promises.push(personaStore.addPersonas(personas))
       }
 
-      const relationships = item.production_relationships
-        ?.map(pr => pr.relationship)
-        .filter((r): r is Relationship => r !== null)
-      if (relationships?.length) {
-        const relationshipPersonas = relationships.flatMap(r => {
-          const personas = (r as Relationship & {
-            relationship_personas?: Array<{
+      const relations = item.production_relations
+        ?.map(pr => pr.relation)
+        .filter((r): r is Relation => r !== null)
+      if (relations?.length) {
+        const relationPersonas = relations.flatMap(r => {
+          const personas = (r as Relation & {
+            relation_personas?: Array<{
               uuid: string
               created_at: string
               user_uuid: string
               persona: Persona | null
             }>
-          })?.relationship_personas
+          })?.relation_personas
 
           return personas?.map(rp => ({
-            relationship_uuid: r.uuid,
+            relation_uuid: r.uuid,
             persona_uuid: rp.persona?.uuid ?? '',
             uuid: rp.uuid,
             created_at: rp.created_at,
@@ -220,7 +220,7 @@ export const useProductionStore = defineStore('production', () => {
           })) ?? []
         }).filter(rp => rp.persona_uuid)
 
-        promises.push(relationshipStore.addRelationships(relationships, relationshipPersonas))
+        promises.push(relationStore.addRelations(relations, relationPersonas))
       }
 
       // Wait for all store updates to complete
@@ -228,7 +228,7 @@ export const useProductionStore = defineStore('production', () => {
 
       // Update production in store if it exists, otherwise add it
       const index = productions.value.findIndex(p => p.uuid === uuid)
-      const { production_assistants, production_personas, production_relationships, world, scenario, ...production } = item
+      const { production_assistants, production_personas, production_relations, world, scenario, ...production } = item
 
       if (index !== -1) {
         productions.value[index] = production
@@ -236,18 +236,18 @@ export const useProductionStore = defineStore('production', () => {
         productions.value.push(production)
       }
 
-      // Update relationships
+      // Update relations
       productionAssistants.value = productionAssistants.value.filter(
         pa => pa.production_uuid !== uuid
       )
       productionPersonas.value = productionPersonas.value.filter(
         pp => pp.production_uuid !== uuid
       )
-      productionRelationships.value = productionRelationships.value.filter(
+      productionRelations.value = productionRelations.value.filter(
         pr => pr.production_uuid !== uuid
       )
 
-      // Add new relationships
+      // Add new relations
       if (item.production_assistants?.length) {
         productionAssistants.value.push(...item.production_assistants.map(pa => ({
           uuid: pa.uuid,
@@ -268,12 +268,12 @@ export const useProductionStore = defineStore('production', () => {
         })))
       }
 
-      if (item.production_relationships?.length) {
-        productionRelationships.value.push(...item.production_relationships.map(pr => ({
+      if (item.production_relations?.length) {
+        productionRelations.value.push(...item.production_relations.map(pr => ({
           uuid: pr.uuid,
           created_at: pr.created_at,
           production_uuid: uuid,
-          relationship_uuid: pr.relationship?.uuid ?? '',
+          relation_uuid: pr.relation?.uuid ?? '',
           user_uuid: pr.user_uuid
         })))
       }
@@ -289,19 +289,19 @@ export const useProductionStore = defineStore('production', () => {
   }
 
   /**
-   * Creates or updates a production with its relationships
+   * Creates or updates a production with its relations
    * @param {ProductionInsert} production - The production data to upsert
    * @param {Object} options - Additional options for related data
    * @param {string[]} options.assistantUuids - UUIDs of related assistants
    * @param {string[]} options.personaUuids - UUIDs of related personas
-   * @param {string[]} options.relationshipUuids - UUIDs of related relationships
+   * @param {string[]} options.relationUuids - UUIDs of related relations
    */
   async function upsertProduction(
     production: ProductionInsert,
     options: {
       assistantUuids?: string[]
       personaUuids?: string[]
-      relationshipUuids?: string[]
+      relationUuids?: string[]
     } = {}
   ): Promise<string | null> {
     loading.value = true
@@ -312,7 +312,7 @@ export const useProductionStore = defineStore('production', () => {
       productions: [...productions.value],
       productionAssistants: [...productionAssistants.value],
       productionPersonas: [...productionPersonas.value],
-      productionRelationships: [...productionRelationships.value]
+      productionRelations: [...productionRelations.value]
     }
     let tempId: string | null = null
 
@@ -351,12 +351,12 @@ export const useProductionStore = defineStore('production', () => {
 
       const productionUuid = productionData[0].uuid
 
-      // 2. If updating, remove existing relationships
+      // 2. If updating, remove existing relations
       if (isUpdate) {
         const deletePromises = [
           client.from('production_assistants').delete().eq('production_uuid', productionUuid),
           client.from('production_personas').delete().eq('production_uuid', productionUuid),
-          client.from('production_relationships').delete().eq('production_uuid', productionUuid)
+          client.from('production_relations').delete().eq('production_uuid', productionUuid)
         ]
         const deleteResults = await Promise.all(deletePromises)
         deleteResults.forEach(({ error }) => {
@@ -364,7 +364,7 @@ export const useProductionStore = defineStore('production', () => {
         })
       }
 
-      // 3. Insert new relationships
+      // 3. Insert new relations
       const now = new Date().toISOString()
       const insertPromises = []
 
@@ -392,15 +392,15 @@ export const useProductionStore = defineStore('production', () => {
         )
       }
 
-      if (options.relationshipUuids?.length) {
-        const relationshipRelations = options.relationshipUuids.map(uuid => ({
+      if (options.relationUuids?.length) {
+        const relationRelations = options.relationUuids.map(uuid => ({
           production_uuid: productionUuid,
-          relationship_uuid: uuid,
+          relation_uuid: uuid,
           user_uuid: production.user_uuid,
           created_at: now
         }))
         insertPromises.push(
-          client.from('production_relationships').insert(relationshipRelations).select()
+          client.from('production_relations').insert(relationRelations).select()
         )
       }
 
@@ -425,7 +425,7 @@ export const useProductionStore = defineStore('production', () => {
       // Update junction table states
       productionAssistants.value = productionAssistants.value.filter(pa => pa.production_uuid !== productionUuid)
       productionPersonas.value = productionPersonas.value.filter(pp => pp.production_uuid !== productionUuid)
-      productionRelationships.value = productionRelationships.value.filter(pr => pr.production_uuid !== productionUuid)
+      productionRelations.value = productionRelations.value.filter(pr => pr.production_uuid !== productionUuid)
 
       insertResults.forEach(({ data }) => {
         if (!data?.length) return
@@ -436,8 +436,8 @@ export const useProductionStore = defineStore('production', () => {
           productionAssistants.value.push(...(data as ProductionAssistant[]))
         } else if ('persona_uuid' in firstItem) {
           productionPersonas.value.push(...(data as ProductionPersona[]))
-        } else if ('relationship_uuid' in firstItem) {
-          productionRelationships.value.push(...(data as ProductionRelationship[]))
+        } else if ('relation_uuid' in firstItem) {
+          productionRelations.value.push(...(data as ProductionRelation[]))
         }
       })
 
@@ -447,7 +447,7 @@ export const useProductionStore = defineStore('production', () => {
       productions.value = original.productions
       productionAssistants.value = original.productionAssistants
       productionPersonas.value = original.productionPersonas
-      productionRelationships.value = original.productionRelationships
+      productionRelations.value = original.productionRelations
       error.value = e as LMiXError
       if (import.meta.dev) console.error('Production upsert failed:', e)
       throw e
@@ -506,11 +506,15 @@ export const useProductionStore = defineStore('production', () => {
     getProductionCount,
     getProductionAssistants,
     getProductionPersonas,
-    getProductionRelationships,
+    getProductionRelations,
     // Actions
     selectProductions,
     selectProduction,
     upsertProduction,
     deleteProduction,
   }
-}) 
+})
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useProductionStore, import.meta.hot))
+}

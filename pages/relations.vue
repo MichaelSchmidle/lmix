@@ -7,28 +7,30 @@ useHead({
 })
 
 definePageMeta({
-  middleware: ['relationships'],
+  middleware: [
+    'relations',
+  ],
 })
 
-const relationshipStore = useRelationshipStore()
-const { getRelationshipNavigation } = storeToRefs(relationshipStore)
+const relationStore = useRelationStore()
+const { getRelationNavigation } = storeToRefs(relationStore)
 </script>
 
 <template>
   <UiPanel :class="[
     'bg-gray-50 dark:bg-gray-950 max-w-[200px]',
-    route.path !== '/relationships' && 'hidden lg:flex',
+    route.path !== '/relations' && 'hidden lg:flex',
   ]">
     <UiPanelHeader>
       {{ t('title') }}
     </UiPanelHeader>
     <UiPanelContent v-auto-animate>
-      <UButton block icon="i-ph-share-network-duotone" :label="t('newRelationship')" to="/relationships/new" />
-      <UVerticalNavigation :links="getRelationshipNavigation()" />
-      <NoData v-if="!getRelationshipNavigation().length" :message="t('noRelationships')" />
+      <UButton block icon="i-ph-share-network-duotone" :label="t('newRelation')" to="/relations/new" />
+      <UVerticalNavigation :links="getRelationNavigation()" />
+      <NoData v-if="!getRelationNavigation().length" :message="t('noRelations')" />
     </UiPanelContent>
   </UiPanel>
-  <UiPanel v-if="route.path === '/relationships'">
+  <UiPanel v-if="route.path === '/relations'">
     <UiPanelHeader has-back-button>
       <template #toggle>
         <NavPanelSlideover class="xl:hidden" />
@@ -41,7 +43,7 @@ const { getRelationshipNavigation } = storeToRefs(relationshipStore)
 
 <i18n lang="yaml">
   en:
-    title: Relationships
-    newRelationship: New Relationship
-    noRelationships: No relationships yet
+    title: Relations
+    newRelation: New Relation
+    noRelations: No relations yet
 </i18n>

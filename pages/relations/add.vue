@@ -7,7 +7,7 @@ useHead({
 
 definePageMeta({
   middleware: [
-    'relationships',
+    'relations',
   ],
 })
 </script>
@@ -21,12 +21,12 @@ definePageMeta({
       </template>
     </UiPanelHeader>
     <UiPanelContent>
-      <RelationshipsUpsert />
+      <RelationsUpsert />
     </UiPanelContent>
   </UiPanel>
 </template>
 
 <i18n lang="yaml">
   en:
-    title: New Relationship
+    title: New Relation
 </i18n>

@@ -189,41 +189,41 @@ export type Database = {
           },
         ]
       }
-      production_relationships: {
+      production_relations: {
         Row: {
           created_at: string
           production_uuid: string
-          relationship_uuid: string
+          relation_uuid: string
           user_uuid: string
           uuid: string
         }
         Insert: {
           created_at?: string
           production_uuid: string
-          relationship_uuid: string
+          relation_uuid: string
           user_uuid: string
           uuid?: string
         }
         Update: {
           created_at?: string
           production_uuid?: string
-          relationship_uuid?: string
+          relation_uuid?: string
           user_uuid?: string
           uuid?: string
         }
         Relationships: [
           {
+            foreignKeyName: "production_relations_relation_uuid_fkey"
+            columns: ["relation_uuid"]
+            isOneToOne: false
+            referencedRelation: "relations"
+            referencedColumns: ["uuid"]
+          },
+          {
             foreignKeyName: "production_relationships_production_uuid_fkey"
             columns: ["production_uuid"]
             isOneToOne: false
             referencedRelation: "productions"
-            referencedColumns: ["uuid"]
-          },
-          {
-            foreignKeyName: "production_relationships_relationship_uuid_fkey"
-            columns: ["relationship_uuid"]
-            isOneToOne: false
-            referencedRelation: "relationships"
             referencedColumns: ["uuid"]
           },
         ]
@@ -270,25 +270,25 @@ export type Database = {
           },
         ]
       }
-      relationship_personas: {
+      relation_personas: {
         Row: {
           created_at: string
           persona_uuid: string
-          relationship_uuid: string
+          relation_uuid: string
           user_uuid: string
           uuid: string
         }
         Insert: {
           created_at?: string
           persona_uuid: string
-          relationship_uuid: string
+          relation_uuid: string
           user_uuid: string
           uuid?: string
         }
         Update: {
           created_at?: string
           persona_uuid?: string
-          relationship_uuid?: string
+          relation_uuid?: string
           user_uuid?: string
           uuid?: string
         }
@@ -302,14 +302,14 @@ export type Database = {
           },
           {
             foreignKeyName: "relationship_members_relationship_uuid_fkey"
-            columns: ["relationship_uuid"]
+            columns: ["relation_uuid"]
             isOneToOne: false
-            referencedRelation: "relationships"
+            referencedRelation: "relations"
             referencedColumns: ["uuid"]
           },
         ]
       }
-      relationships: {
+      relations: {
         Row: {
           created_at: string
           name: string | null
@@ -389,15 +389,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      upsert_production_with_relationships: {
-        Args: {
-          production_data: Json
-          assistant_uuids: string[]
-          persona_uuids: string[]
-          relationship_uuids: string[]
-        }
-        Returns: Json[]
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

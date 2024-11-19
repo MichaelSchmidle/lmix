@@ -22,7 +22,7 @@ const props = defineProps({
       {{ getProductionLabel(production) }}
     </UiPanelHeader>
     <UiPanelContent>
-      <ProductionsUpsert :production="production" />
+
     </UiPanelContent>
   </UiPanel>
 </template>

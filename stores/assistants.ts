@@ -3,10 +3,10 @@
  * Handles CRUD operations and state management for assistants.
  */
 import { defineStore } from 'pinia'
+import type { VerticalNavigationLink } from '#ui/types'
 import type { Database } from '~/types/api'
 import type { Assistant, AssistantInsert, AssistantWithRelations, Persona } from '~/types/app'
 import { LMiXError } from '~/types/errors'
-import type { VerticalNavigationLink } from '#ui/types'
 
 export const useAssistantStore = defineStore('assistant', () => {
   // State
@@ -259,3 +259,7 @@ export const useAssistantStore = defineStore('assistant', () => {
     addAssistants,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useAssistantStore, import.meta.hot))
+}

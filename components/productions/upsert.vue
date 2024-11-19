@@ -10,7 +10,7 @@ const worldStore = useWorldStore()
 const scenarioStore = useScenarioStore()
 const assistantStore = useAssistantStore()
 const personaStore = usePersonaStore()
-const relationshipStore = useRelationshipStore()
+const relationStore = useRelationStore()
 
 const props = defineProps({
   production: {
@@ -23,9 +23,9 @@ const { getWorldOptions } = storeToRefs(worldStore)
 const { getScenarioOptions } = storeToRefs(scenarioStore)
 const { getAssistantOptions } = storeToRefs(assistantStore)
 const { getPersonaOptions } = storeToRefs(personaStore)
-const { getRelationshipOptions } = storeToRefs(relationshipStore)
+const { getRelationOptions } = storeToRefs(relationStore)
 const isUpdate = computed(() => !!props.production)
-const isExtended = ref(false)
+const isExtended = ref(props.production ? true : false)
 
 const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNode) => {
   try {
@@ -38,7 +38,7 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
       {
         assistantUuids: form.production_assistant_uuids || [],
         personaUuids: form.production_persona_uuids || [],
-        relationshipUuids: form.production_relationship_uuids || [],
+        relationUuids: form.production_relation_uuids || [],
       }
     )
 
@@ -58,8 +58,8 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
 </script>
 
 <template>
-  <UiSection icon="i-ph-film-script-thin" :title="t('titleCreate')" :description="t('descriptionCreate')" orientation="vertical">
-    <div class="flex justify-end px-4">
+  <UiSection icon="i-ph-film-script-thin" :title="t(production ? 'titleUpdate' : 'titleCreate')" :description="t(production ? 'descriptionUpdate' : 'descriptionCreate')">
+    <div class="flex justify-end max-w-prose px-4">
       <UCheckbox v-model="isExtended" :label="t('isExtended.label')" />
     </div>
     <UCard>
@@ -69,7 +69,7 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
         <FormKit type="dropdown" name="scenario_uuid" :label="t('scenario.label')" :options="getScenarioOptions" :placeholder="t('scenario.placeholder')" />
         <template v-if="isExtended">
           <FormKit type="taglist" name="production_persona_uuids" :label="t('personas.label')" :help="t('personas.help')" :options="getPersonaOptions" :placeholder="t('personas.placeholder')" />
-          <FormKit type="taglist" name="production_relationship_uuids" :label="t('relationships.label')" :options="getRelationshipOptions" :placeholder="t('relationships.placeholder')" />
+          <FormKit type="taglist" name="production_relation_uuids" :label="t('relations.label')" :options="getRelationOptions" :placeholder="t('relations.placeholder')" />
           <FormKit type="dropdown" name="world_uuid" :label="t('world.label')" :options="getWorldOptions" :placeholder="t('world.placeholder')" />
         </template>
         <template #actions>
@@ -102,9 +102,9 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
       label: Personas
       help: Add the personas that you as user will represent in this production.
       placeholder: Select a persona…
-    relationships:
-      label: Relationships
-      placeholder: Select a relationship…
+    relations:
+      label: Relations
+      placeholder: Select a relation…
     world:
       label: World
       placeholder: Select a world…

@@ -6,7 +6,7 @@ const route = useRoute()
 const productionStore = useProductionStore()
 
 await productionStore.selectProduction(route.params.id as string)
-const { getProduction, getProductionAssistants, getProductionLabel, getProductionPersonas, getProductionRelationships } = storeToRefs(productionStore)
+const { getProduction, getProductionAssistants, getProductionLabel, getProductionPersonas, getProductionRelations } = storeToRefs(productionStore)
 const production = getProduction.value(route.params.id as string)
 
 if (!production) {
@@ -20,8 +20,8 @@ const personaStore = usePersonaStore()
 const { getPersonaNavigation } = storeToRefs(personaStore)
 const assistantStore = useAssistantStore()
 const { getAssistantNavigation } = storeToRefs(assistantStore)
-const relationshipStore = useRelationshipStore()
-const { getRelationshipNavigation } = storeToRefs(relationshipStore)
+const relationStore = useRelationStore()
+const { getRelationNavigation } = storeToRefs(relationStore)
 const scenarioStore = useScenarioStore()
 const { getScenarioNavigation } = storeToRefs(scenarioStore)
 const worldStore = useWorldStore()
@@ -40,14 +40,14 @@ const accordionItems = ref([
 
 const personaNavigation = ref<VerticalNavigationLink[]>([])
 const assistantNavigation = ref<VerticalNavigationLink[]>([])
-const relationshipNavigation = ref<VerticalNavigationLink[]>([])
+const relationNavigation = ref<VerticalNavigationLink[]>([])
 const scenarioNavigation = ref<VerticalNavigationLink[]>([])
 const worldNavigation = ref<VerticalNavigationLink[]>([])
 
 if (production) {
   personaNavigation.value = getPersonaNavigation.value(getProductionPersonas.value(production.uuid), 'i-ph-mask-happy')
   assistantNavigation.value = getAssistantNavigation.value(getProductionAssistants.value(production.uuid), 'i-ph-head-circuit')
-  relationshipNavigation.value = getRelationshipNavigation.value(getProductionRelationships.value(production.uuid), 'i-ph-share-network')
+  relationNavigation.value = getRelationNavigation.value(getProductionRelations.value(production.uuid), 'i-ph-share-network')
 
   if (production.scenario_uuid) {
     scenarioNavigation.value = getScenarioNavigation.value([production.scenario_uuid], 'i-ph-panorama')
@@ -60,8 +60,11 @@ if (production) {
 </script>
 
 <template>
-  <UiPanel v-if="production" class="bg-gray-50 dark:bg-gray-950 max-w-[200px]">
-    <UiPanelHeader has-back-button>
+  <UiPanel :class="[
+    'bg-gray-50 dark:bg-gray-950 max-w-[200px]',
+    route.path !== `/productions/${production?.uuid}` && 'hidden lg:flex',
+  ]">
+    <UiPanelHeader>
       {{ t('title') }}
     </UiPanelHeader>
     <UiPanelContent>
@@ -70,14 +73,22 @@ if (production) {
         <template #ensemble>
           <UVerticalNavigation :links="personaNavigation" />
           <UVerticalNavigation :links="assistantNavigation" />
-          <UVerticalNavigation :links="relationshipNavigation" />
+          <UVerticalNavigation :links="relationNavigation" />
           <UVerticalNavigation :links="scenarioNavigation" />
           <UVerticalNavigation :links="worldNavigation" />
         </template>
       </UAccordion>
     </UiPanelContent>
   </UiPanel>
-  <NuxtPage />
+  <UiPanel v-if="route.path === `/productions/${production?.uuid}`">
+    <UiPanelHeader has-back-button>
+      <template #toggle>
+        <NavPanelSlideover class="xl:hidden" />
+      </template>
+    </UiPanelHeader>
+    <UiPanelContent />
+  </UiPanel>
+  <NuxtPage v-else :production="production" />
 </template>
 
 <i18n lang="yaml">
@@ -86,5 +97,5 @@ if (production) {
     title: Production
     productionNotFound: Production not found
     ensemble: Ensemble
-    upsert: Settings
+    upsert: Configuration
 </i18n>

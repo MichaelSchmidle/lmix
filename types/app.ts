@@ -49,9 +49,9 @@ export type Production = Database['public']['Tables']['productions']['Row']
 export type ProductionInsert = Database['public']['Tables']['productions']['Insert']
 export type ProductionUpdate = Database['public']['Tables']['productions']['Update']
 
-export type Relationship = Database['public']['Tables']['relationships']['Row']
-export type RelationshipInsert = Database['public']['Tables']['relationships']['Insert']
-export type RelationshipUpdate = Database['public']['Tables']['relationships']['Update']
+export type Relation = Database['public']['Tables']['relations']['Row']
+export type RelationInsert = Database['public']['Tables']['relations']['Insert']
+export type RelationUpdate = Database['public']['Tables']['relations']['Update']
 
 // Junction tables
 export type ProductionAssistant = Database['public']['Tables']['production_assistants']['Row']
@@ -62,20 +62,20 @@ export type ProductionPersona = Database['public']['Tables']['production_persona
 export type ProductionPersonaInsert = Database['public']['Tables']['production_personas']['Insert']
 export type ProductionPersonaUpdate = Database['public']['Tables']['production_personas']['Update']
 
-export type ProductionRelationship = Database['public']['Tables']['production_relationships']['Row']
-export type ProductionRelationshipInsert = Database['public']['Tables']['production_relationships']['Insert']
-export type ProductionRelationshipUpdate = Database['public']['Tables']['production_relationships']['Update']
+export type ProductionRelation = Database['public']['Tables']['production_relations']['Row']
+export type ProductionRelationInsert = Database['public']['Tables']['production_relations']['Insert']
+export type ProductionRelationUpdate = Database['public']['Tables']['production_relations']['Update']
 
-export type RelationshipPersona = Database['public']['Tables']['relationship_personas']['Row']
-export type RelationshipPersonaInsert = Database['public']['Tables']['relationship_personas']['Insert']
-export type RelationshipPersonaUpdate = Database['public']['Tables']['relationship_personas']['Update']
+export type RelationPersona = Database['public']['Tables']['relation_personas']['Row']
+export type RelationPersonaInsert = Database['public']['Tables']['relation_personas']['Insert']
+export type RelationPersonaUpdate = Database['public']['Tables']['relation_personas']['Update']
 
-// Extended insert type that includes relationship UUIDs
+// Extended insert type that includes relation UUIDs
 export type ProductionWithRelationsInsert = ProductionInsert & {
   // These match the form field names in the component
   production_assistant_uuids?: string[]
   production_persona_uuids?: string[]
-  production_relationship_uuids?: string[]
+  production_relation_uuids?: string[]
 }
 
 // Extended types with relations
@@ -91,16 +91,16 @@ export type ProductionPersonaWithRelations = ProductionPersona & {
   persona: Persona
 }
 
-export type ProductionRelationshipWithRelations = ProductionRelationship & {
-  relationship: RelationshipWithRelations
+export type ProductionRelationWithRelations = ProductionRelation & {
+  relation: RelationWithRelations
 }
 
-export type RelationshipPersonaWithRelations = RelationshipPersona & {
+export type RelationPersonaWithRelations = RelationPersona & {
   persona: Persona
 }
 
-export type RelationshipWithRelations = Relationship & {
-  relationship_personas?: RelationshipPersonaWithRelations[]
+export type RelationWithRelations = Relation & {
+  relation_personas?: RelationPersonaWithRelations[]
 }
 
 // Extended type with full relations (for responses)
@@ -109,5 +109,5 @@ export type ProductionWithRelations = Production & {
   scenario?: Scenario | null
   production_assistants?: ProductionAssistantWithRelations[]
   production_personas?: ProductionPersonaWithRelations[]
-  production_relationships?: ProductionRelationshipWithRelations[]
+  production_relations?: ProductionRelationWithRelations[]
 }

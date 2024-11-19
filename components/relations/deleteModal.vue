@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import type { Relationship } from '@/types/app'
+import type { Relation } from '@/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
-const relationshipStore = useRelationshipStore()
-const { getRelationshipLabel } = storeToRefs(relationshipStore)
+const relationStore = useRelationStore()
+const { getRelationLabel } = storeToRefs(relationStore)
 
 const props = defineProps({
-  relationship: {
-    type: Object as PropType<Relationship>,
+  relation: {
+    type: Object as PropType<Relation>,
     required: true,
   },
 })
@@ -17,12 +17,12 @@ const emits = defineEmits(['success'])
 
 const isOpen = ref(false)
 const isDeleting = ref(false)
-const relationshipLabel = computed(() => getRelationshipLabel.value(props.relationship.uuid))
+const relationLabel = computed(() => getRelationLabel.value(props.relation.uuid))
 
 async function handleDelete() {
   try {
     isDeleting.value = true
-    await relationshipStore.deleteRelationship(props.relationship.uuid)
+    await relationStore.deleteRelation(props.relation.uuid)
 
     toast.add({
       color: 'lime',
@@ -48,20 +48,20 @@ async function handleDelete() {
 
 <template>
   <div>
-    <UButton color="gray" icon="i-ph-trash-duotone" :label="t('deleteRelationship.outside')" variant="ghost" @click="isOpen = true" />
+    <UButton color="gray" icon="i-ph-trash-duotone" :label="t('deleteRelation.outside')" variant="ghost" @click="isOpen = true" />
     <UModal v-model="isOpen">
       <UCard :ui="{ body: { base: 'space-y-4' } }">
         <template #header>
           {{ t('title') }}
         </template>
-        <i18n-t keypath="deleteRelationshipConfirmation" tag="p" class="prose dark:prose-invert">
+        <i18n-t keypath="deleteRelationConfirmation" tag="p" class="prose dark:prose-invert">
           <template #label>
-            <code>{{ relationshipLabel }}</code>
+            <code>{{ relationLabel }}</code>
           </template>
         </i18n-t>
         <UiFormActions>
           <UButton color="gray" variant="ghost" :label="t('cancel')" @click="isOpen = false" />
-          <UButton color="rose" icon="i-ph-trash-duotone" :label="t('deleteRelationship.inside')" :loading="isDeleting" @click="handleDelete" />
+          <UButton color="rose" icon="i-ph-trash-duotone" :label="t('deleteRelation.inside')" :loading="isDeleting" @click="handleDelete" />
         </UiFormActions>
       </UCard>
     </UModal>
@@ -70,12 +70,12 @@ async function handleDelete() {
 
 <i18n lang="yaml">
   en:
-    title: Remove Relationship
-    deleteRelationship:
+    title: Remove Relation
+    deleteRelation:
       outside: Remove…
       inside: Remove
-    deleteRelationshipConfirmation: Are you sure you want to remove the relationship between {label}? This action cannot be undone.
+    deleteRelationConfirmation: Are you sure you want to remove the relation between {label}? This action cannot be undone.
     cancel: Cancel
-    success: Relationship removed.
-    error: Failed to remove relationship.
+    success: Relation removed.
+    error: Failed to remove relation.
 </i18n>

@@ -1,8 +1,8 @@
 export default defineNuxtRouteMiddleware(async () => {
-  const relationshipStore = useRelationshipStore()
+  const relationStore = useRelationStore()
   const personaStore = usePersonaStore()
   await Promise.all([
-    relationshipStore.selectRelationships(),
+    relationStore.selectRelations(),
     personaStore.selectPersonas(),
   ])
 }) 

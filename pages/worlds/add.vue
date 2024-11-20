@@ -4,19 +4,16 @@ const { t } = useI18n({ useScope: 'local' })
 useHead({
   title: t('title'),
 })
-
-definePageMeta({
-  middleware: [
-    'worlds',
-  ],
-})
 </script>
 
 <template>
   <UiPanel>
-    <UiPanelHeader has-back-button>
+    <UiPanelHeader>
+      <template #domainToggle>
+        <WorldsPanelSlideover class="lg:hidden" />
+      </template>
       {{ t('title') }}
-      <template #toggle>
+      <template #mainToggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>
     </UiPanelHeader>
@@ -29,4 +26,5 @@ definePageMeta({
 <i18n lang="yaml">
   en:
     title: New World
+    worlds: World Navigation
 </i18n>

@@ -17,17 +17,17 @@ const { assistants } = storeToRefs(assistantStore)
         <li class="flex items-center gap-2">
           <UIcon v-if="models.length" class="h-5 text-lime-500 dark:text-lime-400 w-5" name="i-ph-check-circle-fill" />
           <UIcon v-else class="h-5 text-gray-500 dark:text-gray-400 w-5" name="i-ph-circle-duotone" />
-          <UButton icon="i-ph-circuitry-duotone" :label="t('newModel')" to="/models/new" />
+          <UButton icon="i-ph-circuitry-duotone" :label="t('newModel')" to="/models/add" />
         </li>
         <li class="flex items-center gap-2">
           <UIcon v-if="personas.length" class="h-5 text-lime-500 dark:text-lime-400 w-5" name="i-ph-check-circle-fill" />
           <UIcon v-else class="h-5 text-gray-500 dark:text-gray-400 w-5" name="i-ph-circle-duotone" />
-          <UButton icon="i-ph-mask-happy-duotone" :label="t('newPersona')" to="/personas/new" />
+          <UButton icon="i-ph-mask-happy-duotone" :label="t('newPersona')" to="/personas/add" />
         </li>
         <li class="flex items-center gap-2">
           <UIcon v-if="assistants.length" class="h-5 text-lime-500 dark:text-lime-400 w-5" name="i-ph-check-circle-fill" />
           <UIcon v-else class="h-5 text-gray-500 dark:text-gray-400 w-5" name="i-ph-circle-duotone" />
-          <UButton icon="i-ph-head-circuit-duotone" :label="t('newAssistant')" to="/assistants/new" />
+          <UButton icon="i-ph-head-circuit-duotone" :label="t('newAssistant')" to="/assistants/add" />
         </li>
       </ul>
     </div>

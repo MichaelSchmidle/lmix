@@ -30,7 +30,7 @@ const { getAssistantCount } = assistantStore
 <template>
   <UiPanel>
     <UiPanelHeader>
-      <template #toggle>
+      <template #mainToggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>
       {{ t('title') }}

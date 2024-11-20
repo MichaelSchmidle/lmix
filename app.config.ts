@@ -95,7 +95,7 @@ export default defineAppConfig({
       },
     },
     verticalNavigation: {
-      active: 'before:bg-white dark:before:bg-black',
+      active: 'before:bg-primary-100 dark:before:bg-primary-900 font-semibold text-primary-900 dark:text-primary-100',
       inactive: 'hover:before:bg-gray-200 dark:hover:before:bg-gray-800',
     },
   },

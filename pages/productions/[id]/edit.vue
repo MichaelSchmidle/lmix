@@ -15,7 +15,7 @@ const props = defineProps({
 
 <template>
   <UiPanel>
-    <UiPanelHeader has-back-button>
+    <UiPanelHeader>
       <template #toggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>

@@ -50,7 +50,7 @@ const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
         <FormKit type="textarea" name="public_knowledge" :label="t('publicKnowledge.label')" :help="t('publicKnowledge.help')" />
         <template #actions>
           <UiFormActions>
-            <PersonasDeleteModal v-if="persona" :persona="persona" @success="navigateTo('/personas/new')" />
+            <PersonasDeleteModal v-if="persona" :persona="persona" @success="navigateTo('/personas/add')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updatePersona' : 'createPersona')" type="submit" />
           </UiFormActions>
         </template>

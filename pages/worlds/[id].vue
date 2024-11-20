@@ -19,9 +19,12 @@ useHead({
 
 <template>
   <UiPanel>
-    <UiPanelHeader has-back-button>
-      {{ world?.name }}
-      <template #toggle>
+    <UiPanelHeader>
+      <template #domainToggle>
+        <WorldsPanelSlideover class="lg:hidden" />
+      </template>
+      {{ t('title') }}
+      <template #mainToggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>
     </UiPanelHeader>

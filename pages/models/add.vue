@@ -8,9 +8,12 @@ useHead({
 
 <template>
   <UiPanel>
-    <UiPanelHeader has-back-button>
+    <UiPanelHeader>
+      <template #domainToggle>
+        <ModelsPanelSlideover class="lg:hidden" />
+      </template>
       {{ t('title') }}
-      <template #toggle>
+      <template #mainToggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>
     </UiPanelHeader>

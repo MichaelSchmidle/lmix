@@ -8,15 +8,19 @@ useHead({
 definePageMeta({
   middleware: [
     'relations',
+    'personas',
   ],
 })
 </script>
 
 <template>
   <UiPanel>
-    <UiPanelHeader has-back-button>
+    <UiPanelHeader>
+      <template #domainToggle>
+        <RelationsPanelSlideover class="lg:hidden" />
+      </template>
       {{ t('title') }}
-      <template #toggle>
+      <template #mainToggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>
     </UiPanelHeader>

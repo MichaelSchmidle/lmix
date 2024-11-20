@@ -11,39 +11,26 @@ definePageMeta({
     'relations',
   ],
 })
-
-const relationStore = useRelationStore()
-const { getRelationNavigation } = storeToRefs(relationStore)
 </script>
 
 <template>
   <UiPanel :class="[
-    'bg-gray-50 dark:bg-gray-950 max-w-[200px]',
+    'bg-gray-50 dark:bg-gray-950 max-w-[calc(100vw-64px)] sm:max-w-[200px]',
     route.path !== '/relations' && 'hidden lg:flex',
   ]">
-    <UiPanelHeader>
-      {{ t('title') }}
-    </UiPanelHeader>
-    <UiPanelContent v-auto-animate>
-      <UButton block icon="i-ph-share-network-duotone" :label="t('newRelation')" to="/relations/new" />
-      <UVerticalNavigation :links="getRelationNavigation()" />
-      <NoData v-if="!getRelationNavigation().length" :message="t('noRelations')" />
-    </UiPanelContent>
+    <RelationsPanel />
   </UiPanel>
-  <UiPanel v-if="route.path === '/relations'">
-    <UiPanelHeader has-back-button>
-      <template #toggle>
+  <NuxtPage v-if="route.path !== '/relations'" />
+  <UiPanel v-else class="flex-1">
+    <UiPanelHeader class="justify-end">
+      <template #mainToggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>
     </UiPanelHeader>
-    <UiPanelContent />
   </UiPanel>
-  <NuxtPage v-else />
 </template>
 
 <i18n lang="yaml">
   en:
     title: Relations
-    newRelation: New Relation
-    noRelations: No relations yet
 </i18n>

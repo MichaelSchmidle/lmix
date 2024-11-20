@@ -27,9 +27,12 @@ definePageMeta({
 
 <template>
   <UiPanel>
-    <UiPanelHeader has-back-button>
+    <UiPanelHeader>
+      <template #domainToggle>
+        <PersonasPanelSlideover class="lg:hidden" />
+      </template>
       {{ persona?.name }}
-      <template #toggle>
+      <template #mainToggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>
     </UiPanelHeader>

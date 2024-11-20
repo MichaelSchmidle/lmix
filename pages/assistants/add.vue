@@ -14,9 +14,12 @@ definePageMeta({
 
 <template>
   <UiPanel>
-    <UiPanelHeader has-back-button>
+    <UiPanelHeader>
+      <template #domainToggle>
+        <AssistantsPanelSlideover class="lg:hidden" />
+      </template>
       {{ t('title') }}
-      <template #toggle>
+      <template #mainToggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>
     </UiPanelHeader>
@@ -29,4 +32,5 @@ definePageMeta({
 <i18n lang="yaml">
   en:
     title: New Assistant
+    assistants: Assistant Navigation
 </i18n>

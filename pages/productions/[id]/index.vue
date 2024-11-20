@@ -11,15 +11,22 @@ const props = defineProps({
     type: Object as PropType<Production>,
   },
 })
+
+useHead({
+  title: t('title', { label: getProductionLabel.value(props.production) }),
+})
 </script>
 
 <template>
   <UiPanel>
-    <UiPanelHeader has-back-button>
-      <template #toggle>
-        <NavPanelSlideover class="xl:hidden" />
+    <UiPanelHeader>
+      <template #domainToggle>
+        <ProductionsPanelSlideover class="lg:hidden" :production="production" />
       </template>
       {{ getProductionLabel(production) }}
+      <template #mainToggle>
+        <NavPanelSlideover class="xl:hidden" />
+      </template>
     </UiPanelHeader>
     <UiPanelContent>
 
@@ -29,4 +36,5 @@ const props = defineProps({
 
 <i18n lang="yaml">
   en:
+    title: Production {label}
 </i18n>

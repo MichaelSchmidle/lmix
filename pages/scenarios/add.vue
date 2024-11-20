@@ -4,19 +4,16 @@ const { t } = useI18n({ useScope: 'local' })
 useHead({
   title: t('title'),
 })
-
-definePageMeta({
-  middleware: [
-    'scenarios',
-  ],
-})
 </script>
 
 <template>
   <UiPanel>
-    <UiPanelHeader has-back-button>
+    <UiPanelHeader>
+      <template #domainToggle>
+        <ScenariosPanelSlideover class="lg:hidden" />
+      </template>
       {{ t('title') }}
-      <template #toggle>
+      <template #mainToggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>
     </UiPanelHeader>
@@ -29,4 +26,5 @@ definePageMeta({
 <i18n lang="yaml">
   en:
     title: New Scenario
+    scenarios: Scenario Navigation
 </i18n>

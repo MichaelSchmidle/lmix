@@ -47,7 +47,7 @@ const handleSubmit = async (form: Partial<ScenarioInsert>, node: FormKitNode) =>
         <FormKit type="textarea" name="description" :label="t('description.label')" />
         <template #actions>
           <UiFormActions>
-            <ScenariosDeleteModal v-if="scenario" :scenario="scenario" @success="navigateTo('/scenarios/new')" />
+            <ScenariosDeleteModal v-if="scenario" :scenario="scenario" @success="navigateTo('/scenarios/add')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateScenario' : 'createScenario')" type="submit" />
           </UiFormActions>
         </template>

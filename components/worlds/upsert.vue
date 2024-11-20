@@ -47,7 +47,7 @@ const handleSubmit = async (form: Partial<WorldInsert>, node: FormKitNode) => {
         <FormKit type="textarea" name="description" :label="t('description.label')" />
         <template #actions>
           <UiFormActions>
-            <WorldsDeleteModal v-if="world" :world="world" @success="navigateTo('/worlds/new')" />
+            <WorldsDeleteModal v-if="world" :world="world" @success="navigateTo('/worlds/add')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateWorld' : 'createWorld')" type="submit" />
           </UiFormActions>
         </template>

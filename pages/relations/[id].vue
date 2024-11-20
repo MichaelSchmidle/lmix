@@ -12,18 +12,26 @@ if (!relation) {
   })
 }
 
-const relationLabel = computed(() => getRelationLabel.value(relation!.uuid))
-
 useHead({
-  title: t('title', { label: relationLabel.value }),
+  title: t('title', { name: getRelationLabel.value(relation!.uuid) }),
+})
+
+definePageMeta({
+  middleware: [
+    'relations',
+    'personas',
+  ],
 })
 </script>
 
 <template>
   <UiPanel>
-    <UiPanelHeader has-back-button>
-      {{ relationLabel }}
-      <template #toggle>
+    <UiPanelHeader>
+      <template #domainToggle>
+        <RelationsPanelSlideover class="lg:hidden" />
+      </template>
+      {{ getRelationLabel(relation!.uuid) }}
+      <template #mainToggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>
     </UiPanelHeader>
@@ -35,6 +43,6 @@ useHead({
 
 <i18n lang="yaml">
   en:
-    title: Relation {label}
+    title: Relation {name}
     relationNotFound: Relation not found
 </i18n>

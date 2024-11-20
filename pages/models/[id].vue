@@ -13,15 +13,18 @@ if (!model) {
 }
 
 useHead({
-  title: t('title', { id: model?.id }),
+  title: t('title', { name: model?.id }),
 })
 </script>
 
 <template>
   <UiPanel>
-    <UiPanelHeader has-back-button>
-      {{ model?.id }}
-      <template #toggle>
+    <UiPanelHeader>
+      <template #domainToggle>
+        <ModelsPanelSlideover class="lg:hidden" />
+      </template>
+      {{ t('title') }}
+      <template #mainToggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>
     </UiPanelHeader>
@@ -45,7 +48,7 @@ useHead({
 
 <i18n lang="yaml">
   en:
-    title: Model {id}
+    title: Model {name}
     modelNotFound: Model not found
     manageModel:
       title: Manage Model

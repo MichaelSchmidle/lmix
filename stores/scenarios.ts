@@ -31,6 +31,8 @@ export const useScenarioStore = defineStore('scenario', () => {
    */
   const getScenarioNavigation = computed(() => {
     return (filterUuids?: string[], icon?: string): VerticalNavigationLink[] => {
+      if (filterUuids?.length === 0) return []
+
       const scenarioList = filterUuids
         ? scenarios.value.filter(s => filterUuids.includes(s.uuid))
         : scenarios.value

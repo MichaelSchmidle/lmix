@@ -17,11 +17,17 @@ const worldStore = useWorldStore()
 const { getWorldNavigation } = storeToRefs(worldStore)
 
 const props = defineProps({
+  isSlideover: {
+    default: false,
+    type: Boolean,
+  },
   production: {
     required: true,
     type: Object as PropType<Production>,
   },
 })
+
+const emit = defineEmits(['close'])
 
 const navigationItems = ref([
   {
@@ -63,6 +69,9 @@ const worldNavigation = computed(() => {
 
 <template>
   <UiPanelHeader>
+    <template v-if="isSlideover" #domainToggle>
+      <UButton color="gray" icon="i-ph-x" variant="ghost" @click="$emit('close')" />
+    </template>
     {{ t('title') }}
   </UiPanelHeader>
   <UiPanelContent>

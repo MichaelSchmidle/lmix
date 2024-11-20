@@ -23,7 +23,7 @@ useHead({
       <template #domainToggle>
         <ModelsPanelSlideover class="lg:hidden" />
       </template>
-      {{ t('title') }}
+      {{ model?.id }}
       <template #mainToggle>
         <NavPanelSlideover class="xl:hidden" />
       </template>

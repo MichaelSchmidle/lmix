@@ -30,7 +30,9 @@ export const useAssistantStore = defineStore('assistant', () => {
    * @returns Array of navigation links for either all assistants or specified assistants
    */
   const getAssistantNavigation = computed(() => {
-    return (filterUuids?: string[], icon?: string) => {
+    return (filterUuids?: string[], icon?: string): VerticalNavigationLink[] => {
+      if (filterUuids?.length === 0) return []
+
       const assistantList = filterUuids
         ? assistants.value.filter(a => filterUuids.includes(a.uuid))
         : assistants.value
@@ -46,16 +48,26 @@ export const useAssistantStore = defineStore('assistant', () => {
   })
 
   /**
-   * Returns select options for all assistants, sorted alphabetically
+   * Returns select options for assistants, sorted alphabetically
+   * @param filterUuids Optional array of assistant UUIDs to filter by
+   * @returns Array of select options for either all assistants or specified assistants
    */
-  const getAssistantOptions = computed(() => [
-    ...assistants.value
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map(assistant => ({
-        label: assistant.name,
-        value: assistant.uuid,
-      })),
-  ])
+  const getAssistantOptions = computed(() => {
+    return (filterUuids?: string[]) => {
+      if (filterUuids?.length === 0) return []
+
+      const assistantList = filterUuids
+        ? assistants.value.filter(a => filterUuids.includes(a.uuid))
+        : assistants.value
+
+      return assistantList
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(assistant => ({
+          label: assistant.name,
+          value: assistant.uuid,
+        }))
+    }
+  })
 
   /**
    * Returns the total number of assistants

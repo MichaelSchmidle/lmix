@@ -213,17 +213,17 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "production_relations_production_uuid_fkey"
+            columns: ["production_uuid"]
+            isOneToOne: false
+            referencedRelation: "productions"
+            referencedColumns: ["uuid"]
+          },
+          {
             foreignKeyName: "production_relations_relation_uuid_fkey"
             columns: ["relation_uuid"]
             isOneToOne: false
             referencedRelation: "relations"
-            referencedColumns: ["uuid"]
-          },
-          {
-            foreignKeyName: "production_relationships_production_uuid_fkey"
-            columns: ["production_uuid"]
-            isOneToOne: false
-            referencedRelation: "productions"
             referencedColumns: ["uuid"]
           },
         ]
@@ -294,14 +294,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "relationship_members_persona_uuid_fkey"
+            foreignKeyName: "relation_personas_persona_uuid_fkey"
             columns: ["persona_uuid"]
             isOneToOne: false
             referencedRelation: "personas"
             referencedColumns: ["uuid"]
           },
           {
-            foreignKeyName: "relationship_members_relationship_uuid_fkey"
+            foreignKeyName: "relation_personas_relation_uuid_fkey"
             columns: ["relation_uuid"]
             isOneToOne: false
             referencedRelation: "relations"
@@ -359,6 +359,48 @@ export type Database = {
           uuid?: string
         }
         Relationships: []
+      }
+      turns: {
+        Row: {
+          created_at: string
+          message: Json
+          parent_turn_uuid: string | null
+          production_uuid: string
+          user_uuid: string
+          uuid: string
+        }
+        Insert: {
+          created_at?: string
+          message: Json
+          parent_turn_uuid?: string | null
+          production_uuid: string
+          user_uuid: string
+          uuid?: string
+        }
+        Update: {
+          created_at?: string
+          message?: Json
+          parent_turn_uuid?: string | null
+          production_uuid?: string
+          user_uuid?: string
+          uuid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turns_parent_turn_uuid_fkey"
+            columns: ["parent_turn_uuid"]
+            isOneToOne: false
+            referencedRelation: "turns"
+            referencedColumns: ["uuid"]
+          },
+          {
+            foreignKeyName: "turns_production_uuid_fkey"
+            columns: ["production_uuid"]
+            isOneToOne: false
+            referencedRelation: "productions"
+            referencedColumns: ["uuid"]
+          },
+        ]
       }
       worlds: {
         Row: {

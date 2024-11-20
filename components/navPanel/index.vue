@@ -44,7 +44,7 @@ const links = [
 ]
 
 const productionItems = [
-  { icon: 'i-ph-film-script-duotone', label: t('productions'), slot: 'productions' },
+  { icon: 'i-ph-popcorn-duotone', label: t('productions'), slot: 'productions' },
 ]
 
 const userItems = computed(() => {
@@ -119,7 +119,7 @@ async function handleSignOut() {
         <UVerticalNavigation :links="links" />
       </template>
     </UAccordion>
-    <UButton block icon="i-ph-film-script-duotone" :label="t('newProduction')" to="/" />
+    <UButton block icon="i-ph-popcorn-duotone" :label="t('newProduction')" to="/" />
     <UAccordion color="gray" default-open :items="productionItems" variant="ghost" :ui="{ default: { class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold' } }">
       <template #productions>
         <UVerticalNavigation v-if="getProductionNavigation.length" :links="getProductionNavigation" />

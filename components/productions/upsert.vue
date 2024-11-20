@@ -69,17 +69,17 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
 </script>
 
 <template>
-  <UiSection icon="i-ph-film-script-thin" :title="t(production ? 'titleUpdate' : 'titleCreate')" :description="t(production ? 'descriptionUpdate' : 'descriptionCreate')">
+  <UiSection icon="i-ph-popcorn-thin" :title="t(production ? 'titleUpdate' : 'titleCreate')" :description="t(production ? 'descriptionUpdate' : 'descriptionCreate')">
     <div class="flex justify-end max-w-prose px-4">
       <UCheckbox v-model="isExtended" :label="t('isExtended.label')" />
     </div>
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="formInitialValue">
         <FormKit type="text" name="name" :label="t('name.label')" />
-        <FormKit type="taglist" name="production_assistant_uuids" :label="t('assistants.label')" :options="getAssistantOptions" :placeholder="t('assistants.placeholder')" validation="required" :validation-messages="{ required: t('assistants.required') }" />
+        <FormKit type="taglist" name="production_assistant_uuids" :label="t('assistants.label')" :options="getAssistantOptions()" :placeholder="t('assistants.placeholder')" validation="required" :validation-messages="{ required: t('assistants.required') }" />
         <FormKit type="dropdown" name="scenario_uuid" :label="t('scenario.label')" :options="getScenarioOptions" :placeholder="t('scenario.placeholder')" />
         <template v-if="isExtended">
-          <FormKit type="taglist" name="production_persona_uuids" :label="t('personas.label')" :help="t('personas.help')" :options="getPersonaOptions" :placeholder="t('personas.placeholder')" preserve />
+          <FormKit type="taglist" name="production_persona_uuids" :label="t('personas.label')" :help="t('personas.help')" :options="getPersonaOptions()" :placeholder="t('personas.placeholder')" preserve />
           <FormKit type="taglist" name="production_relation_uuids" :label="t('relations.label')" :options="getRelationOptions" :placeholder="t('relations.placeholder')" preserve />
           <FormKit type="dropdown" name="world_uuid" :label="t('world.label')" :options="getWorldOptions" :placeholder="t('world.placeholder')" preserve />
         </template>

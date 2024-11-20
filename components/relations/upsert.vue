@@ -55,8 +55,8 @@ const handleSubmit = async (form: RelationInsert, node: FormKitNode) => {
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="formData">
         <FormKit type="text" name="name" :label="t('name.label')" />
         <FormKit type="taglist" :options="getPersonaOptions" v-model="selectedPersonas" :label="t('personas.label')" :placeholder="t('personas.placeholder')" validation="min:2" :validation-messages="{ min: t('personas.minimum') }" />
-        <FormKit type="textarea" name="public_description" :label="t('publicDescription.label')" />
-        <FormKit type="textarea" name="private_description" :label="t('privateDescription.label')" />
+        <FormKit type="textarea" auto-height name="public_description" :label="t('publicDescription.label')" />
+        <FormKit type="textarea" auto-height name="private_description" :label="t('privateDescription.label')" />
         <template #actions>
           <UiFormActions>
             <RelationsDeleteModal v-if="relation" :relation="relation" @success="navigateTo('/relations/add')" />

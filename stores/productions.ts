@@ -100,7 +100,9 @@ export const useProductionStore = defineStore('production', () => {
     }
     catch (e) {
       error.value = e as LMiXError
+
       if (import.meta.dev) console.error('Productions fetch failed:', e)
+
       throw e
     }
     finally {
@@ -179,6 +181,7 @@ export const useProductionStore = defineStore('production', () => {
       if (item.world) {
         promises.push(worldStore.addWorlds([item.world]))
       }
+
       if (item.scenario) {
         promises.push(scenarioStore.addScenarios([item.scenario]))
       }
@@ -186,6 +189,7 @@ export const useProductionStore = defineStore('production', () => {
       const assistants = item.production_assistants
         ?.map(pa => pa.assistant)
         .filter((a): a is Assistant => a !== null)
+
       if (assistants?.length) {
         promises.push(assistantStore.addAssistants(assistants))
       }
@@ -193,6 +197,7 @@ export const useProductionStore = defineStore('production', () => {
       const personas = item.production_personas
         ?.map(pp => pp.persona)
         .filter((p): p is Persona => p !== null)
+
       if (personas?.length) {
         promises.push(personaStore.addPersonas(personas))
       }
@@ -200,6 +205,7 @@ export const useProductionStore = defineStore('production', () => {
       const relations = item.production_relations
         ?.map(pr => pr.relation)
         .filter((r): r is Relation => r !== null)
+
       if (relations?.length) {
         const relationPersonas = relations.flatMap(r => {
           const personas = (r as Relation & {
@@ -232,7 +238,8 @@ export const useProductionStore = defineStore('production', () => {
 
       if (index !== -1) {
         productions.value[index] = production
-      } else {
+      }
+      else {
         productions.value.push(production)
       }
 
@@ -280,7 +287,9 @@ export const useProductionStore = defineStore('production', () => {
     }
     catch (e) {
       error.value = e as LMiXError
+
       if (import.meta.dev) console.error('Production fetch failed:', e)
+
       throw e
     }
     finally {
@@ -306,24 +315,28 @@ export const useProductionStore = defineStore('production', () => {
   ): Promise<string | null> {
     loading.value = true
     error.value = null
-
     const isUpdate = !!production.uuid
+
     const original = {
       productions: [...productions.value],
       productionAssistants: [...productionAssistants.value],
       productionPersonas: [...productionPersonas.value],
       productionRelations: [...productionRelations.value]
     }
+
     let tempId: string | null = null
 
     // Handle optimistic updates for core production data only
     if (isUpdate) {
       const index = productions.value.findIndex(p => p.uuid === production.uuid)
+
       if (index !== -1) {
         productions.value[index] = { ...productions.value[index], ...production }
       }
-    } else {
+    }
+    else {
       tempId = crypto.randomUUID()
+
       productions.value.unshift({
         ...production,
         uuid: tempId,
@@ -347,6 +360,7 @@ export const useProductionStore = defineStore('production', () => {
         .select()
 
       if (productionError) throw new LMiXError(productionError.message, 'API_ERROR', productionError)
+
       if (!productionData?.[0]) return null
 
       const productionUuid = productionData[0].uuid
@@ -358,7 +372,9 @@ export const useProductionStore = defineStore('production', () => {
           client.from('production_personas').delete().eq('production_uuid', productionUuid),
           client.from('production_relations').delete().eq('production_uuid', productionUuid)
         ]
+
         const deleteResults = await Promise.all(deletePromises)
+
         deleteResults.forEach(({ error }) => {
           if (error) throw new LMiXError(error.message, 'API_ERROR', error)
         })
@@ -405,6 +421,7 @@ export const useProductionStore = defineStore('production', () => {
       }
 
       const insertResults = await Promise.all(insertPromises)
+
       insertResults.forEach(({ error }) => {
         if (error) throw new LMiXError(error.message, 'API_ERROR', error)
       })
@@ -415,7 +432,8 @@ export const useProductionStore = defineStore('production', () => {
         if (index !== -1) {
           productions.value[index] = productionData[0]
         }
-      } else if (tempId) {
+      }
+      else if (tempId) {
         const tempIndex = productions.value.findIndex(p => p.uuid === tempId)
         if (tempIndex !== -1) {
           productions.value[tempIndex] = productionData[0]
@@ -432,11 +450,14 @@ export const useProductionStore = defineStore('production', () => {
 
         // Check first item to determine the type of relation
         const firstItem = data[0]
+
         if ('assistant_uuid' in firstItem) {
           productionAssistants.value.push(...(data as ProductionAssistant[]))
-        } else if ('persona_uuid' in firstItem) {
+        }
+        else if ('persona_uuid' in firstItem) {
           productionPersonas.value.push(...(data as ProductionPersona[]))
-        } else if ('relation_uuid' in firstItem) {
+        }
+        else if ('relation_uuid' in firstItem) {
           productionRelations.value.push(...(data as ProductionRelation[]))
         }
       })
@@ -449,7 +470,9 @@ export const useProductionStore = defineStore('production', () => {
       productionPersonas.value = original.productionPersonas
       productionRelations.value = original.productionRelations
       error.value = e as LMiXError
+
       if (import.meta.dev) console.error('Production upsert failed:', e)
+
       throw e
     }
     finally {
@@ -465,7 +488,6 @@ export const useProductionStore = defineStore('production', () => {
   async function deleteProduction(uuid: string): Promise<void> {
     loading.value = true
     error.value = null
-
     const original = [...productions.value]
     productions.value = productions.value.filter(p => p.uuid !== uuid)
 
@@ -486,7 +508,9 @@ export const useProductionStore = defineStore('production', () => {
     catch (e) {
       productions.value = original
       error.value = e as LMiXError
+
       if (import.meta.dev) console.error('Production deletion failed:', e)
+
       throw e
     }
     finally {
@@ -497,6 +521,9 @@ export const useProductionStore = defineStore('production', () => {
   return {
     // State
     productions,
+    productionAssistants,
+    productionPersonas,
+    productionRelations,
     loading,
     error,
     // Getters

@@ -3,17 +3,13 @@ import type { Production } from '~/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const productionStore = useProductionStore()
-const { getProductionLabel } = storeToRefs(productionStore)
+const { getProductionAssistants, getProductionLabel } = storeToRefs(productionStore)
 
 const props = defineProps({
   production: {
     required: true,
     type: Object as PropType<Production>,
   },
-})
-
-useHead({
-  title: t('title', { label: getProductionLabel.value(props.production) }),
 })
 </script>
 
@@ -25,16 +21,21 @@ useHead({
       </template>
       {{ getProductionLabel(production) }}
       <template #mainToggle>
-        <NavPanelSlideover class="xl:hidden" />
+        <NavPanelSlideover class="xl:hidden" :production="production" />
       </template>
     </UiPanelHeader>
     <UiPanelContent>
-
+      <Turns :messages="[]" />
+      <ProductionsNoData :assistant-uuids="getProductionAssistants(production.uuid)" />
     </UiPanelContent>
+    <UiPanelFooter>
+      <UContainer class="max-w-prose w-full">
+        <TurnsUpsert :production="production" />
+      </UContainer>
+    </UiPanelFooter>
   </UiPanel>
 </template>
 
 <i18n lang="yaml">
   en:
-    title: Production {label}
 </i18n>

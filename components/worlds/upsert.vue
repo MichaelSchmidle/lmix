@@ -44,7 +44,7 @@ const handleSubmit = async (form: Partial<WorldInsert>, node: FormKitNode) => {
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="world">
         <FormKit type="text" name="name" :label="t('name.label')" validation="required" :validation-messages="{ required: t('name.required') }" />
-        <FormKit type="textarea" name="description" :label="t('description.label')" />
+        <FormKit type="textarea" auto-height name="description" :label="t('description.label')" />
         <template #actions>
           <UiFormActions>
             <WorldsDeleteModal v-if="world" :world="world" @success="navigateTo('/worlds/add')" />

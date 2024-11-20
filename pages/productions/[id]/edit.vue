@@ -5,6 +5,16 @@ const { t } = useI18n({ useScope: 'local' })
 const productionStore = useProductionStore()
 const { getProductionLabel } = storeToRefs(productionStore)
 
+definePageMeta({
+  middleware: [
+    'assistants',
+    'personas',
+    'relations',
+    'scenarios',
+    'worlds',
+  ],
+})
+
 const props = defineProps({
   production: {
     required: true,
@@ -16,10 +26,13 @@ const props = defineProps({
 <template>
   <UiPanel>
     <UiPanelHeader>
-      <template #toggle>
-        <NavPanelSlideover class="xl:hidden" />
+      <template #domainToggle>
+        <ProductionsPanelSlideover class="lg:hidden" :production="production" />
       </template>
       {{ getProductionLabel(production) }}
+      <template #mainToggle>
+        <NavPanelSlideover class="xl:hidden" :production="production" />
+      </template>
     </UiPanelHeader>
     <UiPanelContent>
       <ProductionsUpsert :production="production" />

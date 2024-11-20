@@ -31,6 +31,8 @@ export const useWorldStore = defineStore('world', () => {
    */
   const getWorldNavigation = computed(() => {
     return (filterUuids?: string[], icon?: string): VerticalNavigationLink[] => {
+      if (filterUuids?.length === 0) return []
+
       const worldList = filterUuids
         ? worlds.value.filter(w => filterUuids.includes(w.uuid))
         : worlds.value

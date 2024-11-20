@@ -2,7 +2,7 @@
 const { t } = useI18n({ useScope: 'local' })
 const route = useRoute()
 const productionStore = useProductionStore()
-const { getProduction } = storeToRefs(productionStore)
+const { getProduction, getProductionLabel } = storeToRefs(productionStore)
 
 await productionStore.selectProduction(route.params.id as string)
 const production = computed(() => getProduction.value(route.params.id as string))
@@ -10,6 +10,10 @@ const production = computed(() => getProduction.value(route.params.id as string)
 if (!production.value) {
   showError({ statusCode: 404, message: t('productionNotFound') })
 }
+
+useHead({
+  title: t('title', { label: getProductionLabel.value(production.value!) }),
+})
 </script>
 
 <template>
@@ -24,5 +28,6 @@ if (!production.value) {
 
 <i18n lang="yaml">
   en:
+    title: Production {label}
     productionNotFound: Production not found
 </i18n>

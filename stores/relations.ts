@@ -68,6 +68,8 @@ export const useRelationStore = defineStore('relations', () => {
    */
   const getRelationNavigation = computed(() => {
     return (filterUuids?: string[], icon?: string): VerticalNavigationLink[] => {
+      if (filterUuids?.length === 0) return []
+
       const relationList = filterUuids
         ? relations.value.filter(r => filterUuids.includes(r.uuid))
         : relations.value

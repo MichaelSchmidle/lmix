@@ -77,7 +77,6 @@ export const useModelStore = defineStore('model', () => {
 
     // Create options array with groups
     return [
-      { label: 'Select a model…', value: '' },
       ...Object.entries(groupedModels)
         .sort(([a], [b]) => new URL(a).hostname.localeCompare(new URL(b).hostname))
         .map(([endpoint, endpointModels]) => ({
@@ -91,6 +90,7 @@ export const useModelStore = defineStore('model', () => {
         })),
     ]
   })
+
 
   /**
    * Returns the total number of models

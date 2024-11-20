@@ -37,7 +37,7 @@ const { getAssistantCount } = assistantStore
     </UiPanelHeader>
     <UiPanelContent>
       <UContainer v-auto-animate>
-        <Hero icon="i-ph-hand-waving-thin" :description="t('hero.description')">
+        <UiHero icon="i-ph-hand-waving-thin" :description="t('hero.description')">
           <template #title>
             <i18n-t v-if="user" class="font-serif" keypath="hero.title.authenticated" tag="h1">
               <template #name>
@@ -50,7 +50,7 @@ const { getAssistantCount } = assistantStore
               </template>
             </i18n-t>
           </template>
-        </Hero>
+        </UiHero>
         <OAuth v-if="!user" />
         <FirstSteps v-else-if="!getModelCount || !getPersonaCount || !getAssistantCount" />
         <ProductionsUpsert v-else orientation="vertical" />

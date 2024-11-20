@@ -31,6 +31,8 @@ export const usePersonaStore = defineStore('persona', () => {
    */
   const getPersonaNavigation = computed(() => {
     return (filterUuids?: string[], icon?: string): VerticalNavigationLink[] => {
+      if (filterUuids?.length === 0) return []
+
       const personaList = filterUuids
         ? personas.value.filter(p => filterUuids.includes(p.uuid))
         : personas.value
@@ -46,16 +48,26 @@ export const usePersonaStore = defineStore('persona', () => {
   })
 
   /**
-   * Returns select options for all personas, sorted alphabetically
+   * Returns select options for personas, sorted alphabetically
+   * @param filterUuids Optional array of persona UUIDs to filter by
+   * @returns Array of select options for either all personas or specified personas
    */
-  const getPersonaOptions = computed(() => [
-    ...personas.value
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map(persona => ({
-        label: persona.name,
-        value: persona.uuid,
-      })),
-  ])
+  const getPersonaOptions = computed(() => {
+    return (filterUuids?: string[]) => {
+      if (filterUuids?.length === 0) return []
+
+      const personaList = filterUuids
+        ? personas.value.filter(p => filterUuids.includes(p.uuid))
+        : personas.value
+
+      return personaList
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(persona => ({
+          label: persona.name,
+          value: persona.uuid,
+        }))
+    }
+  })
 
   /**
    * Returns the total number of personas

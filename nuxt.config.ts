@@ -1,12 +1,12 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
+  devServer: {
+    port: parseInt(process.env.LMIX_PORT || '5649'),
+  },
   devtools: {
     enabled: true,
   },
-  extends: [
-    '@nuxt/ui-pro',
-  ],
   formkit: {
     autoImport: true
   },
@@ -27,12 +27,18 @@ export default defineNuxtConfig({
       },
     },
   },
+  i18n: {
+    defaultLocale: 'en',
+  },
   modules: [
-    '@nuxt/ui',
+    '@formkit/auto-animate/nuxt',
     '@formkit/nuxt',
+    '@nuxt/ui',
     '@nuxtjs/google-fonts',
-    '@pinia/nuxt',
+    '@nuxtjs/i18n',
     '@nuxtjs/supabase',
+    '@pinia/nuxt',
+    '@nuxtjs/color-mode',
   ],
   runtimeConfig: {
     public: {
@@ -41,10 +47,16 @@ export default defineNuxtConfig({
   supabase: {
     redirectOptions: {
       login: '/',
-      callback: '/confirm',
+      callback: '/',
       include: undefined,
       exclude: [],
       cookieRedirect: false,
     },
   },
+  ui: {
+    safelistColors: [
+      'cyan',
+      'indigo'
+    ],
+  }
 })

@@ -1,0 +1,19 @@
+{
+  "Component Boilerplate": {
+    "prefix": "vue",
+    "scope": "vue",
+    "body": [
+      "<script setup lang=\"ts\">",
+      "const { t } = useI18n({ useScope: 'local' })",
+      "</script>",
+      "",
+      "<template>",
+      "</template>",
+      "",
+      "<i18n lang=\"yaml\">",
+      "  en:",
+      "</i18n>",
+      "",
+    ]
+  }
+}

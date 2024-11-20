@@ -5,7 +5,7 @@ project_id = "lmix"
 [api]
 enabled = true
 # Port to use for the API URL.
-port = 54321
+port = 5642
 # Schemas to expose in your API. Tables, views and stored procedures in this schema will get API
 # endpoints. `public` is always included.
 schemas = ["public", "graphql_public"]
@@ -57,7 +57,7 @@ enabled = true
 [studio]
 enabled = true
 # Port to use for Supabase Studio.
-port = 54323
+port = 5647
 # External URL of the API server that frontend connects to.
 api_url = "http://127.0.0.1"
 # OpenAI API Key to use for Supabase AI in the Supabase Studio.
@@ -90,11 +90,18 @@ enabled = true
 
 [auth]
 enabled = true
-# The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
-# in emails.
-site_url = "http://127.0.0.1:3000"
-# A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+# Base URLs for the application
+site_url = "http://localhost:5649"
+additional_redirect_urls = [
+  # Direct ports
+  "http://localhost:5649",
+  # Localhost domains
+  "http://lmix.localhost",
+  "https://lmix.localhost",
+  # Public domains
+  "http://lmix.ai",
+  "https://lmix.ai",
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # If disabled, the refresh token will never expire.
@@ -254,3 +261,10 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
+
+[auth.external.github]
+enabled = true
+client_id = "env(GITHUB_CLIENT_ID)"
+secret = "env(GITHUB_OAUTH_SECRET)"
+# Callback URLs registered with GitHub
+redirect_uri = "env(OAUTH_REDIRECT_URI)"

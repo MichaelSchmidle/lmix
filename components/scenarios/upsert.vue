@@ -1,0 +1,78 @@
+<script setup lang="ts">
+import type { FormKitNode } from '@formkit/core'
+import type { Scenario, ScenarioInsert } from '@/types/app'
+
+const { t } = useI18n({ useScope: 'local' })
+const toast = useToast()
+const user = useSupabaseUser()
+const scenarioStore = useScenarioStore()
+
+const props = defineProps({
+  scenario: {
+    type: Object as PropType<Scenario>,
+    default: undefined,
+  },
+})
+
+const isUpdate = computed(() => !!props.scenario)
+
+const handleSubmit = async (form: Partial<ScenarioInsert>, node: FormKitNode) => {
+  try {
+    const uuid = await scenarioStore.upsertScenario({
+      ...form,
+      uuid: props.scenario?.uuid,
+      user_uuid: user.value!.id,
+    } as ScenarioInsert)
+
+    toast.add({
+      color: 'lime',
+      icon: 'i-ph-check-circle',
+      title: t(isUpdate.value ? 'scenarioUpdated' : 'scenarioCreated'),
+    })
+
+    navigateTo(`/scenarios/${uuid}`)
+  }
+  catch (error) {
+    console.error(error)
+    node.setErrors([t('saveFailed')])
+  }
+}
+</script>
+
+<template>
+  <UiSection icon="i-ph-panorama-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleCreate')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionCreate')">
+    <UCard>
+      <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="scenario">
+        <FormKit type="text" name="name" :label="t('name.label')" validation="required" :validation-messages="{ required: t('name.required') }" />
+        <FormKit type="textarea" name="description" :label="t('description.label')" />
+        <template #actions>
+          <UiFormActions>
+            <ScenariosDeleteModal v-if="scenario" :scenario="scenario" @success="navigateTo('/scenarios/add')" />
+            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateScenario' : 'createScenario')" type="submit" />
+          </UiFormActions>
+        </template>
+      </FormKit>
+    </UCard>
+  </UiSection>
+</template>
+
+<i18n lang="yaml">
+  en:
+    titleCreate: Create Scenario
+    titleUpdate: Update
+    descriptionCreate: Create a new scenario to set the stage for your productions.
+    descriptionUpdate: Update this scenario’s configuration.
+    name:
+      label: Name
+      placeholder: Enter scenario name…
+      required: Name is required
+    description:
+      label: Description
+      placeholder: Describe the scenario…
+      required: Description is required
+    createScenario: Create Scenario
+    updateScenario: Update
+    scenarioCreated: Scenario created.
+    scenarioUpdated: Scenario updated.
+    saveFailed: Failed to save scenario.
+</i18n>

@@ -1,7 +1,7 @@
 export default defineAppConfig({
   ui: {
     primary: 'indigo',
-    gray: 'neutral',
+    gray: 'stone',
 
     icons: {
       dark: 'i-ph-moon-duotone',
@@ -16,41 +16,63 @@ export default defineAppConfig({
       check: 'i-ph-check'
     },
 
+    accordion: {
+      default: {
+        class: 'w-full',
+        closeIcon: 'i-ph-caret-up',
+        openIcon: 'i-ph-caret-down',
+      },
+      item: {
+        padding: '',
+      },
+    },
     button: {
+      color: {
+        gray: {
+          ghost: 'hover:bg-gray-100',
+        },
+      },
       default: {
         loadingIcon: 'i-ph-circle-notch',
       },
     },
-    dashboard: {
-      navbar: {
-        wrapper: 'border-gray-200 dark:border-gray-800',
+    card: {
+      background: 'bg-white dark:bg-gray-900',
+      base: 'max-w-prose',
+      body: {
+        base: 'px-4 sm:px-4 py-3 sm:py-3 space-y-8',
       },
-      panel: {
-        border: 'border-none',
+      divide: 'divide-gray-100 dark:divide-gray-800',
+      footer: {
+        base: 'px-4 sm:px-4 py-3 sm:py-3',
       },
-      sidebar: {
-        links: {
-          active: 'before:bg-white dark:before:bg-black',
-          inactive: 'hover:before:bg-gray-200 dark:hover:before:bg-gray-800',
-          trailingIcon: {
-            base: 'h-4 w-4',
-            name: 'i-ph-caret-up',
-            inactive: 'rotate-180'
-          },
-        },
+      header: {
+        base: 'font-bold px-4 sm:px-4 py-3 sm:py-3',
+      },
+      ring: 'ring-0',
+    },
+    container: {
+      base: 'space-y-8 lg:space-y-12',
+      constrained: 'md:max-w-prose',
+      padding: '',
+    },
+    divider: {
+      container: {
+        base: 'font-normal text-inherit dark:text-inherit prose prose-sm dark:prose-invert',
+      },
+      default: {
+        type: 'dotted',
+      },
+    },
+    modal: {
+      overlay: {
+        background: 'bg-white/80 dark:bg-black/80',
+        base: 'backdrop-blur-sm',
       },
     },
     notifications: {
       // Show toasts at the top right of the screen
       position: 'top-0 bottom-[unset]'
-    },
-    page: {
-      hero: {
-        icon: {
-          base: 'h-12 w-12',
-        },
-        title: 'font-serif font-normal',
-      },
     },
     select: {
       default: {
@@ -65,6 +87,16 @@ export default defineAppConfig({
     },
     skeleton: {
       background: 'bg-gray-200 dark:bg-gray-800',
+    },
+    slideover: {
+      overlay: {
+        background: 'bg-white/80 dark:bg-black/80',
+        base: 'backdrop-blur-sm',
+      },
+    },
+    verticalNavigation: {
+      active: 'before:bg-primary-100 dark:before:bg-primary-900 font-semibold text-primary-900 dark:text-primary-100',
+      inactive: 'hover:before:bg-gray-200 dark:hover:before:bg-gray-800',
     },
   },
 })

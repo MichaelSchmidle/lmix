@@ -6,12 +6,12 @@
 
 ## Overview 🌟
 
-LMiX is not just another AI chat interface - it's a platform for orchestrating rich interactions between multiple AI assistants, each with their own role, perspective, and knowledge state. Think of it as a theater where you're the director, but your actors can evolve beyond their initial roles and even break the fourth wall.
+LMiX is not just another AI chat interface - it's a platform for orchestrating rich productions between multiple AI assistants, each with their own role, perspective, and knowledge state. Think of it as a theater where you're the director, but your actors can evolve beyond their initial roles and even break the fourth wall.
 
 ## Core Concepts 🎯
 
 ### Worlds
-Define the stage for your interactions:
+Define the stage for your productions:
 - Settings and rules
 - Physical laws
 - Universal truths
@@ -20,14 +20,14 @@ Define the stage for your interactions:
 ### Personas
 Create assistants with:
 - Self-perception (how they view themselves)
-- Optional public perception (how others view them)
+- Public perception (how others view them)
 - Hidden capabilities and knowledge
-- Ability to evolve through interactions
+- Ability to evolve through productions
 
 ### Scenarios
 Bring it all together with natural language descriptions of:
 - Current situation
-- Relationships and tensions
+- Relations and tensions
 - Hidden agendas
 - Stakes and motivations
 

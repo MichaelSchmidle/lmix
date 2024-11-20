@@ -1,6 +1,19 @@
+<script setup>
+useHead({
+  templateParams: {
+    separator: '·'
+  },
+  titleTemplate: 'LMiX %separator %s'
+})
+</script>
+
 <template>
   <div>
     <NuxtRouteAnnouncer />
-    <NuxtWelcome />
+    <NuxtLoadingIndicator color="primary" />
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+    <UNotifications />
   </div>
 </template>

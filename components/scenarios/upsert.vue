@@ -44,7 +44,7 @@ const handleSubmit = async (form: Partial<ScenarioInsert>, node: FormKitNode) =>
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="scenario">
         <FormKit type="text" name="name" :label="t('name.label')" validation="required" :validation-messages="{ required: t('name.required') }" />
-        <FormKit type="textarea" auto-height name="description" :label="t('description.label')" />
+        <FormKit type="textarea" auto-height name="description" :label="t('description.label')" :help="t('description.help')" />
         <template #actions>
           <UiFormActions>
             <ScenariosDeleteModal v-if="scenario" :scenario="scenario" @success="navigateTo('/scenarios/add')" />
@@ -64,11 +64,10 @@ const handleSubmit = async (form: Partial<ScenarioInsert>, node: FormKitNode) =>
     descriptionUpdate: Update this scenario’s configuration.
     name:
       label: Name
-      placeholder: Enter scenario name…
       required: Name is required
     description:
       label: Description
-      placeholder: Describe the scenario…
+      help: Provide context about the setting as starting point for your production from which it can evolve.
       required: Description is required
     createScenario: Create Scenario
     updateScenario: Update

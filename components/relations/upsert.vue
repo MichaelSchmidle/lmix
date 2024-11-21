@@ -54,9 +54,9 @@ const handleSubmit = async (form: RelationInsert, node: FormKitNode) => {
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="formData">
         <FormKit type="text" name="name" :label="t('name.label')" />
-        <FormKit type="taglist" :options="getPersonaOptions" v-model="selectedPersonas" :label="t('personas.label')" :placeholder="t('personas.placeholder')" validation="min:2" :validation-messages="{ min: t('personas.minimum') }" />
-        <FormKit type="textarea" auto-height name="public_description" :label="t('publicDescription.label')" />
-        <FormKit type="textarea" auto-height name="private_description" :label="t('privateDescription.label')" />
+        <FormKit type="taglist" :options="getPersonaOptions()" v-model="selectedPersonas" :label="t('personas.label')" :help="t('personas.help')" validation="min:2" :validation-messages="{ min: t('personas.minimum') }" />
+        <FormKit type="textarea" auto-height name="private_description" :label="t('privateDescription.label')" :help="t('privateDescription.help')" />
+        <FormKit type="textarea" auto-height name="public_description" :label="t('publicDescription.label')" :help="t('publicDescription.help')" />
         <template #actions>
           <UiFormActions>
             <RelationsDeleteModal v-if="relation" :relation="relation" @success="navigateTo('/relations/add')" />
@@ -78,14 +78,14 @@ const handleSubmit = async (form: RelationInsert, node: FormKitNode) => {
       label: Name
     personas:
       label: Personas
-      placeholder: Select personas…
+      help: Select the personas that will be part of this relation.
       minimum: Please select at least two personas.
-    publicDescription:
-      label: Public Description
-      placeholder: Enter public description…
     privateDescription:
       label: Private Description
-      placeholder: Enter private description…
+      help: What this relation means to the personas involved.
+    publicDescription:
+      label: Public Description
+      help: How this relation appears to personas outside the relation.
     createRelation: Create
     updateRelation: Update
     relationCreated: Relation created.

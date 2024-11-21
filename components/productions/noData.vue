@@ -22,8 +22,13 @@ const currentIndex = ref(0)
 // Typing speed variables (in milliseconds)
 const typingSpeed = 100
 const deletingSpeed = 50
-const pauseBeforeDelete = 5000
-const pauseBetweenWords = 500
+const pauseBeforeDelete = 4000
+const pauseBetweenWords = 400
+
+// Add these new refs
+const maxCycles = ref(1)
+const cycleCount = ref(0)
+const animationTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 // Handle the typing animation
 const typeText = async () => {
@@ -34,9 +39,22 @@ const typeText = async () => {
     if (currentText.value === '') {
       isDeleting.value = false
       currentIndex.value = (currentIndex.value + 1) % titleEndings.value.length
+
+      // Increment cycle count when we complete a full word cycle
+      if (currentIndex.value === 0) {
+        cycleCount.value++
+        // Stop animation if we've reached max cycles
+        if (cycleCount.value >= maxCycles.value) {
+          // Keep the first word displayed
+          currentText.value = titleEndings.value[0]
+          return
+        }
+      }
+
       await new Promise(resolve => setTimeout(resolve, pauseBetweenWords))
     }
-  } else {
+  }
+  else {
     currentText.value = currentEnding.substring(0, currentText.value.length + 1)
     if (currentText.value === currentEnding) {
       await new Promise(resolve => setTimeout(resolve, pauseBeforeDelete))
@@ -44,12 +62,21 @@ const typeText = async () => {
     }
   }
 
-  setTimeout(typeText, isDeleting.value ? deletingSpeed : typingSpeed)
+  // Store the timeout ID and check cycles
+  if (cycleCount.value < maxCycles.value) {
+    animationTimer.value = setTimeout(typeText, isDeleting.value ? deletingSpeed : typingSpeed)
+  }
 }
 
 // Start the animation when component mounts
 onMounted(() => {
   typeText()
+})
+
+// Clean up the timer when component unmounts
+onBeforeUnmount(() => {
+  if (animationTimer.value !== null)
+    clearTimeout(animationTimer.value)
 })
 
 const props = defineProps({

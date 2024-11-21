@@ -40,7 +40,7 @@ const handleSubmit = async (form: Partial<ScenarioInsert>, node: FormKitNode) =>
 </script>
 
 <template>
-  <UiSection icon="i-ph-panorama-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleCreate')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionCreate')">
+  <UiSection icon="i-ph-panorama-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleInsert')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionInsert')">
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="scenario">
         <FormKit type="text" name="name" :label="t('name.label')" validation="required" :validation-messages="{ required: t('name.required') }" />
@@ -58,10 +58,10 @@ const handleSubmit = async (form: Partial<ScenarioInsert>, node: FormKitNode) =>
 
 <i18n lang="yaml">
   en:
-    titleCreate: Create Scenario
+    titleInsert: Create
     titleUpdate: Update
-    descriptionCreate: Create a new scenario to set the stage for your productions.
-    descriptionUpdate: Update this scenario’s configuration.
+    descriptionInsert: Create a new scenario to set the stage for your productions.
+    descriptionUpdate: Configure this scenario’s name and description.
     name:
       label: Name
       required: Name is required

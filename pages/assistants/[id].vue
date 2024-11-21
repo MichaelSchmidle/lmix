@@ -15,6 +15,12 @@ if (!assistant) {
 useHead({
   title: t('title', { name: assistant?.name }),
 })
+
+definePageMeta({
+  middleware: [
+    'personas',
+  ],
+})
 </script>
 
 <template>

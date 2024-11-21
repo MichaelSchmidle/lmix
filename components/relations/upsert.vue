@@ -50,7 +50,7 @@ const handleSubmit = async (form: RelationInsert, node: FormKitNode) => {
 </script>
 
 <template>
-  <UiSection icon="i-ph-share-network-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleCreate')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionCreate')">
+  <UiSection icon="i-ph-share-network-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleInsert')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionInsert')">
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="formData">
         <FormKit type="text" name="name" :label="t('name.label')" />
@@ -70,10 +70,10 @@ const handleSubmit = async (form: RelationInsert, node: FormKitNode) => {
 
 <i18n lang="yaml">
   en:
-    titleCreate: Create Relation
+    titleInsert: Create
     titleUpdate: Update
-    descriptionCreate: Create a new relation between personas.
-    descriptionUpdate: Update this relation’s configuration.
+    descriptionInsert: Create a new relation between personas.
+    descriptionUpdate: Configure this relation’s personas and descriptions.
     name:
       label: Name
     personas:

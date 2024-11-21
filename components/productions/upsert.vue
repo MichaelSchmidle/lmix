@@ -96,10 +96,10 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
 
 <i18n lang="yaml">
   en:
-    titleCreate: Create Production
-    titleUpdate: Update Production
-    descriptionCreate: Bring personas, scenarios and worlds to life with a new production.
-    descriptionUpdate: Update this production’s configuration.
+    titleInsert: Create
+    titleUpdate: Update
+    descriptionInsert: Bring personas, scenarios and worlds to life with a new production.
+    descriptionUpdate: Configure this production’s ensemble.
     name:
       label: Name
     assistants:

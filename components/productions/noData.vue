@@ -11,6 +11,7 @@ const titleEndings = ref([
   t('simulation'),
   t('exploration'),
   t('journey'),
+  t('game'),
   t('discovery'),
   t('experience'),
 ])
@@ -43,10 +44,13 @@ const typeText = async () => {
       // Increment cycle count when we complete a full word cycle
       if (currentIndex.value === 0) {
         cycleCount.value++
-        // Stop animation if we've reached max cycles
+        // Check if this is the final cycle
         if (cycleCount.value >= maxCycles.value) {
-          // Keep the first word displayed
-          currentText.value = titleEndings.value[0]
+          // Reset to first word, but keep animating
+          currentIndex.value = 0
+          await new Promise(resolve => setTimeout(resolve, pauseBetweenWords))
+          // Continue with typing animation for the first word
+          animationTimer.value = setTimeout(typeText, typingSpeed)
           return
         }
       }
@@ -57,13 +61,17 @@ const typeText = async () => {
   else {
     currentText.value = currentEnding.substring(0, currentText.value.length + 1)
     if (currentText.value === currentEnding) {
+      // If this is the final word of the last cycle, don't delete
+      if (cycleCount.value >= maxCycles.value) {
+        return
+      }
       await new Promise(resolve => setTimeout(resolve, pauseBeforeDelete))
       isDeleting.value = true
     }
   }
 
-  // Store the timeout ID and check cycles
-  if (cycleCount.value < maxCycles.value) {
+  // Only set next animation if we haven't completed the final word
+  if (cycleCount.value < maxCycles.value || isDeleting.value || currentText.value !== currentEnding) {
     animationTimer.value = setTimeout(typeText, isDeleting.value ? deletingSpeed : typingSpeed)
   }
 }
@@ -94,7 +102,7 @@ const props = defineProps({
         <i18n-t class="font-serif prose dark:prose-invert prose-xl" keypath="title" tag="h1">
           <template #type>
             <span class="text-primary">{{ t(currentText) }}</span>
-            <span class="-me-2 typing-cursor">|</span>
+            <span class="-me-3 typing-cursor">|</span>
           </template>
         </i18n-t>
       </template>
@@ -133,6 +141,7 @@ en:
   simulation: Simulation
   experience: Experience
   journey: Journey
+  game: Game
   discovery: Discovery
   exploration: Exploration
   description: 'Take the first turn to start your production – or simply trigger an assistant to get it started for you:'

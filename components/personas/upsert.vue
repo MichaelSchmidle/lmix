@@ -40,7 +40,7 @@ const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
 </script>
 
 <template>
-  <UiSection icon="i-ph-mask-happy-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleCreate')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionCreate')">
+  <UiSection icon="i-ph-mask-happy-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleInsert')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionCreate')">
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="persona">
         <FormKit type="text" name="name" :label="t('name.label')" validation="required" :validation-messages="{ required: t('name.required') }" />
@@ -61,10 +61,10 @@ const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
 
 <i18n lang="yaml">
   en:
-    titleCreate: Create Persona
+    titleInsert: Create
     titleUpdate: Update
-    descriptionCreate: Create a new persona with their own perceptions and knowledge states.
-    descriptionUpdate: Update this persona’s perceptions and knowledge states.
+    descriptionInsert: Create a new persona with their own perceptions and knowledge states.
+    descriptionUpdate: Configure this persona’s perceptions and knowledge states.
     name:
       label: Name
       required: Name is required.

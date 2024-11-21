@@ -27,7 +27,7 @@ Helper libraries are added based on specific needs.
 LMiX uses minimal data structures, leveraging natural language descriptions where possible. Example:
 
 ```ts
-interface World {
+type World = {
   uuid: string
   name: string
   description: string
@@ -38,34 +38,34 @@ interface World {
 
 - Production: Main container that brings everything together
 - World: Global and immutable conditions governing a production
-- Scenario: Starting context that can dynamically evolve
+- Scenario: Starting context of a production that can dynamically evolve
 - Model: API connection details
 - ModelGroup: Models available at the same API endpoint
 - Persona: Different perception, knowledge, and avatar attributes
 - Assistant: Links personas with models
-- Message: OpenAI-compatible structure with extended content
+- Turn: Content of a production and wrapper around OpenAI-compatible message structure with extended content
 
 #### Domain Model Relationships
 
 ```ts
-interface Production {
+type Production = {
   uuid: string
   name: string
   scenario: Scenario
   world: World
   assistants: Assistant[]
   personas: Persona[]     // User personas
-  messages: Message[]
+  turns: Turn[]
 }
 
-interface ModelGroup {
+type ModelGroup = {
   [apiEndpoint: string]: {
     apiKey?: string
     models: Model[]
   }
 }
 
-interface Assistant {
+type Assistant = {
   uuid: string
   name: string
   model: Model

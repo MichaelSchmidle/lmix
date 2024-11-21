@@ -48,10 +48,10 @@ const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
         <FormKit type="textarea" auto-height name="public_perception" :label="t('publicPerception.label')" :help="t('publicPerception.help')" />
         <FormKit type="textarea" auto-height name="private_knowledge" :label="t('privateKnowledge.label')" :help="t('privateKnowledge.help')" />
         <FormKit type="textarea" auto-height name="public_knowledge" :label="t('publicKnowledge.label')" :help="t('publicKnowledge.help')" />
-        <template #actions>
+        <template #actions="{ disabled }">
           <UiFormActions>
             <PersonasDeleteModal v-if="persona" :persona="persona" @success="navigateTo('/personas/add')" />
-            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updatePersona' : 'createPersona')" type="submit" />
+            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updatePersona' : 'createPersona')" :loading="disabled as boolean" type="submit" />
           </UiFormActions>
         </template>
       </FormKit>

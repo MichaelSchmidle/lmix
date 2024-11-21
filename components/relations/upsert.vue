@@ -57,10 +57,10 @@ const handleSubmit = async (form: RelationInsert, node: FormKitNode) => {
         <FormKit type="taglist" :options="getPersonaOptions()" v-model="selectedPersonas" :label="t('personas.label')" :help="t('personas.help')" validation="min:2" :validation-messages="{ min: t('personas.minimum') }" />
         <FormKit type="textarea" auto-height name="private_description" :label="t('privateDescription.label')" :help="t('privateDescription.help')" />
         <FormKit type="textarea" auto-height name="public_description" :label="t('publicDescription.label')" :help="t('publicDescription.help')" />
-        <template #actions>
+        <template #actions="{ disabled }">
           <UiFormActions>
             <RelationsDeleteModal v-if="relation" :relation="relation" @success="navigateTo('/relations/add')" />
-            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateRelation' : 'createRelation')" type="submit" />
+            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateRelation' : 'createRelation')" :loading="disabled as boolean" type="submit" />
           </UiFormActions>
         </template>
       </FormKit>

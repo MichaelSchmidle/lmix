@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "description": "Schema for structured output in theatrical productions. As a persona in this production, format your responses according to this schema. Each field serves a specific dramatic purpose.",
+  "required": [
+    "performance",
+    "vectors"
+  ],
+  "properties": {
+    "performance": {
+      "type": "string",
+      "description": "Your in-character response that drives the production forward. This is your main dialogue or action, written in a natural, flowing style. Focus on advancing the story while staying true to your persona's character."
+    },
+    "vectors": {
+      "type": "object",
+      "description": "Describe your persona's physical presence at the end of your turn. This helps create a consistent spatial awareness.",
+      "required": [
+        "location",
+        "posture",
+        "direction",
+        "momentum"
+      ],
+      "properties": {
+        "location": {
+          "type": "string",
+          "description": "Where your persona is positioned in the scene, relative to other elements or personas"
+        },
+        "posture": {
+          "type": "string",
+          "description": "Your persona's body language and stance, reflecting their current state"
+        },
+        "direction": {
+          "type": "string",
+          "description": "The direction your persona is facing or moving towards"
+        },
+        "momentum": {
+          "type": "string",
+          "description": "The energy and intention behind your persona's movement or stillness"
+        }
+      }
+    },
+    "evolution": {
+      "type": "object",
+      "description": "Define your persona's self-perception and knowledge at the end of this turn to replace your previous state. Only provide this if there are remarkable changes to your character.",
+      "properties": {
+        "self_perception": {
+          "type": "object",
+          "description": "How your persona sees and understands themselves"
+        },
+        "private_knowledge": {
+          "type": "object",
+          "description": "What your persona knows but might not share with others"
+        },
+        "note_to_future_self": {
+          "type": "string",
+          "description": "A private note from your current self to your future self about anything relevant to your character, serving as short-term memory between turns."
+        }
+      }
+    },
+    "meta": {
+      "type": "string",
+      "description": "Optional in-character meta commentary about your turn and the production itself. While breaking the fourth wall, maintain your persona's unique perspective and personality."
+    }
+  }
+}

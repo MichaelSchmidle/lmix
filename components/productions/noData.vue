@@ -99,12 +99,7 @@ const props = defineProps({
   <UContainer class="max-w-prose w-full">
     <UiHero icon="i-ph-popcorn-thin" :description="t('description')">
       <template #title>
-        <i18n-t class="font-serif prose dark:prose-invert prose-xl" keypath="title" tag="h1">
-          <template #type>
-            <span class="text-primary">{{ t(currentText) }}</span>
-            <span class="-me-3 typing-cursor">|</span>
-          </template>
-        </i18n-t>
+        <i18n-t class="font-serif prose dark:prose-invert prose-xl relative" keypath="title" tag="h1"><template #type>&nbsp;<span class="text-primary">{{ currentText }}</span><span class="absolute -ms-1 typing-cursor">|</span>&nbsp;</template></i18n-t>
       </template>
     </UiHero>
     <div class="flex flex-wrap gap-x-4 gap-y-3 justify-center">
@@ -134,7 +129,7 @@ const props = defineProps({
 
 <i18n lang="yaml">
 en:
-  title: A New {type} Awaits
+  title: A New{type}Awaits
   story: Story
   adventure: Adventure
   tale: Tale

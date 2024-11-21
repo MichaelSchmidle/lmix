@@ -51,10 +51,10 @@ const handleSubmit = async (form: AssistantInsert, node: FormKitNode) => {
         <FormKit type="text" name="name" :label="t('name.label')" validation="required" :validation-messages="{ required: t('name.required') }" />
         <FormKit type="dropdown" name="persona_uuid" :label="t('persona.label')" :help="t('persona.help')" validation="required" :validation-messages="{ required: t('persona.required') }" :options="getPersonaOptions()" />
         <FormKit type="dropdown" name="model_uuid" :label="t('model.label')" :help="t('model.help')" validation="required" :validation-messages="{ required: t('model.required') }" :options="getModelOptions" />
-        <template #actions>
+        <template #actions="{ disabled }">
           <UiFormActions>
             <AssistantsDeleteModal v-if="assistant" :assistant="assistant" @success="navigateTo('/assistants/add')" />
-            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateAssistant' : 'createAssistant')" type="submit" />
+            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateAssistant' : 'createAssistant')" :loading="disabled as boolean" type="submit" />
           </UiFormActions>
         </template>
       </FormKit>

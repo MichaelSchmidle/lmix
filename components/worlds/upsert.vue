@@ -42,13 +42,13 @@ const handleSubmit = async (form: Partial<WorldInsert>, node: FormKitNode) => {
 <template>
   <UiSection icon="i-ph-planet-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleCreate')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionCreate')">
     <UCard>
-      <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="world">
+      <FormKit :incomplete-message="false" type="form" :value="world" @submit="handleSubmit">
         <FormKit type="text" name="name" :label="t('name.label')" validation="required" :validation-messages="{ required: t('name.required') }" />
         <FormKit type="textarea" auto-height name="description" :label="t('description.label')" :help="t('description.help')" />
-        <template #actions>
+        <template #actions="{ disabled }">
           <UiFormActions>
             <WorldsDeleteModal v-if="world" :world="world" @success="navigateTo('/worlds/add')" />
-            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateWorld' : 'createWorld')" type="submit" />
+            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateWorld' : 'createWorld')" :loading="disabled as boolean" type="submit" />
           </UiFormActions>
         </template>
       </FormKit>

@@ -45,10 +45,10 @@ const handleSubmit = async (form: Partial<ScenarioInsert>, node: FormKitNode) =>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="scenario">
         <FormKit type="text" name="name" :label="t('name.label')" validation="required" :validation-messages="{ required: t('name.required') }" />
         <FormKit type="textarea" auto-height name="description" :label="t('description.label')" :help="t('description.help')" />
-        <template #actions>
+        <template #actions="{ disabled }">
           <UiFormActions>
             <ScenariosDeleteModal v-if="scenario" :scenario="scenario" @success="navigateTo('/scenarios/add')" />
-            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateScenario' : 'createScenario')" type="submit" />
+            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateScenario' : 'createScenario')" :loading="disabled as boolean" type="submit" />
           </UiFormActions>
         </template>
       </FormKit>

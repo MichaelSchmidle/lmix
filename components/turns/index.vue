@@ -1,12 +1,24 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import type { Turn } from '~/types/app'
 
-// Define props
-const props = defineProps<{ messages: Array<{ id: string; text: string }> }>();
+const { t } = useI18n({ useScope: 'local' })
+
+const props = defineProps({
+  turns: {
+    required: true,
+    type: Array as PropType<Turn[]>
+  }
+})
 
 const chatContainer = ref<HTMLElement | null>(null)
 const shouldAutoScroll = ref(true)
 const sentinel = ref<HTMLElement | null>(null)
+
+// Helper to safely get message content
+const getMessageContent = (turn: Turn) => {
+  const message = turn.message as { content: string }
+  return message?.content || ''
+}
 
 // Scroll to bottom function
 const scrollToBottom = () => {
@@ -49,7 +61,7 @@ onMounted(() => {
 })
 
 // Watch for changes in chat messages
-watch(() => props.messages, () => {
+watch(() => props.turns, () => {
   nextTick(() => {
     if (shouldAutoScroll.value) {
       scrollToBottom()
@@ -59,10 +71,16 @@ watch(() => props.messages, () => {
 </script>
 
 <template>
-  <div ref="chatContainer" class="chat-history-container flex-1 overflow-y-auto">
-    <slot />
-    <!-- Sentinel element to observe -->
-    <div ref="sentinel" style="height: 1px;"></div>
+  <div ref="chatContainer" class="chat-history-container flex-1 overflow-y-auto p-4">
+    <div v-for="turn in turns" :key="turn.uuid" class="mb-4">
+      <div class="text-sm text-gray-500">
+        {{ turn.sender_persona_name }}
+      </div>
+      <div class="mt-1">
+        {{ getMessageContent(turn) }}
+      </div>
+    </div>
+    <div ref="sentinel" style="height: 1px;" />
   </div>
 </template>
 

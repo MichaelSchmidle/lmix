@@ -69,7 +69,7 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
 </script>
 
 <template>
-  <UiSection icon="i-ph-popcorn-thin" :title="t(production ? 'titleUpdate' : 'titleCreate')" :description="t(production ? 'descriptionUpdate' : 'descriptionCreate')">
+  <UiSection icon="i-ph-popcorn-thin" :title="t(production ? 'titleUpdate' : 'titleInsert')" :description="t(production ? 'descriptionUpdate' : 'descriptionInsert')">
     <div class="flex justify-end max-w-prose px-4">
       <UCheckbox v-model="isExtended" :label="t('isExtended.label')" />
     </div>
@@ -83,10 +83,10 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
           <FormKit type="taglist" name="production_relation_uuids" :label="t('relations.label')" :options="getRelationOptions" :placeholder="t('relations.placeholder')" preserve />
           <FormKit type="dropdown" name="world_uuid" :label="t('world.label')" :options="getWorldOptions" :placeholder="t('world.placeholder')" preserve />
         </template>
-        <template #actions>
+        <template #actions="{ disabled }">
           <UiFormActions>
             <ProductionsDeleteModal v-if="production" :production="production" @success="navigateTo('/')" />
-            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateProduction' : 'createProduction')" type="submit" />
+            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateProduction' : 'createProduction')" :loading="disabled as boolean" type="submit" />
           </UiFormActions>
         </template>
       </FormKit>

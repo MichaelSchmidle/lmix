@@ -37,21 +37,25 @@ export type Assistant = Database['public']['Tables']['assistants']['Row']
 export type AssistantInsert = Database['public']['Tables']['assistants']['Insert']
 export type AssistantUpdate = Database['public']['Tables']['assistants']['Update']
 
-export type World = Database['public']['Tables']['worlds']['Row']
-export type WorldInsert = Database['public']['Tables']['worlds']['Insert']
-export type WorldUpdate = Database['public']['Tables']['worlds']['Update']
+export type Relation = Database['public']['Tables']['relations']['Row']
+export type RelationInsert = Database['public']['Tables']['relations']['Insert']
+export type RelationUpdate = Database['public']['Tables']['relations']['Update']
 
 export type Scenario = Database['public']['Tables']['scenarios']['Row']
 export type ScenarioInsert = Database['public']['Tables']['scenarios']['Insert']
 export type ScenarioUpdate = Database['public']['Tables']['scenarios']['Update']
 
+export type World = Database['public']['Tables']['worlds']['Row']
+export type WorldInsert = Database['public']['Tables']['worlds']['Insert']
+export type WorldUpdate = Database['public']['Tables']['worlds']['Update']
+
 export type Production = Database['public']['Tables']['productions']['Row']
 export type ProductionInsert = Database['public']['Tables']['productions']['Insert']
 export type ProductionUpdate = Database['public']['Tables']['productions']['Update']
 
-export type Relation = Database['public']['Tables']['relations']['Row']
-export type RelationInsert = Database['public']['Tables']['relations']['Insert']
-export type RelationUpdate = Database['public']['Tables']['relations']['Update']
+export type Turn = Database['public']['Tables']['turns']['Row']
+export type TurnInsert = Database['public']['Tables']['turns']['Insert']
+export type TurnUpdate = Database['public']['Tables']['turns']['Update']
 
 // Junction tables
 export type ProductionAssistant = Database['public']['Tables']['production_assistants']['Row']
@@ -61,6 +65,10 @@ export type ProductionAssistantUpdate = Database['public']['Tables']['production
 export type ProductionPersona = Database['public']['Tables']['production_personas']['Row']
 export type ProductionPersonaInsert = Database['public']['Tables']['production_personas']['Insert']
 export type ProductionPersonaUpdate = Database['public']['Tables']['production_personas']['Update']
+
+export type ProductionPersonaEvolution = Database['public']['Tables']['production_persona_evolutions']['Row']
+export type ProductionPersonaEvolutionInsert = Database['public']['Tables']['production_persona_evolutions']['Insert']
+export type ProductionPersonaEvolutionUpdate = Database['public']['Tables']['production_persona_evolutions']['Update']
 
 export type ProductionRelation = Database['public']['Tables']['production_relations']['Row']
 export type ProductionRelationInsert = Database['public']['Tables']['production_relations']['Insert']
@@ -110,4 +118,11 @@ export type ProductionWithRelations = Production & {
   production_assistants?: ProductionAssistantWithRelations[]
   production_personas?: ProductionPersonaWithRelations[]
   production_relations?: ProductionRelationWithRelations[]
+}
+
+// Turn user message
+export type UserTurnMessage = {
+  content?: string
+  persona_uuid?: string
+  assistant_uuid: string
 }

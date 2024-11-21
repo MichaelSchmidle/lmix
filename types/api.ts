@@ -150,6 +150,54 @@ export type Database = {
           },
         ]
       }
+      production_persona_evolutions: {
+        Row: {
+          created_at: string
+          note_to_self: string | null
+          persona_uuid: string
+          private_knowledge: string | null
+          production_uuid: string
+          self_perception: string | null
+          user_uuid: string
+          uuid: string
+        }
+        Insert: {
+          created_at?: string
+          note_to_self?: string | null
+          persona_uuid: string
+          private_knowledge?: string | null
+          production_uuid: string
+          self_perception?: string | null
+          user_uuid: string
+          uuid?: string
+        }
+        Update: {
+          created_at?: string
+          note_to_self?: string | null
+          persona_uuid?: string
+          private_knowledge?: string | null
+          production_uuid?: string
+          self_perception?: string | null
+          user_uuid?: string
+          uuid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_persona_evolutions_persona_uuid_fkey"
+            columns: ["persona_uuid"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["uuid"]
+          },
+          {
+            foreignKeyName: "production_persona_evolutions_prouction_uuid_fkey"
+            columns: ["production_uuid"]
+            isOneToOne: false
+            referencedRelation: "productions"
+            referencedColumns: ["uuid"]
+          },
+        ]
+      }
       production_personas: {
         Row: {
           created_at: string
@@ -366,6 +414,7 @@ export type Database = {
           message: Json
           parent_turn_uuid: string | null
           production_uuid: string
+          sender_persona_name: string
           user_uuid: string
           uuid: string
         }
@@ -374,6 +423,7 @@ export type Database = {
           message: Json
           parent_turn_uuid?: string | null
           production_uuid: string
+          sender_persona_name: string
           user_uuid: string
           uuid?: string
         }
@@ -382,6 +432,7 @@ export type Database = {
           message?: Json
           parent_turn_uuid?: string | null
           production_uuid?: string
+          sender_persona_name?: string
           user_uuid?: string
           uuid?: string
         }

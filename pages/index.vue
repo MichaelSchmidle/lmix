@@ -4,7 +4,7 @@ const user = useSupabaseUser()
 
 useHead(
   {
-    title: user ? t('title') : t('meta.title'),
+    title: user.value ? t('title') : t('meta.title'),
   }
 )
 

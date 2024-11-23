@@ -2,17 +2,16 @@
 import type { FormKitNode } from '@formkit/core'
 import type { Persona, PersonaInsert } from '@/types/app'
 
+const { t } = useI18n({ useScope: 'local' })
+const toast = useToast()
+const personaStore = usePersonaStore()
+
 const props = defineProps({
   persona: {
     type: Object as PropType<Persona>,
     default: undefined,
   },
 })
-
-const { t } = useI18n({ useScope: 'local' })
-const toast = useToast()
-const personaStore = usePersonaStore()
-const user = useSupabaseUser()
 
 const isUpdate = computed(() => !!props.persona)
 
@@ -21,7 +20,6 @@ const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
     const uuid = await personaStore.upsertPersona({
       ...form,
       uuid: props.persona?.uuid,
-      user_uuid: user.value!.id,
     } as PersonaInsert)
 
     toast.add({

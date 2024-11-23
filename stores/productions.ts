@@ -128,34 +128,16 @@ export const useProductionStore = defineStore('production', () => {
           *,
           world:worlds (*),
           scenario:scenarios (*),
-          production_assistants (
-            uuid,
-            created_at,
-            production_uuid,
-            assistant_uuid,
-            user_uuid,
+          production_assistants (*,
             assistant:assistants (*)
           ),
-          production_personas (
-            uuid,
-            created_at,
-            production_uuid,
-            persona_uuid,
-            user_uuid,
+          production_personas (*,
             persona:personas (*)
           ),
-          production_relations (
-            uuid,
-            created_at,
-            production_uuid,
-            relation_uuid,
-            user_uuid,
+          production_relations (*,
             relation:relations (
               *,
-              relation_personas (
-                uuid,
-                created_at,
-                user_uuid,
+              relation_personas (*,
                 persona:personas (*)
               )
             )

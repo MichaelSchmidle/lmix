@@ -109,14 +109,7 @@ export const useModelStore = defineStore('model', () => {
       const client = useSupabaseClient<Database>()
       const { data, error: apiError } = await client
         .from('assistants')
-        .select(`
-          uuid,
-          name,
-          model_uuid,
-          persona_uuid,
-          user_uuid,
-          created_at
-        `)
+        .select('*')
         .eq('model_uuid', uuid)
         .order('name')
 

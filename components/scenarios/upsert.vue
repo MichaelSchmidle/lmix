@@ -4,7 +4,6 @@ import type { Scenario, ScenarioInsert } from '@/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
-const user = useSupabaseUser()
 const scenarioStore = useScenarioStore()
 
 const props = defineProps({
@@ -21,7 +20,6 @@ const handleSubmit = async (form: Partial<ScenarioInsert>, node: FormKitNode) =>
     const uuid = await scenarioStore.upsertScenario({
       ...form,
       uuid: props.scenario?.uuid,
-      user_uuid: user.value!.id,
     } as ScenarioInsert)
 
     toast.add({
@@ -40,15 +38,19 @@ const handleSubmit = async (form: Partial<ScenarioInsert>, node: FormKitNode) =>
 </script>
 
 <template>
-  <UiSection icon="i-ph-panorama-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleInsert')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionInsert')">
+  <UiSection icon="i-ph-panorama-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleInsert')"
+    :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionInsert')">
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="scenario">
-        <FormKit type="text" name="name" :label="t('name.label')" validation="required" :validation-messages="{ required: t('name.required') }" />
-        <FormKit type="textarea" auto-height name="description" :label="t('description.label')" :help="t('description.help')" />
+        <FormKit type="text" name="name" :label="t('name.label')" validation="required"
+          :validation-messages="{ required: t('name.required') }" />
+        <FormKit type="textarea" auto-height name="description" :label="t('description.label')"
+          :help="t('description.help')" />
         <template #actions="{ disabled }">
           <UiFormActions>
             <ScenariosDeleteModal v-if="scenario" :scenario="scenario" @success="navigateTo('/scenarios/add')" />
-            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateScenario' : 'createScenario')" :loading="disabled as boolean" type="submit" />
+            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
+              :label="t(isUpdate ? 'updateScenario' : 'createScenario')" :loading="disabled as boolean" type="submit" />
           </UiFormActions>
         </template>
       </FormKit>

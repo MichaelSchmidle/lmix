@@ -4,7 +4,6 @@ import type { Assistant, AssistantInsert } from '@/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
-const user = useSupabaseUser()
 const assistantStore = useAssistantStore()
 const modelStore = useModelStore()
 const personaStore = usePersonaStore()
@@ -26,7 +25,6 @@ const handleSubmit = async (form: AssistantInsert, node: FormKitNode) => {
     const uuid = await assistantStore.upsertAssistant({
       ...form,
       uuid: props.assistant?.uuid,
-      user_uuid: user.value!.id,
     } as AssistantInsert)
 
     toast.add({
@@ -45,16 +43,23 @@ const handleSubmit = async (form: AssistantInsert, node: FormKitNode) => {
 </script>
 
 <template>
-  <UiSection icon="i-ph-head-circuit-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleInsert')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionInsert')">
+  <UiSection icon="i-ph-head-circuit-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleInsert')"
+    :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionInsert')">
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="assistant">
-        <FormKit type="text" name="name" :label="t('name.label')" validation="required" :validation-messages="{ required: t('name.required') }" />
-        <FormKit type="dropdown" name="persona_uuid" :label="t('persona.label')" :help="t('persona.help')" validation="required" :validation-messages="{ required: t('persona.required') }" :options="getPersonaOptions()" />
-        <FormKit type="dropdown" name="model_uuid" :label="t('model.label')" :help="t('model.help')" validation="required" :validation-messages="{ required: t('model.required') }" :options="getModelOptions" />
+        <FormKit type="text" name="name" :label="t('name.label')" validation="required"
+          :validation-messages="{ required: t('name.required') }" />
+        <FormKit type="dropdown" name="persona_uuid" :label="t('persona.label')" :help="t('persona.help')"
+          validation="required" :validation-messages="{ required: t('persona.required') }"
+          :options="getPersonaOptions()" />
+        <FormKit type="dropdown" name="model_uuid" :label="t('model.label')" :help="t('model.help')"
+          validation="required" :validation-messages="{ required: t('model.required') }" :options="getModelOptions" />
         <template #actions="{ disabled }">
           <UiFormActions>
             <AssistantsDeleteModal v-if="assistant" :assistant="assistant" @success="navigateTo('/assistants/add')" />
-            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateAssistant' : 'createAssistant')" :loading="disabled as boolean" type="submit" />
+            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
+              :label="t(isUpdate ? 'updateAssistant' : 'createAssistant')" :loading="disabled as boolean"
+              type="submit" />
           </UiFormActions>
         </template>
       </FormKit>

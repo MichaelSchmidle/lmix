@@ -1,4 +1,6 @@
+import type { CoreMessage } from 'ai'
 import type { Database } from '@/types/api'
+import type Core from 'markdown-it/lib/parser_core.mjs'
 
 export type ApiConfiguration = {
   api_endpoint: string
@@ -53,9 +55,15 @@ export type Production = Database['public']['Tables']['productions']['Row']
 export type ProductionInsert = Database['public']['Tables']['productions']['Insert']
 export type ProductionUpdate = Database['public']['Tables']['productions']['Update']
 
-export type Turn = Database['public']['Tables']['turns']['Row']
-export type TurnInsert = Database['public']['Tables']['turns']['Insert']
-export type TurnUpdate = Database['public']['Tables']['turns']['Update']
+export type Turn = Omit<Database['public']['Tables']['turns']['Row'], 'message'> & {
+  message: Message
+}
+export type TurnInsert = Omit<Database['public']['Tables']['turns']['Insert'], 'message'> & {
+  message: Message
+}
+export type TurnUpdate = Omit<Database['public']['Tables']['turns']['Update'], 'message'> & {
+  message: Message
+}
 
 // Junction tables
 export type ProductionAssistant = Database['public']['Tables']['production_assistants']['Row']
@@ -120,9 +128,34 @@ export type ProductionWithRelations = Production & {
   production_relations?: ProductionRelationWithRelations[]
 }
 
+export type Content = {
+  persona_name: string
+  performance: string
+  vectors?: {
+    location?: string
+    posture?: string
+    direction?: string
+    momentum?: string
+  }
+  evolution?: {
+    self_perception?: string
+    private_knowledge?: string
+    note_to_future_self?: string
+  }
+  meta?: string
+}
+
 // Turn user message
 export type UserTurnMessage = {
-  content?: string
-  persona_uuid?: string
-  assistant_uuid: string
+  production_uuid: string
+  performance?: string
+  sending_persona_uuid?: string
+  receiving_assistant_uuid: string
+}
+
+export type Message = Omit<CoreMessage, 'content'> & {
+  content: Content
+  metadata?: {
+    persona_uuid?: string
+  }
 }

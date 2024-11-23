@@ -23,7 +23,7 @@ export type Database = {
           model_uuid: string
           name: string
           persona_uuid: string
-          user_uuid: string
+          user_uuid?: string
           uuid?: string
         }
         Update: {
@@ -65,7 +65,7 @@ export type Database = {
           api_key?: string | null
           created_at?: string
           id: string
-          user_uuid: string
+          user_uuid?: string
           uuid?: string
         }
         Update: {
@@ -80,6 +80,7 @@ export type Database = {
       }
       personas: {
         Row: {
+          avatar_url: string | null
           created_at: string
           name: string
           private_knowledge: string | null
@@ -90,16 +91,18 @@ export type Database = {
           uuid: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           name: string
           private_knowledge?: string | null
           public_knowledge?: string | null
           public_perception?: string | null
           self_perception?: string | null
-          user_uuid: string
+          user_uuid?: string
           uuid?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           name?: string
           private_knowledge?: string | null
@@ -123,7 +126,7 @@ export type Database = {
           assistant_uuid: string
           created_at?: string
           production_uuid: string
-          user_uuid: string
+          user_uuid?: string
           uuid?: string
         }
         Update: {
@@ -168,7 +171,7 @@ export type Database = {
           private_knowledge?: string | null
           production_uuid: string
           self_perception?: string | null
-          user_uuid: string
+          user_uuid?: string
           uuid?: string
         }
         Update: {
@@ -210,7 +213,7 @@ export type Database = {
           created_at?: string
           persona_uuid: string
           production_uuid: string
-          user_uuid: string
+          user_uuid?: string
           uuid?: string
         }
         Update: {
@@ -249,7 +252,7 @@ export type Database = {
           created_at?: string
           production_uuid: string
           relation_uuid: string
-          user_uuid: string
+          user_uuid?: string
           uuid?: string
         }
         Update: {
@@ -289,7 +292,7 @@ export type Database = {
           created_at?: string
           name?: string | null
           scenario_uuid?: string | null
-          user_uuid: string
+          user_uuid?: string
           uuid?: string
           world_uuid?: string | null
         }
@@ -330,7 +333,7 @@ export type Database = {
           created_at?: string
           persona_uuid: string
           relation_uuid: string
-          user_uuid: string
+          user_uuid?: string
           uuid?: string
         }
         Update: {
@@ -371,7 +374,7 @@ export type Database = {
           name?: string | null
           private_description?: string | null
           public_description?: string | null
-          user_uuid: string
+          user_uuid?: string
           uuid?: string
         }
         Update: {
@@ -396,7 +399,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           name: string
-          user_uuid: string
+          user_uuid?: string
           uuid?: string
         }
         Update: {
@@ -414,7 +417,6 @@ export type Database = {
           message: Json
           parent_turn_uuid: string | null
           production_uuid: string
-          sender_persona_name: string
           user_uuid: string
           uuid: string
         }
@@ -423,8 +425,7 @@ export type Database = {
           message: Json
           parent_turn_uuid?: string | null
           production_uuid: string
-          sender_persona_name: string
-          user_uuid: string
+          user_uuid?: string
           uuid?: string
         }
         Update: {
@@ -432,7 +433,6 @@ export type Database = {
           message?: Json
           parent_turn_uuid?: string | null
           production_uuid?: string
-          sender_persona_name?: string
           user_uuid?: string
           uuid?: string
         }
@@ -465,7 +465,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           name: string
-          user_uuid: string
+          user_uuid?: string
           uuid?: string
         }
         Update: {

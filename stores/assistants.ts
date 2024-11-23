@@ -134,7 +134,8 @@ export const useAssistantStore = defineStore('assistant', () => {
       if (index !== -1) {
         assistants.value[index] = { ...assistants.value[index], ...assistant }
       }
-    } else {
+    }
+    else {
       tempId = crypto.randomUUID()
       assistants.value.unshift({
         ...assistant,

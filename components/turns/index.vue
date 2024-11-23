@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { Turn } from '~/types/app'
-import { useChat } from '@ai-sdk/vue'
 
 const { t } = useI18n({ useScope: 'local' })
 const { m } = useMarkdown()
 const user = useSupabaseUser()
-const turnStore = useTurnStore()
+const personaStore = usePersonaStore()
+const { getPersona } = storeToRefs(personaStore)
 
 const props = defineProps({
   turns: {
@@ -17,12 +17,6 @@ const props = defineProps({
 const chatContainer = ref<HTMLElement | null>(null)
 const shouldAutoScroll = ref(true)
 const sentinel = ref<HTMLElement | null>(null)
-
-// Helper to safely get message content
-const getMessageContent = (turn: Turn) => {
-  const message = turn.message as { content: string }
-  return message?.content || ''
-}
 
 // Scroll handling
 const scrollToBottom = () => {
@@ -73,10 +67,12 @@ onMounted(() => {
     <UContainer>
       <UiMediaObject v-for="turn in turns" :key="turn.uuid" class="lg:gap-0">
         <template #media>
-          <UAvatar :alt="turn.sender_persona_name" class="lg:-ms-12"
-            :src="turn.sender_persona_name === 'User' ? user.user_metadata.avatar_url : undefined" />
+          <UTooltip
+              class="lg:-ms-12" :text="turn.message.metadata?.persona_uuid ? getPersona(turn.message.metadata?.persona_uuid)?.name : user!.user_metadata.name">
+            <UAvatar :alt="turn.message.metadata?.persona_uuid ? getPersona(turn.message.metadata?.persona_uuid)?.name : user!.user_metadata.name" :src="turn.message.metadata?.persona_uuid ? getPersona(turn.message.metadata?.persona_uuid)?.avatar_url : user!.user_metadata.avatar_url" />
+          </UTooltip>
         </template>
-        <div class="prose dark:prose-invert" v-html="m(getMessageContent(turn))" />
+        <div class="prose dark:prose-invert" v-html="m(turn.message.content.performance)" />
       </UiMediaObject>
       <div ref="sentinel" style="height: 1px;" />
     </UContainer>

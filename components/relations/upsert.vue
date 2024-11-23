@@ -4,7 +4,6 @@ import type { Relation, RelationInsert } from '@/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
-const user = useSupabaseUser()
 const relationStore = useRelationStore()
 const personaStore = usePersonaStore()
 const { getPersonaOptions } = storeToRefs(personaStore)
@@ -31,7 +30,6 @@ const handleSubmit = async (form: RelationInsert, node: FormKitNode) => {
       public_description: form.public_description,
       private_description: form.private_description,
       uuid: props.relation?.uuid,
-      user_uuid: user.value!.id,
     } as RelationInsert, selectedPersonas.value)
 
     toast.add({
@@ -50,17 +48,22 @@ const handleSubmit = async (form: RelationInsert, node: FormKitNode) => {
 </script>
 
 <template>
-  <UiSection icon="i-ph-share-network-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleInsert')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionInsert')">
+  <UiSection icon="i-ph-share-network-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleInsert')"
+    :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionInsert')">
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="formData">
         <FormKit type="text" name="name" :label="t('name.label')" />
-        <FormKit type="taglist" :options="getPersonaOptions()" v-model="selectedPersonas" :label="t('personas.label')" :help="t('personas.help')" validation="min:2" :validation-messages="{ min: t('personas.minimum') }" />
-        <FormKit type="textarea" auto-height name="private_description" :label="t('privateDescription.label')" :help="t('privateDescription.help')" />
-        <FormKit type="textarea" auto-height name="public_description" :label="t('publicDescription.label')" :help="t('publicDescription.help')" />
+        <FormKit type="taglist" :options="getPersonaOptions()" v-model="selectedPersonas" :label="t('personas.label')"
+          :help="t('personas.help')" validation="min:2" :validation-messages="{ min: t('personas.minimum') }" />
+        <FormKit type="textarea" auto-height name="private_description" :label="t('privateDescription.label')"
+          :help="t('privateDescription.help')" />
+        <FormKit type="textarea" auto-height name="public_description" :label="t('publicDescription.label')"
+          :help="t('publicDescription.help')" />
         <template #actions="{ disabled }">
           <UiFormActions>
             <RelationsDeleteModal v-if="relation" :relation="relation" @success="navigateTo('/relations/add')" />
-            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateRelation' : 'createRelation')" :loading="disabled as boolean" type="submit" />
+            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
+              :label="t(isUpdate ? 'updateRelation' : 'createRelation')" :loading="disabled as boolean" type="submit" />
           </UiFormActions>
         </template>
       </FormKit>

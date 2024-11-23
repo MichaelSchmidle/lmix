@@ -9,6 +9,7 @@ const assistantStore = useAssistantStore()
 const { getAssistantOptions } = storeToRefs(assistantStore)
 const personaStore = usePersonaStore()
 const { getPersonaOptions } = storeToRefs(personaStore)
+const turnStore = useTurnStore()
 
 const props = defineProps({
   production: {
@@ -23,19 +24,31 @@ const assistantOptions = computed(() => getAssistantOptions.value(getProductionA
 const defaultPersona = computed(() => personaOptions.value.length === 1 ? personaOptions.value[0].value : undefined)
 const defaultAssistant = computed(() => assistantOptions.value.length === 1 ? assistantOptions.value[0].value : undefined)
 
-const handleSubmit = async (values: UserTurnMessage, node: FormKitNode) => {
+const handleSubmit = async (message: UserTurnMessage, node: FormKitNode) => {
+  try {
+    // First handle the user message
+    await turnStore.triggerTurn(message)
 
+    // Reset the form
+    node.reset({
+      sending_persona_uuid: message.sending_persona_uuid,
+      receiving_assistant_uuid: message.receiving_assistant_uuid,
+    })
+  }
+  catch (error) {
+    console.error('Failed to send message:', error)
+  }
 }
 </script>
 
 <template>
   <FormKit type="form" :actions="false" :incomplete-message="false" name="message" #default="{ disabled, node }"
     @submit="handleSubmit">
-    <FormKit auto-height :max-auto-height="256" name="content" :placeholder="t('turn.placeholder')" type="textarea"
-      @keydown.enter.exact.prevent="node.submit()" required validation="required"
-      :validation-messages="{ required: t('content.required') }">
+    <FormKit type="meta" name="production_uuid" :value="production.uuid" />
+    <FormKit auto-height :max-auto-height="256" name="performance" :placeholder="t('performance.placeholder')"
+      type="textarea" @keydown.enter.exact.prevent="node.submit()">
       <template #help="context">
-        <i18n-t :class="context.classes.help" keypath="turn.help" tag="div">
+        <i18n-t :class="context.classes.help" keypath="performance.help" tag="div">
           <template #enter>
             <UKbd>Enter</UKbd>
           </template>
@@ -47,18 +60,17 @@ const handleSubmit = async (values: UserTurnMessage, node: FormKitNode) => {
     </FormKit>
     <div class="flex gap-2 sm:gap-4 items-start">
       <div v-if="personaOptions.length" class="flex-1">
-        <FormKit type="dropdown" name="persona_uuid" :options="personaOptions"
-          :placeholder="personaOptions.length > 1 ? t('persona.placeholder') : undefined" :help="t('persona.help')"
-          :value="defaultPersona" />
+        <FormKit type="dropdown" name="sending_persona_uuid" :options="personaOptions"
+          :placeholder="t('persona.placeholder')" :help="t('persona.help')" :value="defaultPersona" />
       </div>
       <div class="flex-1">
-        <FormKit type="dropdown" name="assistant_uuid" :options="assistantOptions"
-          :placeholder="assistantOptions.length > 1 ? t('assistant.placeholder') : undefined"
+        <FormKit type="dropdown" name="receiving_assistant_uuid" :options="assistantOptions"
+          :placeholder="t('assistant.placeholder')"
           :help="t('assistant.help')" :value="defaultAssistant" required validation="required"
           :validation-messages="{ required: t('assistant.required') }" />
       </div>
       <UTooltip :shortcuts="['↵']" :text="t('send.tooltip')">
-        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :loading="disabled" size="lg" square type="submit" />
+        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :loading="disabled as boolean" size="lg" square type="submit" />
       </UTooltip>
     </div>
   </FormKit>
@@ -66,7 +78,7 @@ const handleSubmit = async (values: UserTurnMessage, node: FormKitNode) => {
 
 <i18n lang="yaml">
 en:
-  turn:
+  performance:
     placeholder: Your turn…
     help: Press {enter} to send, {shiftEnter} for new lines.
     submitted: Message sent.
@@ -79,10 +91,6 @@ en:
     placeholder: Assistant…
     help: Select the assistant to take the next turn.
     required: Please select an assistant.
-  content:
-    placeholder: Type your message here.
-    help: Type your message here.
-    required: Please enter a message.
   send:
     tooltip: Send
 </i18n>

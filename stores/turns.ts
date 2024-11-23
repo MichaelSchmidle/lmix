@@ -4,7 +4,8 @@ import type {
   Turn,
   TurnInsert,
   ProductionPersonaEvolution,
-  ProductionPersonaEvolutionInsert
+  ProductionPersonaEvolutionInsert,
+  UserTurnMessage
 } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 
@@ -14,6 +15,8 @@ export const useTurnStore = defineStore('turn', () => {
   const evolutions = ref<ProductionPersonaEvolution[]>([])
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
+  const inferenceStream = ref<ReadableStream | null>(null)
+  const currentStreamingTurn = ref<Turn | null>(null)
 
   // Getters
   const getTurn = computed(() => {
@@ -78,7 +81,7 @@ export const useTurnStore = defineStore('turn', () => {
     }
   }
 
-  async function createTurn(
+  async function insertTurn(
     turn: TurnInsert,
     evolution?: ProductionPersonaEvolutionInsert
   ): Promise<string | null> {
@@ -91,9 +94,17 @@ export const useTurnStore = defineStore('turn', () => {
       evolutions: [...evolutions.value]
     }
 
+    // Format message properly
+    const formattedTurn = {
+      ...turn,
+      message: typeof turn.message === 'string'
+        ? { content: turn.message, metadata: {} }
+        : turn.message
+    }
+
     // Optimistic update
     turns.value.push({
-      ...turn,
+      ...formattedTurn,
       uuid: tempId,
       created_at: new Date().toISOString()
     } as Turn)
@@ -104,7 +115,7 @@ export const useTurnStore = defineStore('turn', () => {
       // Insert turn
       const { data: turnData, error: turnError } = await client
         .from('turns')
-        .insert(turn)
+        .insert(formattedTurn)
         .select()
         .single()
 
@@ -142,18 +153,114 @@ export const useTurnStore = defineStore('turn', () => {
     }
   }
 
+  async function triggerTurn(message: UserTurnMessage & { production_uuid: string }): Promise<void> {
+    loading.value = true
+    error.value = null
+
+    try {
+      // Get user info
+      const client = useSupabaseClient<Database>()
+      const user = useSupabaseUser()
+
+      // If message has content, store it first
+      if (message.content?.trim()) {
+        // Get persona name if persona_uuid is provided
+        let senderPersonaName = 'User' // Default
+        if (message.persona_uuid) {
+          const { data: persona } = await client
+            .from('personas')
+            .select('name')
+            .eq('uuid', message.persona_uuid)
+            .single()
+
+          if (persona) {
+            senderPersonaName = persona.name
+          }
+        }
+
+        await insertTurn({
+          message: message.content,
+          production_uuid: message.production_uuid,
+          sender_persona_name: senderPersonaName,
+          user_uuid: user.value?.id || '',
+          parent_turn_uuid: null // TODO: Implement turn threading if needed
+        })
+      }
+
+      // Initialize streaming turn in Pinia
+      const streamingTurn: Turn = {
+        uuid: crypto.randomUUID(),
+        message: { content: '', metadata: {} },
+        production_uuid: message.production_uuid,
+        sender_persona_name: 'Assistant',
+        user_uuid: user.value?.id || '',
+        parent_turn_uuid: null,
+        created_at: new Date().toISOString(),
+      }
+
+      // Add turn to state and set as streaming
+      turns.value = [...turns.value, streamingTurn]
+      currentStreamingTurn.value = streamingTurn
+
+      // Trigger inference and handle streaming
+      const response = await $fetch('/api/turns', {
+        method: 'POST',
+        body: message
+      })
+
+      // Process the stream
+      if (response.body) {
+        const reader = (response.body as ReadableStream).getReader()
+        const decoder = new TextDecoder()
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            const chunk = decoder.decode(value)
+            
+            // Update the streaming turn in the array
+            const index = turns.value.findIndex(t => t.uuid === streamingTurn.uuid)
+            if (index !== -1) {
+              const turn = turns.value[index]
+              const message = turn.message as { content: string, metadata: Record<string, unknown> }
+              message.content += chunk
+              // Force reactivity update
+              turns.value = [...turns.value]
+            }
+          }
+        } finally {
+          // Fetch the final persisted turn from Supabase
+          await selectTurns(message.production_uuid)
+        }
+      }
+
+    } catch (e) {
+      error.value = e as LMiXError
+      if (import.meta.dev) console.error('Turn trigger failed:', e)
+      throw e
+    } finally {
+      loading.value = false
+      currentStreamingTurn.value = null
+    }
+  }
+
   return {
     // State
     turns,
     evolutions,
     loading,
     error,
+    inferenceStream,
+    currentStreamingTurn,
     // Getters
     getTurn,
     getProductionTurns,
     getPersonaEvolutions,
     // Actions
     selectTurns,
-    createTurn
+    insertTurn,
+    triggerTurn
   }
-}) 
+})

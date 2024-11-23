@@ -40,18 +40,25 @@ const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
 </script>
 
 <template>
-  <UiSection icon="i-ph-mask-happy-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleInsert')" :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionCreate')">
+  <UiSection icon="i-ph-mask-happy-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleInsert')"
+    :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionInsert')">
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="persona">
-        <FormKit type="text" name="name" :label="t('name.label')" validation="required" :validation-messages="{ required: t('name.required') }" />
-        <FormKit type="textarea" auto-height name="self_perception" :label="t('selfPerception.label')" :help="t('selfPerception.help')" />
-        <FormKit type="textarea" auto-height name="public_perception" :label="t('publicPerception.label')" :help="t('publicPerception.help')" />
-        <FormKit type="textarea" auto-height name="private_knowledge" :label="t('privateKnowledge.label')" :help="t('privateKnowledge.help')" />
-        <FormKit type="textarea" auto-height name="public_knowledge" :label="t('publicKnowledge.label')" :help="t('publicKnowledge.help')" />
+        <FormKit type="text" name="name" :label="t('name.label')" validation="required|not:User"
+          :validation-messages="{ required: t('name.required'), not: t('name.notUser') }" />
+        <FormKit type="textarea" auto-height name="self_perception" :label="t('selfPerception.label')"
+          :help="t('selfPerception.help')" />
+        <FormKit type="textarea" auto-height name="public_perception" :label="t('publicPerception.label')"
+          :help="t('publicPerception.help')" />
+        <FormKit type="textarea" auto-height name="private_knowledge" :label="t('privateKnowledge.label')"
+          :help="t('privateKnowledge.help')" />
+        <FormKit type="textarea" auto-height name="public_knowledge" :label="t('publicKnowledge.label')"
+          :help="t('publicKnowledge.help')" />
         <template #actions="{ disabled }">
           <UiFormActions>
             <PersonasDeleteModal v-if="persona" :persona="persona" @success="navigateTo('/personas/add')" />
-            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updatePersona' : 'createPersona')" :loading="disabled as boolean" type="submit" />
+            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
+              :label="t(isUpdate ? 'updatePersona' : 'createPersona')" :loading="disabled as boolean" type="submit" />
           </UiFormActions>
         </template>
       </FormKit>
@@ -68,6 +75,7 @@ const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
     name:
       label: Name
       required: Name is required.
+      notUser: ‘User’ is a reserved name, please choose a different name.
     selfPerception:
       label: Self Perception
       help: How the persona views themselves

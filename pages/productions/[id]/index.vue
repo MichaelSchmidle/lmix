@@ -13,10 +13,8 @@ const props = defineProps({
   },
 })
 
-// Fetch turns when component mounts
-onMounted(async () => {
-  await turnStore.selectTurns(props.production.uuid)
-})
+// Fetch turns
+await turnStore.selectTurns(props.production.uuid)
 
 // Get turns for this production
 const turns = computed(() => turnStore.getProductionTurns(props.production.uuid))
@@ -33,7 +31,7 @@ const turns = computed(() => turnStore.getProductionTurns(props.production.uuid)
         <NavPanelSlideover class="xl:hidden" :production="production" />
       </template>
     </UiPanelHeader>
-    <UiPanelContent>
+    <UiPanelContent v-auto-animate>
       <Turns :turns="turns" v-if="turns.length" />
       <ProductionsNoData v-else :assistant-uuids="getProductionAssistants(production.uuid)" />
     </UiPanelContent>

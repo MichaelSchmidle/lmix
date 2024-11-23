@@ -24,19 +24,16 @@ const defaultPersona = computed(() => personaOptions.value.length === 1 ? person
 const defaultAssistant = computed(() => assistantOptions.value.length === 1 ? assistantOptions.value[0].value : undefined)
 
 const handleSubmit = async (values: UserTurnMessage, node: FormKitNode) => {
-  try {
-    // Clear form content only, keep selections
-    node.reset({ persona_uuid: values.persona_uuid, assistant_uuid: values.assistant_uuid })
-  }
-  catch (e) {
 
-  }
 }
 </script>
 
 <template>
-  <FormKit type="form" :actions="false" :incomplete-message="false" name="message" #default="{ disabled, node }" @submit="handleSubmit">
-    <FormKit auto-height :max-auto-height="256" name="content" :placeholder="t('turn.placeholder')" type="textarea" @keydown.enter.exact.prevent="node.submit()" required>
+  <FormKit type="form" :actions="false" :incomplete-message="false" name="message" #default="{ disabled, node }"
+    @submit="handleSubmit">
+    <FormKit auto-height :max-auto-height="256" name="content" :placeholder="t('turn.placeholder')" type="textarea"
+      @keydown.enter.exact.prevent="node.submit()" required validation="required"
+      :validation-messages="{ required: t('content.required') }">
       <template #help="context">
         <i18n-t :class="context.classes.help" keypath="turn.help" tag="div">
           <template #enter>
@@ -50,13 +47,18 @@ const handleSubmit = async (values: UserTurnMessage, node: FormKitNode) => {
     </FormKit>
     <div class="flex gap-2 sm:gap-4 items-start">
       <div v-if="personaOptions.length" class="flex-1">
-        <FormKit type="dropdown" name="persona_uuid" :options="personaOptions" :placeholder="personaOptions.length > 1 ? t('persona.placeholder') : undefined" :help="t('persona.help')" :value="defaultPersona" />
+        <FormKit type="dropdown" name="persona_uuid" :options="personaOptions"
+          :placeholder="personaOptions.length > 1 ? t('persona.placeholder') : undefined" :help="t('persona.help')"
+          :value="defaultPersona" />
       </div>
       <div class="flex-1">
-        <FormKit type="dropdown" name="assistant_uuid" :options="assistantOptions" :placeholder="assistantOptions.length > 1 ? t('assistant.placeholder') : undefined" :help="t('assistant.help')" :value="defaultAssistant" required />
+        <FormKit type="dropdown" name="assistant_uuid" :options="assistantOptions"
+          :placeholder="assistantOptions.length > 1 ? t('assistant.placeholder') : undefined"
+          :help="t('assistant.help')" :value="defaultAssistant" required validation="required"
+          :validation-messages="{ required: t('assistant.required') }" />
       </div>
       <UTooltip :shortcuts="['↵']" :text="t('send.tooltip')">
-        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :loading="disabled as boolean" size="lg" square type="submit" />
+        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :loading="disabled" size="lg" square type="submit" />
       </UTooltip>
     </div>
   </FormKit>
@@ -66,17 +68,21 @@ const handleSubmit = async (values: UserTurnMessage, node: FormKitNode) => {
 en:
   turn:
     placeholder: Your turn…
-    streaming: Assistant is responding…
     help: Press {enter} to send, {shiftEnter} for new lines.
+    submitted: Message sent.
+    failed: Failed to send message.
+    unexpectedError: An unexpected error occurred.
   persona:
     placeholder: Persona…
     help: Select the persona you represent in your turn.
   assistant:
     placeholder: Assistant…
     help: Select the assistant to take the next turn.
+    required: Please select an assistant.
+  content:
+    placeholder: Type your message here.
+    help: Type your message here.
+    required: Please enter a message.
   send:
     tooltip: Send
-  error:
-    title: Error
-    unknown: An unexpected error occurred
 </i18n>

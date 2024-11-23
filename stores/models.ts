@@ -5,7 +5,7 @@
 import { defineStore } from 'pinia'
 import type { AccordionItem, VerticalNavigationLink } from '#ui/types'
 import type { Database } from '~/types/api'
-import type { ApiConfiguration, ApiModel, ApiModelOption, Model, ModelInsert } from '~/types/app'
+import type { ApiConfiguration, ApiModel, ApiModelOption, Model, ModelInsert, Assistant } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 
 export const useModelStore = defineStore('model', () => {
@@ -97,6 +97,47 @@ export const useModelStore = defineStore('model', () => {
    * @returns {number} Total count of models
    */
   const getModelCount = computed(() => models.value.length)
+
+  /**
+   * Gets the list of assistants using a model
+   * @param {string} uuid - Model identifier
+   * @returns {Promise<Assistant[]>} List of assistants using the model
+   * @throws {LMiXError} If API request fails
+   */
+  async function getModelAssistants(uuid: string): Promise<Assistant[]> {
+    try {
+      const client = useSupabaseClient<Database>()
+      const { data, error: apiError } = await client
+        .from('assistants')
+        .select(`
+          uuid,
+          name,
+          model_uuid,
+          persona_uuid,
+          user_uuid,
+          created_at
+        `)
+        .eq('model_uuid', uuid)
+        .order('name')
+
+      if (apiError) throw new LMiXError(
+        apiError.message,
+        'API_ERROR',
+        apiError
+      )
+
+      return data
+    }
+    catch (e) {
+      error.value = e as LMiXError
+
+      if (import.meta.dev) {
+        console.error('Model assistants fetch failed:', e)
+      }
+
+      throw e
+    }
+  }
 
   // Actions
   /**
@@ -207,10 +248,16 @@ export const useModelStore = defineStore('model', () => {
     loading.value = true
     error.value = null
 
-    const original = [...models.value]
-    models.value = models.value.filter(m => m.uuid !== uuid)
-
     try {
+      // Check if model is in use
+      const assistants = await getModelAssistants(uuid)
+      if (assistants.length > 0) {
+        throw new LMiXError(
+          'Cannot delete model because it is in use by one or more assistants',
+          'MODEL_IN_USE'
+        )
+      }
+
       const client = useSupabaseClient<Database>()
       const { error: apiError } = await client
         .from('models')
@@ -222,9 +269,10 @@ export const useModelStore = defineStore('model', () => {
         'API_ERROR',
         apiError
       )
+
+      models.value = models.value.filter(m => m.uuid !== uuid)
     }
     catch (e) {
-      models.value = original
       error.value = e as LMiXError
 
       if (import.meta.dev) {
@@ -271,6 +319,7 @@ export const useModelStore = defineStore('model', () => {
     getModelNavigation,
     getModelOptions,
     getModelCount,
+    getModelAssistants,
     // Actions
     selectModels,
     insertModels,

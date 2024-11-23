@@ -1,3 +1,4 @@
+import { color } from '@formkit/icons'
 import type { Config } from 'tailwindcss'
 
 export default {
@@ -112,6 +113,9 @@ export default {
       typography: {
         DEFAULT: {
           css: {
+            'body': {
+              scrollBehavior: 'smooth',
+            },
             'code::before': {
               content: '""'
             },

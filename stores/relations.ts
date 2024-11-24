@@ -15,6 +15,7 @@ export const useRelationStore = defineStore('relations', () => {
   // State
   const relations = ref<Relation[]>([])
   const relationPersonas = ref<RelationPersona[]>([])
+  const fullyLoaded = ref(false)
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
 
@@ -115,7 +116,7 @@ export const useRelationStore = defineStore('relations', () => {
    * @throws {LMiXError} If the API request fails
    */
   async function selectRelations(): Promise<void> {
-    if (relations.value.length > 0) return
+    if (fullyLoaded.value) return
 
     loading.value = true
     error.value = null
@@ -151,6 +152,7 @@ export const useRelationStore = defineStore('relations', () => {
     }
     finally {
       loading.value = false
+      fullyLoaded.value = true
     }
   }
 

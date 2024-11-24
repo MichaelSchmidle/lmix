@@ -1,16 +1,7 @@
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
-import type {
-  Turn,
-  TurnInsert,
-  ProductionPersonaEvolution,
-  ProductionPersonaEvolutionInsert,
-  UserTurnMessage,
-  Persona,
-  Message
-} from '~/types/app'
+import type { Turn, TurnInsert, ProductionPersonaEvolution, ProductionPersonaEvolutionInsert, UserTurnMessage } from '~/types/app'
 import { LMiXError } from '~/types/errors'
-import { useChat } from '@ai-sdk/vue'
 
 export const useTurnStore = defineStore('turn', () => {
   // State
@@ -148,61 +139,8 @@ export const useTurnStore = defineStore('turn', () => {
     }
   }
 
-  async function triggerTurn(message: UserTurnMessage): Promise<void> {
-    loading.value = true
-    error.value = null
+  async function insertUserTurn(message: UserTurnMessage) {
 
-    try {
-      // Insert user message if applicable
-      if (message.performance) {
-        let persona: Persona | undefined
-
-        if (message.sending_persona_uuid) {
-          const personaStore = usePersonaStore()
-          persona = personaStore.getPersona(message.sending_persona_uuid)
-        }
-
-        const turn: TurnInsert = {
-          production_uuid: message.production_uuid,
-          message: {
-            content: {
-              persona_name: persona?.name || 'User',
-              performance: message.performance
-            },
-            role: 'user',
-          },
-        }
-
-        if (message.sending_persona_uuid) {
-          turn.message.metadata = { persona_uuid: message.sending_persona_uuid }
-        }
-
-        await insertTurn(turn)
-      }
-    }
-    catch (err) {
-      error.value = err as LMiXError
-    }
-    finally {
-      loading.value = false
-    }
-  }
-
-  async function persistAssistantResponse(production_uuid: string, content: string): Promise<void> {
-    try {
-      await insertTurn({
-        production_uuid,
-        message: {
-          role: 'assistant',
-          content: {
-            persona: 'Assistant',
-            performance: content
-          }
-        }
-      })
-    } catch (err) {
-      error.value = err as LMiXError
-    }
   }
 
   return {
@@ -218,7 +156,6 @@ export const useTurnStore = defineStore('turn', () => {
     // Actions
     selectTurns,
     insertTurn,
-    triggerTurn,
-    persistAssistantResponse
+    insertUserTurn,
   }
 })

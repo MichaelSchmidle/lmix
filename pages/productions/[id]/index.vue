@@ -32,7 +32,7 @@ const turns = computed(() => turnStore.getProductionTurns(props.production.uuid)
       </template>
     </UiPanelHeader>
     <UiPanelContent v-auto-animate>
-      <Turns :turns="turns" v-if="turns.length" />
+      <Turns v-if="true" :production-uuid="production.uuid" :turns="turns" />
       <ProductionsNoData v-else :assistant-uuids="getProductionAssistants(production.uuid)" />
     </UiPanelContent>
     <UiPanelFooter>

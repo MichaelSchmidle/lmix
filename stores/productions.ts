@@ -14,6 +14,7 @@ export const useProductionStore = defineStore('production', () => {
   const productionAssistants = ref<ProductionAssistant[]>([])
   const productionPersonas = ref<ProductionPersona[]>([])
   const productionRelations = ref<ProductionRelation[]>([])
+  const fullyLoaded = ref(false)
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
 
@@ -81,7 +82,7 @@ export const useProductionStore = defineStore('production', () => {
    * Used for navigation and overview purposes
    */
   async function selectProductions(): Promise<void> {
-    if (productions.value.length > 0) return
+    if (fullyLoaded.value) return
 
     loading.value = true
     error.value = null
@@ -107,6 +108,7 @@ export const useProductionStore = defineStore('production', () => {
     }
     finally {
       loading.value = false
+      fullyLoaded.value = true
     }
   }
 

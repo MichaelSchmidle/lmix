@@ -11,6 +11,7 @@ import { LMiXError } from '~/types/errors'
 export const usePersonaStore = defineStore('persona', () => {
   // State
   const personas = ref<Persona[]>([])
+  const fullyLoaded = ref(false)
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
 
@@ -80,7 +81,7 @@ export const usePersonaStore = defineStore('persona', () => {
    * @throws {LMiXError} If the API request fails
    */
   async function selectPersonas(): Promise<void> {
-    if (personas.value.length > 0) return
+    if (fullyLoaded.value) return
 
     loading.value = true
     error.value = null
@@ -112,6 +113,7 @@ export const usePersonaStore = defineStore('persona', () => {
     }
     finally {
       loading.value = false
+      fullyLoaded.value = true
     }
   }
 

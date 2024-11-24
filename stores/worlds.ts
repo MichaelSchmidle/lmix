@@ -11,6 +11,7 @@ import type { VerticalNavigationLink } from '#ui/types'
 export const useWorldStore = defineStore('world', () => {
   // State
   const worlds = ref<World[]>([])
+  const fullyLoaded = ref(false)
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
 
@@ -70,7 +71,7 @@ export const useWorldStore = defineStore('world', () => {
    * @throws {LMiXError} If the API request fails
    */
   async function selectWorlds(): Promise<void> {
-    if (worlds.value.length > 0) return
+    if (fullyLoaded.value) return
 
     loading.value = true
     error.value = null
@@ -102,6 +103,7 @@ export const useWorldStore = defineStore('world', () => {
     }
     finally {
       loading.value = false
+      fullyLoaded.value = true
     }
   }
 

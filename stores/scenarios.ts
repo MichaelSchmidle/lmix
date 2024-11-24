@@ -11,6 +11,7 @@ import type { VerticalNavigationLink } from '#ui/types'
 export const useScenarioStore = defineStore('scenario', () => {
   // State
   const scenarios = ref<Scenario[]>([])
+  const fullyLoaded = ref(false)
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
 
@@ -72,7 +73,7 @@ export const useScenarioStore = defineStore('scenario', () => {
    * @throws {LMiXError} If the API request fails
    */
   async function selectScenarios(): Promise<void> {
-    if (scenarios.value.length > 0) return
+    if (fullyLoaded.value) return
 
     loading.value = true
     error.value = null
@@ -100,6 +101,7 @@ export const useScenarioStore = defineStore('scenario', () => {
     }
     finally {
       loading.value = false
+      fullyLoaded.value = true
     }
   }
 

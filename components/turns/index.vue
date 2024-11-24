@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Turn } from '~/types/app'
+import { useChat } from '@ai-sdk/vue'
+import type { Content, Turn } from '~/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const { m } = useMarkdown()
@@ -8,10 +9,19 @@ const personaStore = usePersonaStore()
 const { getPersona } = storeToRefs(personaStore)
 
 const props = defineProps({
+  productionUuid: {
+    required: true,
+    type: String
+  },
   turns: {
     required: true,
     type: Array as PropType<Turn[]>
   }
+})
+
+const { messages } = useChat({
+  api: '/api/turns',
+  id: props.productionUuid,
 })
 
 const chatContainer = ref<HTMLElement | null>(null)
@@ -47,7 +57,7 @@ onMounted(() => {
   }
 
   // Watch for changes in turns and scroll to bottom
-  watch(() => props.turns.length, () => {
+  watch(() => messages.value.length, () => {
     nextTick(() => {
       scrollToBottom()
     })
@@ -64,15 +74,14 @@ onMounted(() => {
 
 <template>
   <div ref="chatContainer">
-    <UContainer>
-      <UiMediaObject v-for="turn in turns" :key="turn.uuid" class="lg:gap-0">
+    <UContainer v-auto-animate>
+      <UiMediaObject v-for="turn in messages" :key="turn.id" class="lg:gap-0">
         <template #media>
-          <UTooltip
-              class="lg:-ms-12" :text="turn.message.metadata?.persona_uuid ? getPersona(turn.message.metadata?.persona_uuid)?.name : user!.user_metadata.name">
-            <UAvatar :alt="turn.message.metadata?.persona_uuid ? getPersona(turn.message.metadata?.persona_uuid)?.name : user!.user_metadata.name" :src="turn.message.metadata?.persona_uuid ? getPersona(turn.message.metadata?.persona_uuid)?.avatar_url : user!.user_metadata.avatar_url" />
+          <UTooltip class="lg:-ms-12" :text="turn.role">
+            <UAvatar :alt="turn.role" />
           </UTooltip>
         </template>
-        <div class="prose dark:prose-invert" v-html="m(turn.message.content.performance)" />
+        <div class="prose dark:prose-invert" v-html="m(turn.content)" />
       </UiMediaObject>
       <div ref="sentinel" style="height: 1px;" />
     </UContainer>
@@ -84,9 +93,6 @@ en:
   turn:
     placeholder: Your turn…
     help: Press {enter} to send, {shiftEnter} for new lines.
-    submitted: Message sent.
-    failed: Failed to send message.
-    unexpectedError: An unexpected error occurred.
   persona:
     placeholder: Select persona…
     help: The persona to use for this turn.

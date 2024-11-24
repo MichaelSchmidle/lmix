@@ -11,6 +11,7 @@ import { LMiXError } from '~/types/errors'
 export const useAssistantStore = defineStore('assistant', () => {
   // State
   const assistants = ref<Assistant[]>([])
+  const fullyLoaded = ref(false)
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
 
@@ -80,7 +81,7 @@ export const useAssistantStore = defineStore('assistant', () => {
    * @throws {LMiXError} If the API request fails
    */
   async function selectAssistants(): Promise<void> {
-    if (assistants.value.length > 0) return
+    if (fullyLoaded.value) return
 
     loading.value = true
     error.value = null
@@ -112,6 +113,7 @@ export const useAssistantStore = defineStore('assistant', () => {
     }
     finally {
       loading.value = false
+      fullyLoaded.value = true
     }
   }
 

@@ -1,6 +1,21 @@
 import OpenAI from 'openai'
 import { zodResponseFormat } from "openai/helpers/zod"
 import { z } from 'zod'
+import { LMiXError } from '~/types/errors'
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
+
+// Request body schema
+const requestSchema = z.object({
+  messages: z.array(z.object({
+    role: z.enum(['system', 'user', 'assistant', 'function', 'tool']),
+    content: z.string(),
+    name: z.string().optional(),
+    function_call: z.unknown().optional(),
+    tool_calls: z.unknown().optional(),
+  }))
+})
+
+type RequestBody = z.infer<typeof requestSchema>
 
 // Schema for what the model generates (subset of Content type)
 const modelResponseSchema = z.object({
@@ -20,72 +35,95 @@ const modelResponseSchema = z.object({
 })
 
 export default defineLazyEventHandler(async () => {
+  const config = useRuntimeConfig()
+  
   const openai = new OpenAI({
     apiKey: '',
     baseURL: 'http://localhost:1234/v1',
   })
 
-  return defineEventHandler(async (event: any) => {
+  return defineEventHandler(async (event) => {
     try {
-      const { messages } = await readBody(event)
+      // Validate request body
+      const body = await readBody(event)
+      const result = requestSchema.safeParse(body)
+      
+      if (!result.success) {
+        throw new LMiXError(
+          'Invalid request body',
+          'VALIDATION_ERROR',
+          result.error.errors
+        )
+      }
 
       // Set up proper streaming response headers
       setHeader(event, 'Content-Type', 'text/event-stream')
       setHeader(event, 'Cache-Control', 'no-cache')
       setHeader(event, 'Connection', 'keep-alive')
 
-      const stream = await openai.chat.completions.create({
-        messages,
-        model: 'darkidol-llama-3.1-8b-instruct-1.2-uncensored',
-        response_format: zodResponseFormat(modelResponseSchema, 'response'),
-        stream: true,
-      })
+      try {
+        const stream = await openai.chat.completions.create({
+          messages: result.data.messages as ChatCompletionMessageParam[],
+          model: 'llama-3.2-1b-instruct',
+          response_format: zodResponseFormat(modelResponseSchema, 'response'),
+          stream: true,
+        })
 
-      // Convert to ReadableStream
-      return new ReadableStream({
-        async start(controller) {
-          try {
-            let accumulatedJson = ''
-
-            for await (const chunk of stream) {
-              const content = chunk.choices[0]?.delta?.content || ''
-
-              if (content) {
-                accumulatedJson += content
-
-                try {
-                  // Try to parse accumulated JSON to see if it's complete
-                  const parsedJson = JSON.parse(accumulatedJson)
-
-                  // Validate against schema
-                  const validated = modelResponseSchema.parse(parsedJson)
-
-                  // Send the validated chunk
-                  controller.enqueue(new TextEncoder().encode(JSON.stringify(validated) + '\n'))
-                  accumulatedJson = '' // Reset for next potential JSON object
-                }
-                catch (e: any) {
-                  console.log('API: Parse/validate error:', e.message)
-                  // If parsing fails, continue accumulating
-                  continue
+        // Convert to ReadableStream
+        return new ReadableStream({
+          async start(controller) {
+            try {
+              for await (const chunk of stream) {
+                const content = chunk.choices[0]?.delta?.content || ''
+                if (content) {
+                  if (import.meta.dev) {
+                    console.debug('Stream chunk:', content)
+                  }
+                  controller.enqueue(new TextEncoder().encode(content))
                 }
               }
+              // Stream complete
+              controller.close()
             }
-
-            controller.close()
+            catch (error) {
+              const streamError = new LMiXError(
+                'Failed to process stream chunk',
+                'STREAM_ERROR',
+                error
+              )
+              if (import.meta.dev) {
+                console.error('Streaming error:', streamError)
+              }
+              controller.error(streamError)
+            }
           }
-          catch (error) {
-            console.error('API: Stream error:', error)
-            controller.error(error)
-          }
-        }
-      })
+        })
+      }
+      catch (error) {
+        throw new LMiXError(
+          'Failed to create chat completion',
+          'API_ERROR',
+          error
+        )
+      }
     }
     catch (error) {
-      console.error('API Error:', error)
+      if (import.meta.dev) {
+        console.error('API error:', error)
+      }
+
+      if (error instanceof LMiXError) {
+        throw createError({
+          statusCode: error.code === 'VALIDATION_ERROR' ? 400 : 500,
+          message: error.message,
+          data: import.meta.dev ? error.details : undefined
+        })
+      }
+
       throw createError({
         statusCode: 500,
-        message: error instanceof Error ? error.message : 'Internal server error'
+        message: 'Internal server error',
+        data: import.meta.dev ? error : undefined
       })
     }
   })

@@ -1,13 +1,6 @@
-import { serverSupabaseClient } from '#supabase/server'
-import { CoreSystemMessage, streamObject } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
-import { readFileSync } from 'fs'
-import { resolve } from 'path'
-import { Database } from '~/types/api'
+import OpenAI from 'openai'
+import { zodResponseFormat } from "openai/helpers/zod"
 import { z } from 'zod'
-
-const systemOpenPrompt = readFileSync(resolve('./prompts/systemOpen.md'), 'utf-8')
-const systemClosePrompt = readFileSync(resolve('./prompts/systemClose.md'), 'utf-8')
 
 // Schema for what the model generates (subset of Content type)
 const modelResponseSchema = z.object({
@@ -27,116 +20,68 @@ const modelResponseSchema = z.object({
 })
 
 export default defineLazyEventHandler(async () => {
+  const openai = new OpenAI({
+    apiKey: '',
+    baseURL: 'http://localhost:1234/v1',
+  })
+
   return defineEventHandler(async (event: any) => {
     try {
-      const { messages, production_uuid, assistant_uuid } = await readBody(event)
-      const supabase = await serverSupabaseClient<Database>(event)
+      const { messages } = await readBody(event)
 
-      // Get the production data
-      const { data: production, error: productionError } = await supabase
-        .from('productions')
-        .select(`
-          *,
-          world:worlds (*),
-          scenario:scenarios (*),
-          production_assistants (*,
-            assistant:assistants (*,
-              persona:personas (*)
-            )
-          )
-        `)
-        .eq('uuid', production_uuid)
-        .single()
-
-      if (productionError) {
-        throw new Error(productionError.message)
-      }
-
-      if (!production) {
-        throw new Error('Production not found')
-      }
-
-      // Find the assistant in the production's assistants
-      const assistant = production.production_assistants
-        .find(pa => pa.assistant?.uuid === assistant_uuid)?.assistant
-
-      if (!assistant?.persona) {
-        throw new Error('Assistant or persona not found')
-      }
-
-      const systemMessages: CoreSystemMessage[] = []
-
-      const systemOpenMessage: CoreSystemMessage = {
-        role: 'system',
-        content: systemOpenPrompt,
-      }
-
-      systemMessages.push(systemOpenMessage)
-
-      // Create a system message with the assistant's persona
-      const assistantPersonaSystemMessage: CoreSystemMessage = {
-        role: 'system',
-        content: [
-          '# YOUR PERSONA: ' + assistant.persona.name,
-          assistant.persona.self_perception,
-          assistant.persona.public_perception,
-          assistant.persona.private_knowledge,
-          assistant.persona.public_knowledge,
-        ].join('\n\n'),
-      }
-
-      systemMessages.push(assistantPersonaSystemMessage)
-
-      const systemCloseMessage: CoreSystemMessage = {
-        role: 'system',
-        content: systemClosePrompt,
-      }
-
-      const openai = createOpenAI({
-        apiKey: '',
-        baseURL: 'http://localhost:1234/v1',
-      })
-
-      // Ensure we have messages
-      if (!messages || !messages.length) {
-        throw new Error('No messages provided')
-      }
-
-      const result = streamObject({
-        model: openai('llama-3.2-1b-instruct-uncensored'),
-        schema: modelResponseSchema,
-        messages: [
-          ...systemMessages,
-          // Include all messages from history
-          ...messages.map((msg: { role: string; content: string }) => ({
-            role: msg.role,
-            content: JSON.stringify({
-              performance: msg.content
-            })
-          })),
-          systemCloseMessage
-        ],
-      })
-
-      // Set up proper streaming response
-      setHeader(event, 'Content-Type', 'application/json')
-      setHeader(event, 'Transfer-Encoding', 'chunked')
+      // Set up proper streaming response headers
+      setHeader(event, 'Content-Type', 'text/event-stream')
       setHeader(event, 'Cache-Control', 'no-cache')
-      
+      setHeader(event, 'Connection', 'keep-alive')
+
+      const stream = await openai.chat.completions.create({
+        messages,
+        model: 'darkidol-llama-3.1-8b-instruct-1.2-uncensored',
+        response_format: zodResponseFormat(modelResponseSchema, 'response'),
+        stream: true,
+      })
+
       // Convert to ReadableStream
       return new ReadableStream({
         async start(controller) {
           try {
-            for await (const chunk of result.partialObjectStream) {
-              controller.enqueue(new TextEncoder().encode(JSON.stringify(chunk) + '\n'))
+            let accumulatedJson = ''
+
+            for await (const chunk of stream) {
+              const content = chunk.choices[0]?.delta?.content || ''
+
+              if (content) {
+                accumulatedJson += content
+
+                try {
+                  // Try to parse accumulated JSON to see if it's complete
+                  const parsedJson = JSON.parse(accumulatedJson)
+
+                  // Validate against schema
+                  const validated = modelResponseSchema.parse(parsedJson)
+
+                  // Send the validated chunk
+                  controller.enqueue(new TextEncoder().encode(JSON.stringify(validated) + '\n'))
+                  accumulatedJson = '' // Reset for next potential JSON object
+                }
+                catch (e: any) {
+                  console.log('API: Parse/validate error:', e.message)
+                  // If parsing fails, continue accumulating
+                  continue
+                }
+              }
             }
+
             controller.close()
-          } catch (error) {
+          }
+          catch (error) {
+            console.error('API: Stream error:', error)
             controller.error(error)
           }
         }
       })
-    } catch (error) {
+    }
+    catch (error) {
       console.error('API Error:', error)
       throw createError({
         statusCode: 500,

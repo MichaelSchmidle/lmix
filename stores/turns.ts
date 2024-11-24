@@ -151,10 +151,10 @@ export const useTurnStore = defineStore('turn', () => {
           message: {
             role: 'user',
             content: {
+              performance: message.performance,
               persona_name: message.sending_persona_uuid
                 ? usePersonaStore().getPersona(message.sending_persona_uuid)?.name || 'User'
                 : 'User',
-              performance: message.performance
             },
             metadata: message.sending_persona_uuid
               ? { persona_uuid: message.sending_persona_uuid }
@@ -164,10 +164,31 @@ export const useTurnStore = defineStore('turn', () => {
 
         userTurnUuid.value = await insertTurn(userTurn)
       }
+
+      // Call the API to trigger assistant turn
+      const messages = message.performance ? [{
+        role: 'user',
+        content: JSON.stringify({
+          performance: message.performance,
+          persona_name: message.sending_persona_uuid
+            ? usePersonaStore().getPersona(message.sending_persona_uuid)?.name || 'User'
+            : 'User',
+        }),
+      }] : []
+
+      const response = await $fetch('/api/turns', {
+        method: 'POST',
+        body: {
+          messages,
+        },
+        onResponse({ response }) {
+          console.log('Turn API Response:', response._data)
+        }
+      })
     }
     catch (e) {
       streamingState.value.error = e instanceof Error ? e.message : 'An error occurred'
-      if (import.meta.dev) console.error('User turn creation failed:', e)
+      if (import.meta.dev) console.error('Turn creation failed:', e)
     }
     finally {
       streamingState.value.isStreaming = false

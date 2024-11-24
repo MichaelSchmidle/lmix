@@ -1,6 +1,4 @@
-import type { CoreMessage } from 'ai'
 import type { Database } from '@/types/api'
-import type Core from 'markdown-it/lib/parser_core.mjs'
 
 export type ApiConfiguration = {
   api_endpoint: string
@@ -153,7 +151,8 @@ export type UserTurnMessage = {
   receiving_assistant_uuid: string
 }
 
-export type Message = Omit<CoreMessage, 'content'> & {
+export type Message = {
+  role: 'system' | 'user' | 'assistant'
   content: Content
   metadata?: {
     persona_uuid?: string

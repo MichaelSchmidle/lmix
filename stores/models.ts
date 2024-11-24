@@ -188,6 +188,7 @@ export const useModelStore = defineStore('model', () => {
       ...model,
       uuid: tempIds[index],
       created_at: new Date().toISOString(),
+      user_uuid: useSupabaseUser().value?.id!,
       api_key: model.api_key ?? null
     }))
 

@@ -1,7 +1,14 @@
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
-import type { Turn, TurnInsert, ProductionPersonaEvolution, ProductionPersonaEvolutionInsert, UserTurnMessage } from '~/types/app'
+import type { Turn, TurnInsert, ProductionPersonaEvolution, ProductionPersonaEvolutionInsert, UserTurnMessage, Content, Message } from '~/types/app'
 import { LMiXError } from '~/types/errors'
+
+// Streaming state types
+interface StreamingState {
+  isStreaming: boolean
+  currentPhase: 'performing' | 'vectorizing' | 'evolving' | 'commenting' | null
+  error: string | null
+}
 
 export const useTurnStore = defineStore('turn', () => {
   // State
@@ -9,6 +16,11 @@ export const useTurnStore = defineStore('turn', () => {
   const evolutions = ref<ProductionPersonaEvolution[]>([])
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
+  const streamingState = ref<StreamingState>({
+    isStreaming: false,
+    currentPhase: null,
+    error: null
+  })
 
   // Getters
   const getTurn = computed(() => {
@@ -75,7 +87,6 @@ export const useTurnStore = defineStore('turn', () => {
 
   async function insertTurn(
     turn: TurnInsert,
-    evolution?: ProductionPersonaEvolutionInsert
   ): Promise<string | null> {
     loading.value = true
     error.value = null
@@ -87,49 +98,33 @@ export const useTurnStore = defineStore('turn', () => {
     }
 
     // Optimistic update
-    turns.value.push({
+    const newTurn = {
       ...turn,
       uuid: tempId,
       created_at: new Date().toISOString(),
-      user_uuid: useSupabaseUser().value?.id || '',
+      user_uuid: useSupabaseUser().value?.id!,
       parent_turn_uuid: turn.parent_turn_uuid || null,
-    })
+    }
+
+    turns.value.push(newTurn)
 
     try {
       const client = useSupabaseClient<Database>()
 
-      // Insert turn
-      const { data: insertedTurn, error: turnError } = await client
+      // Insert new turn
+      const { data: insertedTurn, error: insertedTurnError } = await client
         .from('turns')
         .insert(turn)
         .select()
         .single()
 
-      if (turnError) throw new LMiXError(turnError.message, 'API_ERROR', turnError)
-      if (!insertedTurn) return null
-
-      // If evolution data is provided, insert it
-      if (evolution) {
-        const { error: evolutionError } = await client
-          .from('production_persona_evolutions')
-          .insert(evolution)
-          .select()
-
-        if (evolutionError) throw new LMiXError(evolutionError.message, 'API_ERROR', evolutionError)
-      }
-
-      // Update store with real data
-      const tempIndex = turns.value.findIndex(t => t.uuid === tempId)
-      if (tempIndex !== -1) {
-        turns.value[tempIndex] = insertedTurn as Turn
-      }
+      if (insertedTurnError) throw new LMiXError(insertedTurnError.message, 'API_ERROR', insertedTurnError)
 
       return insertedTurn.uuid
     }
     catch (e) {
       // Rollback on failure
       turns.value = original.turns
-      evolutions.value = original.evolutions
       error.value = e as LMiXError
       if (import.meta.dev) console.error('Turn creation failed:', e)
       throw e
@@ -139,8 +134,45 @@ export const useTurnStore = defineStore('turn', () => {
     }
   }
 
-  async function insertUserTurn(message: UserTurnMessage) {
+  async function triggerTurn(message: UserTurnMessage) {
+    streamingState.value = {
+      isStreaming: true,
+      currentPhase: null,
+      error: null
+    }
 
+    try {
+      const userTurnUuid = ref<string | null>(null)
+
+      // First, persist the user's message if applicable (i.e., if performance is provided)
+      if (message.performance) {
+        const userTurn: TurnInsert = {
+          production_uuid: message.production_uuid,
+          message: {
+            role: 'user',
+            content: {
+              persona_name: message.sending_persona_uuid
+                ? usePersonaStore().getPersona(message.sending_persona_uuid)?.name || 'User'
+                : 'User',
+              performance: message.performance
+            },
+            metadata: message.sending_persona_uuid
+              ? { persona_uuid: message.sending_persona_uuid }
+              : undefined
+          }
+        }
+
+        userTurnUuid.value = await insertTurn(userTurn)
+      }
+    }
+    catch (e) {
+      streamingState.value.error = e instanceof Error ? e.message : 'An error occurred'
+      if (import.meta.dev) console.error('User turn creation failed:', e)
+    }
+    finally {
+      streamingState.value.isStreaming = false
+      streamingState.value.currentPhase = null
+    }
   }
 
   return {
@@ -149,6 +181,7 @@ export const useTurnStore = defineStore('turn', () => {
     evolutions,
     loading,
     error,
+    streamingState,
     // Getters
     getTurn,
     getProductionTurns,
@@ -156,6 +189,6 @@ export const useTurnStore = defineStore('turn', () => {
     // Actions
     selectTurns,
     insertTurn,
-    insertUserTurn,
+    triggerTurn,
   }
 })

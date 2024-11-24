@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { FormKitNode } from '@formkit/core'
-import type { CreateMessage } from 'ai'
-import { useChat } from '@ai-sdk/vue'
 import type { Production, UserTurnMessage } from '~/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
@@ -10,20 +8,15 @@ const { getProductionAssistants, getProductionPersonas } = storeToRefs(productio
 const assistantStore = useAssistantStore()
 const { getAssistantOptions } = storeToRefs(assistantStore)
 const personaStore = usePersonaStore()
-const { getPersona, getPersonaOptions } = storeToRefs(personaStore)
+const { getPersonaOptions } = storeToRefs(personaStore)
 const turnStore = useTurnStore()
-const { insertUserTurn } = turnStore
+const { triggerTurn } = turnStore
 
 const props = defineProps({
   production: {
     required: true,
     type: Object as PropType<Production>,
   },
-})
-
-const { append } = useChat({
-  api: '/api/turns',
-  id: props.production.uuid,
 })
 
 const personaOptions = computed(() => getPersonaOptions.value(getProductionPersonas.value(props.production.uuid)))
@@ -35,31 +28,18 @@ const defaultAssistant = computed(() => assistantOptions.value.length === 1 ? as
 const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => {
   try {
     if (userMessage.performance) {
-      await insertUserTurn(userMessage)
-    }
+      await triggerTurn(userMessage)
 
-    const message: CreateMessage = {
-      role: 'user',
-      content: JSON.stringify({
-        persona_name: userMessage.sending_persona_uuid ? getPersona.value(userMessage.sending_persona_uuid)?.name : 'User',
-        performance: userMessage.performance
+      // Clear form after successful submission, keeping the user's selection
+      node.reset({
+        sending_persona_uuid: userMessage.sending_persona_uuid,
+        receiving_assistant_uuid: userMessage.receiving_assistant_uuid,
       })
     }
-
-    await append(message, {
-      body: {
-        production_uuid: userMessage.production_uuid,
-        assistant_uuid: userMessage.receiving_assistant_uuid
-      },
-    })
-
-    node.reset({
-      sending_persona_uuid: userMessage.sending_persona_uuid,
-      receiving_assistant_uuid: userMessage.receiving_assistant_uuid,
-    })
+  } catch (error) {
+    // Error handling is done in the store and shown in the index component
+    console.error('Failed to submit turn:', error)
   }
-  catch (e) { }
-  finally { }
 }
 </script>
 
@@ -91,7 +71,7 @@ const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => 
           validation="required" :validation-messages="{ required: t('assistant.required') }" />
       </div>
       <UTooltip :shortcuts="['Enter']" :text="t('send.tooltip')">
-        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :loading="disabled as boolean" size="lg" square
+        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :loading="(disabled as boolean)" size="lg" square
           type="submit" />
       </UTooltip>
     </div>
@@ -103,9 +83,6 @@ en:
   performance:
     placeholder: Your turn…
     help: Press {enter} to send, {shiftEnter} for new lines.
-    submitted: Message sent.
-    failed: Failed to send message.
-    unexpectedError: An unexpected error occurred.
   persona:
     placeholder: Persona…
     help: Select the persona you represent in your turn.

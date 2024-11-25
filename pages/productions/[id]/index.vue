@@ -3,6 +3,7 @@ import type { Production } from '~/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const productionStore = useProductionStore()
+const turnStore = useTurnStore()
 const { getProductionAssistants, getProductionLabel } = storeToRefs(productionStore)
 
 const props = defineProps({
@@ -11,6 +12,12 @@ const props = defineProps({
     type: Object as PropType<Production>,
   },
 })
+
+// Fetch turns
+await turnStore.selectTurns(props.production.uuid)
+
+// Get turns for this production
+const turns = computed(() => turnStore.getProductionTurns(props.production.uuid))
 </script>
 
 <template>
@@ -24,9 +31,9 @@ const props = defineProps({
         <NavPanelSlideover class="xl:hidden" :production="production" />
       </template>
     </UiPanelHeader>
-    <UiPanelContent>
-      <Turns :messages="[]" />
-      <ProductionsNoData :assistant-uuids="getProductionAssistants(production.uuid)" />
+    <UiPanelContent v-auto-animate>
+      <Turns v-if="turns.length" :turns="turns" />
+      <ProductionsNoData v-else :assistant-uuids="getProductionAssistants(production.uuid)" />
     </UiPanelContent>
     <UiPanelFooter>
       <UContainer class="max-w-prose w-full">

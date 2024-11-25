@@ -1,6 +1,9 @@
 /**
  * Store for managing worlds in the application.
  * Handles CRUD operations and state management for worlds.
+ * 
+ * @remarks
+ * Worlds represent the global conditions in the application.
  */
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
@@ -11,13 +14,15 @@ import type { VerticalNavigationLink } from '#ui/types'
 export const useWorldStore = defineStore('world', () => {
   // State
   const worlds = ref<World[]>([])
+  const fullyLoaded = ref(false)
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
 
   // Getters
   /**
-   * Returns a function to find a world by UUID
-   * @returns {(uuid: string) => World | undefined} Function that takes a UUID and returns the matching world or undefined
+   * Returns a function to find a world by UUIDs
+   * @param {string} uuid - UUID of the world
+   * @returns {World | undefined} The world if found, undefined otherwise
    */
   const getWorld = computed(() => {
     return (uuid: string) => worlds.value.find(w => w.uuid === uuid)
@@ -25,9 +30,9 @@ export const useWorldStore = defineStore('world', () => {
 
   /**
    * Returns navigation links for worlds, sorted alphabetically
-   * @param filterUuids Optional array of world UUIDs to filter by
-   * @param icon Optional icon to use for navigation links
-   * @returns Array of navigation links for either all worlds or specified worlds
+   * @param {string[]} filterUuids Optional array of world UUIDs to filter by
+   * @param {string} icon Optional icon to use for navigation links
+   * @returns {VerticalNavigationLink[]} Array of navigation links for either all worlds or specified worlds
    */
   const getWorldNavigation = computed(() => {
     return (filterUuids?: string[], icon?: string): VerticalNavigationLink[] => {
@@ -49,6 +54,7 @@ export const useWorldStore = defineStore('world', () => {
 
   /**
    * Returns select options for all worlds, sorted alphabetically
+   * @returns {Array<{ label: string; value: string }>} Array of select options
    */
   const getWorldOptions = computed(() => [
     ...worlds.value
@@ -61,16 +67,18 @@ export const useWorldStore = defineStore('world', () => {
 
   /**
    * Returns the total number of worlds
+   * @returns {number} Total count of worlds
    */
   const getWorldCount = computed(() => worlds.value.length)
 
   // Actions
   /**
    * Fetches all worlds from the database if not already loaded
+   * @returns {Promise<void>} Promise that resolves when the worlds are fetched
    * @throws {LMiXError} If the API request fails
    */
   async function selectWorlds(): Promise<void> {
-    if (worlds.value.length > 0) return
+    if (fullyLoaded.value) return
 
     loading.value = true
     error.value = null
@@ -78,40 +86,37 @@ export const useWorldStore = defineStore('world', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { data, error: apiError } = await client
+      const { data: selectedWorlds, error: selectError } = await client
         .from('worlds')
         .select()
         .order('created_at', { ascending: false })
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (selectError) throw new LMiXError(
+        selectError.message,
         'API_ERROR',
-        apiError
+        selectError
       )
 
-      worlds.value = data
+      worlds.value = selectedWorlds
     }
     catch (e) {
       error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('World selection failed:', e)
-      }
-
+      if (import.meta.dev) console.error('World selection failed:', e)
       throw e
     }
     finally {
       loading.value = false
+      fullyLoaded.value = true
     }
   }
 
   /**
    * Creates or updates a world
    * @param {WorldInsert} world - The world data to create or update
-   * @returns {Promise<string | null>} The UUID of the created/updated world, or null if unsuccessful
+   * @returns {Promise<string>} The UUID of the created/updated world
    * @throws {LMiXError} If the API request fails
    */
-  async function upsertWorld(world: WorldInsert): Promise<string | null> {
+  async function upsertWorld(world: WorldInsert): Promise<string> {
     loading.value = true
     error.value = null
 
@@ -121,10 +126,12 @@ export const useWorldStore = defineStore('world', () => {
 
     if (isUpdate) {
       const index = worlds.value.findIndex(w => w.uuid === world.uuid)
+
       if (index !== -1) {
         worlds.value[index] = { ...worlds.value[index], ...world }
       }
-    } else {
+    }
+    else {
       tempId = crypto.randomUUID()
       worlds.value.unshift({
         ...world,
@@ -136,40 +143,44 @@ export const useWorldStore = defineStore('world', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { data, error: apiError } = await client
+      const { data: upsertedWorld, error: upsertError } = await client
         .from('worlds')
         .upsert(world)
         .select()
+        .single()
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (upsertError) throw new LMiXError(
+        upsertError.message,
         'API_ERROR',
-        apiError
+        upsertError
       )
 
-      if (data?.[0]) {
-        if (isUpdate) {
-          const index = worlds.value.findIndex(w => w.uuid === data[0].uuid)
-          if (index !== -1) {
-            worlds.value[index] = data[0]
-          }
-        } else if (tempId) {
-          const tempIndex = worlds.value.findIndex(w => w.uuid === tempId)
-          if (tempIndex !== -1) {
-            worlds.value[tempIndex] = data[0]
-          }
-        }
-        return data[0].uuid
+      if (!upsertedWorld) {
+        throw new LMiXError(
+          'No data returned from API',
+          'API_ERROR',
+        )
       }
 
-      return null
+      if (isUpdate) {
+        const index = worlds.value.findIndex(w => w.uuid === upsertedWorld.uuid)
+        if (index !== -1) {
+          worlds.value[index] = upsertedWorld
+        }
+      }
+      else if (tempId) {
+        const tempIndex = worlds.value.findIndex(w => w.uuid === tempId)
+        if (tempIndex !== -1) {
+          worlds.value[tempIndex] = upsertedWorld
+        }
+      }
+
+      return upsertedWorld.uuid
     }
     catch (e) {
       worlds.value = original
       error.value = e as LMiXError
-      if (import.meta.dev) {
-        console.error('World upsert failed:', e)
-      }
+      if (import.meta.dev) console.error('World upsert failed:', e)
       throw e
     }
     finally {
@@ -180,6 +191,7 @@ export const useWorldStore = defineStore('world', () => {
   /**
    * Deletes a world by UUID
    * @param {string} uuid - The UUID of the world to delete
+   * @returns {Promise<void>} Promise that resolves when the world is deleted
    * @throws {LMiXError} If the API request fails
    */
   async function deleteWorld(uuid: string): Promise<void> {
@@ -192,25 +204,21 @@ export const useWorldStore = defineStore('world', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { error: apiError } = await client
+      const { error: deleteError } = await client
         .from('worlds')
         .delete()
         .eq('uuid', uuid)
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (deleteError) throw new LMiXError(
+        deleteError.message,
         'API_ERROR',
-        apiError
+        deleteError,
       )
     }
     catch (e) {
       worlds.value = original
       error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('World deletion failed:', e)
-      }
-
+      if (import.meta.dev) console.error('World deletion failed:', e)
       throw e
     }
     finally {
@@ -218,7 +226,11 @@ export const useWorldStore = defineStore('world', () => {
     }
   }
 
-  async function addWorlds(newWorlds: World[]): Promise<void> {
+  /**
+   * Adds worlds to the store without inserting them into the database
+   * @param newWorlds - The worlds to add
+   */
+  function addWorlds(newWorlds: World[]) {
     const worldsToAdd = newWorlds.filter(newWorld =>
       !worlds.value.some(w => w.uuid === newWorld.uuid)
     )
@@ -244,3 +256,8 @@ export const useWorldStore = defineStore('world', () => {
     addWorlds,
   }
 })
+
+// Add HMR support
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useWorldStore, import.meta.hot))
+}

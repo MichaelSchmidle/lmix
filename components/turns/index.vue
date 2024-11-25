@@ -1,73 +1,42 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import type { Message, Turn } from '~/types/app'
 
-// Define props
-const props = defineProps<{ messages: Array<{ id: string; text: string }> }>();
+const { t } = useI18n({ useScope: 'local' })
+const { m } = useMarkdown()
+const turnStore = useTurnStore()
+const { getStreamingTurn } = storeToRefs(turnStore)
 
-const chatContainer = ref<HTMLElement | null>(null)
-const shouldAutoScroll = ref(true)
-const sentinel = ref<HTMLElement | null>(null)
-
-// Scroll to bottom function
-const scrollToBottom = () => {
-  if (!chatContainer.value) return
-  chatContainer.value.scrollTo({
-    top: chatContainer.value.scrollHeight,
-    behavior: 'smooth'
-  })
-}
-
-// Intersection Observer callback
-const observerCallback = (entries: IntersectionObserverEntry[]) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      shouldAutoScroll.value = true
-    } else {
-      shouldAutoScroll.value = false
-    }
-  })
-}
-
-// Lifecycle hooks
-onMounted(() => {
-  scrollToBottom()
-
-  const observer = new IntersectionObserver(observerCallback, {
-    root: chatContainer.value,
-    threshold: 1.0
-  })
-
-  if (sentinel.value) {
-    observer.observe(sentinel.value)
+const props = defineProps({
+  turns: {
+    required: true,
+    type: Array as PropType<Turn[]>
   }
-
-  onUnmounted(() => {
-    if (sentinel.value) {
-      observer.unobserve(sentinel.value)
-    }
-  })
 })
-
-// Watch for changes in chat messages
-watch(() => props.messages, () => {
-  nextTick(() => {
-    if (shouldAutoScroll.value) {
-      scrollToBottom()
-    }
-  })
-}, { deep: true })
 </script>
 
 <template>
-  <div ref="chatContainer" class="chat-history-container flex-1 overflow-y-auto">
-    <slot />
-    <!-- Sentinel element to observe -->
-    <div ref="sentinel" style="height: 1px;"></div>
+  <div ref="chatContainer">
+    <UContainer v-auto-animate>
+      <UiMediaObject v-for="turn in turns" :key="turn.uuid" class="lg:gap-0">
+        <template #media>
+          <UTooltip class="lg:-ms-12" :text="turn.message.role">
+            <UAvatar :alt="turn.message.role" />
+          </UTooltip>
+        </template>
+        <div class="prose dark:prose-invert" v-html="m(turn.message.content.performance, true)" />
+      </UiMediaObject>
+      <UiMediaObject v-if="getStreamingTurn" class="lg:gap-0">
+        <template #media>
+          <UTooltip class="lg:-ms-12" :text="getStreamingTurn.role">
+            <UAvatar :alt="getStreamingTurn.role" />
+          </UTooltip>
+        </template>
+        <div class="prose dark:prose-invert" v-html="m(JSON.stringify(getStreamingTurn.content) || '', true)" />
+      </UiMediaObject>
+    </UContainer>
   </div>
 </template>
 
-<style scoped>
-.chat-history-container {
-  scroll-behavior: smooth;
-}
-</style>
+<i18n lang="yaml">
+en:
+</i18n>

@@ -25,7 +25,7 @@ const props = defineProps({
         <UVerticalNavigation :links="item.content" />
       </template>
     </UAccordion>
-    <NoData v-if="getModelNavigation().length" :message="t('noModels')" />
+    <NoData v-if="!getModelNavigation().length" :message="t('noModels')" />
   </UiPanelContent>
 </template>
 

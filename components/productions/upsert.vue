@@ -4,13 +4,17 @@ import type { Production, ProductionWithRelationsInsert } from '@/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
-const user = useSupabaseUser()
 const productionStore = useProductionStore()
 const worldStore = useWorldStore()
+const { getWorldOptions } = storeToRefs(worldStore)
 const scenarioStore = useScenarioStore()
+const { getScenarioOptions } = storeToRefs(scenarioStore)
 const assistantStore = useAssistantStore()
+const { getAssistantOptions } = storeToRefs(assistantStore)
 const personaStore = usePersonaStore()
+const { getPersonaOptions } = storeToRefs(personaStore)
 const relationStore = useRelationStore()
+const { getRelationOptions } = storeToRefs(relationStore)
 
 const props = defineProps({
   production: {
@@ -19,11 +23,6 @@ const props = defineProps({
   },
 })
 
-const { getWorldOptions } = storeToRefs(worldStore)
-const { getScenarioOptions } = storeToRefs(scenarioStore)
-const { getAssistantOptions } = storeToRefs(assistantStore)
-const { getPersonaOptions } = storeToRefs(personaStore)
-const { getRelationOptions } = storeToRefs(relationStore)
 const isUpdate = computed(() => !!props.production)
 const isExtended = ref(props.production ? true : false)
 
@@ -44,7 +43,6 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
       {
         ...form,
         uuid: props.production?.uuid,
-        user_uuid: user.value!.id,
       } as ProductionWithRelationsInsert,
       {
         assistantUuids: form.production_assistant_uuids || [],
@@ -69,24 +67,34 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
 </script>
 
 <template>
-  <UiSection icon="i-ph-popcorn-thin" :title="t(production ? 'titleUpdate' : 'titleCreate')" :description="t(production ? 'descriptionUpdate' : 'descriptionCreate')">
+  <UiSection icon="i-ph-popcorn-thin" :title="t(production ? 'titleUpdate' : 'titleInsert')"
+    :description="t(production ? 'descriptionUpdate' : 'descriptionInsert')">
     <div class="flex justify-end max-w-prose px-4">
       <UCheckbox v-model="isExtended" :label="t('isExtended.label')" />
     </div>
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="formInitialValue">
         <FormKit type="text" name="name" :label="t('name.label')" />
-        <FormKit type="taglist" name="production_assistant_uuids" :label="t('assistants.label')" :options="getAssistantOptions()" :placeholder="t('assistants.placeholder')" validation="required" :validation-messages="{ required: t('assistants.required') }" />
-        <FormKit type="dropdown" name="scenario_uuid" :label="t('scenario.label')" :options="getScenarioOptions" :placeholder="t('scenario.placeholder')" />
+        <FormKit type="taglist" name="production_assistant_uuids" :label="t('assistants.label')"
+          :options="getAssistantOptions()" :placeholder="t('assistants.placeholder')" validation="required"
+          :validation-messages="{ required: t('assistants.required') }" />
+        <FormKit type="dropdown" name="scenario_uuid" :label="t('scenario.label')" :options="getScenarioOptions"
+          :placeholder="t('scenario.placeholder')" />
         <template v-if="isExtended">
-          <FormKit type="taglist" name="production_persona_uuids" :label="t('personas.label')" :help="t('personas.help')" :options="getPersonaOptions()" :placeholder="t('personas.placeholder')" preserve />
-          <FormKit type="taglist" name="production_relation_uuids" :label="t('relations.label')" :options="getRelationOptions" :placeholder="t('relations.placeholder')" preserve />
-          <FormKit type="dropdown" name="world_uuid" :label="t('world.label')" :options="getWorldOptions" :placeholder="t('world.placeholder')" preserve />
+          <FormKit type="taglist" name="production_persona_uuids" :label="t('personas.label')"
+            :help="t('personas.help')" :options="getPersonaOptions()" :placeholder="t('personas.placeholder')"
+            preserve />
+          <FormKit type="taglist" name="production_relation_uuids" :label="t('relations.label')"
+            :options="getRelationOptions" :placeholder="t('relations.placeholder')" preserve />
+          <FormKit type="dropdown" name="world_uuid" :label="t('world.label')" :options="getWorldOptions"
+            :placeholder="t('world.placeholder')" preserve />
         </template>
-        <template #actions>
+        <template #actions="{ disabled }">
           <UiFormActions>
             <ProductionsDeleteModal v-if="production" :production="production" @success="navigateTo('/')" />
-            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'" :label="t(isUpdate ? 'updateProduction' : 'createProduction')" type="submit" />
+            <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
+              :label="t(isUpdate ? 'updateProduction' : 'createProduction')" :loading="disabled as boolean"
+              type="submit" />
           </UiFormActions>
         </template>
       </FormKit>
@@ -96,15 +104,15 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
 
 <i18n lang="yaml">
   en:
-    titleCreate: Create Production
-    titleUpdate: Update Production
-    descriptionCreate: Bring personas, scenarios and worlds to life with a new production.
-    descriptionUpdate: Update this production’s configuration.
+    titleInsert: Create
+    titleUpdate: Update
+    descriptionInsert: Bring personas, scenarios and worlds to life with a new production.
+    descriptionUpdate: Configure this production’s ensemble.
     name:
       label: Name
     assistants:
       label: Assistants
-      placeholder: Select an assistant…
+      placeholder: Select assistants…
       required: At least one assistant is required.
     scenario:
       label: Scenario
@@ -112,10 +120,10 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
     personas:
       label: Personas
       help: Add the personas that you as user will represent in this production.
-      placeholder: Select a persona…
+      placeholder: Select personas…
     relations:
       label: Relations
-      placeholder: Select a relation…
+      placeholder: Select relations…
     world:
       label: World
       placeholder: Select a world…

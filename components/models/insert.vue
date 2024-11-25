@@ -3,7 +3,7 @@ import type { FormKitNode } from '@formkit/core'
 import type { ApiConfiguration, ApiModelList, ApiModelOption } from '@/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
-const user = useSupabaseUser()
+const config = useRuntimeConfig()
 const toast = useToast()
 const modelStore = useModelStore()
 
@@ -11,13 +11,17 @@ const modelStore = useModelStore()
 const apiConfiguration = ref<ApiConfiguration | null>(null)
 const apiModelOptions = ref<ApiModelOption[]>([])
 
-const handleDiscoverModels = async (form: ApiConfiguration, node: FormKitNode) => {
+const handleDiscoverModels = async (values: any, node: FormKitNode) => {
   try {
+    // Clean endpoint URL
+    const cleanEndpoint = values.api_endpoint.replace(/\/?v\d+\/?$/, '').replace(/\/$/, '') + '/v' + config.public.openaiVersion
+    values.api_endpoint = cleanEndpoint
+
     const response = await $fetch<ApiModelList>(
-      `${form.api_endpoint}/models`,
+      `${cleanEndpoint}/models`,
       {
-        headers: form.api_key
-          ? { Authorization: `Bearer ${form.api_key}` }
+        headers: values.api_key
+          ? { Authorization: `Bearer ${values.api_key}` }
           : undefined
       }
     )
@@ -28,8 +32,8 @@ const handleDiscoverModels = async (form: ApiConfiguration, node: FormKitNode) =
     }
 
     apiConfiguration.value = {
-      api_endpoint: form.api_endpoint,
-      api_key: form.api_key
+      api_endpoint: cleanEndpoint,
+      api_key: values.api_key
     }
 
     apiModelOptions.value = modelStore.transformToFormOptions(apiConfiguration.value, response.data, t('alreadyConfigured'))
@@ -49,7 +53,6 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
       id: modelId,
       api_endpoint: apiConfiguration.value!.api_endpoint,
       api_key: apiConfiguration.value!.api_key,
-      user_uuid: user.value!.id
     }))
 
     await modelStore.insertModels(modelsToInsert)
@@ -89,11 +92,15 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
           </div>
         </UDivider>
         <FormKit :actions="false" :incomplete-message="false" type="form" @submit="handleDiscoverModels">
-          <FormKit type="text" name="api_endpoint" :label="t('apiEndpoint.label')" :help="t('apiEndpoint.help')" validation="required" :validation-messages="{ required: t('apiEndpoint.required') }" :disabled="apiModelOptions.length > 0" />
-          <FormKit type="text" name="api_key" :label="t('apiKey.label')" :help="t('apiKey.help')" :disabled="apiModelOptions.length > 0" />
+          <FormKit type="url" name="api_endpoint" :label="t('apiEndpoint.label')" :help="t('apiEndpoint.help')"
+            validation="required|url"
+            :validation-messages="{ required: t('apiEndpoint.required'), url: t('apiEndpoint.url') }" />
+          <FormKit type="text" name="api_key" :label="t('apiKey.label')" :help="t('apiKey.help')"
+            :disabled="apiModelOptions.length > 0" />
           <template v-if="!apiModelOptions.length" #actions="{ disabled }">
             <UiFormActions>
-              <UButton color="cyan" icon="i-ph-list-magnifying-glass" :label="t('discoverModels')" :loading="disabled as boolean" :disabled="apiModelOptions.length > 0" type="submit" />
+              <UButton color="cyan" icon="i-ph-list-magnifying-glass" :label="t('discoverModels')"
+                :loading="disabled as boolean" :disabled="apiModelOptions.length > 0" type="submit" />
             </UiFormActions>
           </template>
         </FormKit>
@@ -105,13 +112,16 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
             </div>
           </UDivider>
           <FormKit :incomplete-message="false" type="form" @submit="handleAddModels">
-            <FormKit v-if="apiModelOptions.length" type="checkbox" name="models" :label="t('availableModels.label')" :options="apiModelOptions" :value="[]" validation="required" :validation-messages="{ required: t('availableModels.required') }" />
+            <FormKit v-if="apiModelOptions.length" type="checkbox" name="models" :label="t('availableModels.label')"
+              :options="apiModelOptions" :value="[]" validation="required"
+              :validation-messages="{ required: t('availableModels.required') }" />
             <template #actions="{ disabled }">
               <UiFormActions>
                 <UButton type="button" color="gray" icon="i-ph-skip-back" variant="ghost" @click="apiModelOptions = []">
                   {{ t('configureApi') }}
                 </UButton>
-                <UButton type="submit" color="cyan" icon="i-ph-plus" :label="t('addModels')" :loading="disabled as boolean" />
+                <UButton type="submit" color="cyan" icon="i-ph-plus" :label="t('addModels')"
+                  :loading="disabled as boolean" />
               </UiFormActions>
             </template>
           </FormKit>
@@ -128,8 +138,9 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
     configureApi: Configure API
     apiEndpoint:
       label: API Endpoint
-      help: OpenAI-compatible API endpoint (e.g., https://api.openai.com/v1)
+      help: OpenAI-compatible API endpoint (without version, i.e. https://api.openai.com)
       required: API endpoint is required.
+      url: Invalid API endpoint.
     apiKey:
       label: API Key
       help: Optional API key for authentication

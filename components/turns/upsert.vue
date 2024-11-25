@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Production } from '~/types/app'
+import type { FormKitNode } from '@formkit/core'
+import type { Production, UserTurnMessage } from '~/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const productionStore = useProductionStore()
@@ -8,6 +9,8 @@ const assistantStore = useAssistantStore()
 const { getAssistantOptions } = storeToRefs(assistantStore)
 const personaStore = usePersonaStore()
 const { getPersonaOptions } = storeToRefs(personaStore)
+const turnStore = useTurnStore()
+const { triggerTurn } = turnStore
 
 const props = defineProps({
   production: {
@@ -21,13 +24,33 @@ const assistantOptions = computed(() => getAssistantOptions.value(getProductionA
 
 const defaultPersona = computed(() => personaOptions.value.length === 1 ? personaOptions.value[0].value : undefined)
 const defaultAssistant = computed(() => assistantOptions.value.length === 1 ? assistantOptions.value[0].value : undefined)
+
+const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => {
+  try {
+    if (userMessage.performance) {
+      await triggerTurn(userMessage)
+
+      // Clear form after successful submission, keeping the user's selection
+      node.reset({
+        sending_persona_uuid: userMessage.sending_persona_uuid,
+        receiving_assistant_uuid: userMessage.receiving_assistant_uuid,
+      })
+    }
+  } catch (error) {
+    // Error handling is done in the store and shown in the index component
+    console.error('Failed to submit turn:', error)
+  }
+}
 </script>
 
 <template>
-  <FormKit type="form" :actions="false" :incomplete-message="false" #default="{ node }">
-    <FormKit auto-height :max-auto-height="256" :placeholder="t('turn.placeholder')" type="textarea" @keydown.enter.exact.prevent="node.submit()">
+  <FormKit type="form" :actions="false" :incomplete-message="false" name="message" #default="{ disabled, node }"
+    @submit="handleSubmit">
+    <FormKit type="meta" name="production_uuid" :value="production.uuid" />
+    <FormKit auto-height :max-auto-height="256" name="performance" :placeholder="t('performance.placeholder')"
+      type="textarea" @keydown.enter.exact.prevent="node.submit()">
       <template #help="context">
-        <i18n-t :class="context.classes.help" keypath="turn.help" tag="div">
+        <i18n-t :class="context.classes.help" keypath="performance.help" tag="div">
           <template #enter>
             <UKbd>Enter</UKbd>
           </template>
@@ -39,29 +62,34 @@ const defaultAssistant = computed(() => assistantOptions.value.length === 1 ? as
     </FormKit>
     <div class="flex gap-2 sm:gap-4 items-start">
       <div v-if="personaOptions.length" class="flex-1">
-        <FormKit type="dropdown" :options="personaOptions" :placeholder="personaOptions.length > 1 ? t('persona.placeholder') : undefined" :help="t('persona.help')" :value="defaultPersona" />
+        <FormKit type="dropdown" name="sending_persona_uuid" :options="personaOptions"
+          :placeholder="t('persona.placeholder')" :help="t('persona.help')" :value="defaultPersona" />
       </div>
       <div class="flex-1">
-        <FormKit type="dropdown" :options="assistantOptions" :placeholder="assistantOptions.length > 1 ? t('assistant.placeholder') : undefined" :help="t('assistant.help')" :value="defaultAssistant" />
+        <FormKit type="dropdown" name="receiving_assistant_uuid" :options="assistantOptions"
+          :placeholder="t('assistant.placeholder')" :help="t('assistant.help')" :value="defaultAssistant" required
+          validation="required" :validation-messages="{ required: t('assistant.required') }" />
       </div>
-      <UTooltip :shortcuts="['↵']" :text="t('send.tooltip')">
-        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" size="lg" square type="submit" />
+      <UTooltip :shortcuts="['Enter']" :text="t('send.tooltip')">
+        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :loading="(disabled as boolean)" size="lg" square
+          type="submit" />
       </UTooltip>
     </div>
   </FormKit>
 </template>
 
 <i18n lang="yaml">
-  en:
-    turn:
-      placeholder: Your turn…
-      help: Press {enter} to send, {shiftEnter} for new lines.
-    persona:
-      placeholder: Persona…
-      help: Select the persona you represent in your turn.
-    assistant:
-      placeholder: Assistant…
-      help: Select the assistant to take the next turn.
-    send:
-      tooltip: Send
+en:
+  performance:
+    placeholder: Your turn…
+    help: Press {enter} to send, {shiftEnter} for new lines.
+  persona:
+    placeholder: Persona…
+    help: Select the persona you represent in your turn.
+  assistant:
+    placeholder: Assistant…
+    help: Select the assistant to take the next turn.
+    required: Please select an assistant.
+  send:
+    tooltip: Send
 </i18n>

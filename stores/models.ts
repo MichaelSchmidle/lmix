@@ -1,6 +1,9 @@
 /**
  * Store for managing API model configurations in the application.
  * Handles CRUD operations and state management for API models.
+ * 
+ * @remarks
+ * Models represent the API models used in the application.
  */
 import { defineStore } from 'pinia'
 import type { AccordionItem, VerticalNavigationLink } from '#ui/types'
@@ -17,7 +20,8 @@ export const useModelStore = defineStore('model', () => {
   // Getters
   /**
    * Returns a function to find a model by UUID
-   * @returns {(uuid: string) => Model | undefined} Function that takes a UUID and returns the matching model or undefined
+   * @param {string} uuid - The UUID of the model to find
+   * @returns {Model | undefined} The model if found, undefined otherwise
    */
   const getModel = computed(() => {
     return (uuid: string) => models.value.find(m => m.uuid === uuid)
@@ -71,6 +75,7 @@ export const useModelStore = defineStore('model', () => {
       if (!acc[model.api_endpoint]) {
         acc[model.api_endpoint] = []
       }
+
       acc[model.api_endpoint].push(model)
       return acc
     }, {} as Record<string, Model[]>)
@@ -98,43 +103,10 @@ export const useModelStore = defineStore('model', () => {
    */
   const getModelCount = computed(() => models.value.length)
 
-  /**
-   * Gets the list of assistants using a model
-   * @param {string} uuid - Model identifier
-   * @returns {Promise<Assistant[]>} List of assistants using the model
-   * @throws {LMiXError} If API request fails
-   */
-  async function getModelAssistants(uuid: string): Promise<Assistant[]> {
-    try {
-      const client = useSupabaseClient<Database>()
-      const { data, error: apiError } = await client
-        .from('assistants')
-        .select('*')
-        .eq('model_uuid', uuid)
-        .order('name')
-
-      if (apiError) throw new LMiXError(
-        apiError.message,
-        'API_ERROR',
-        apiError
-      )
-
-      return data
-    }
-    catch (e) {
-      error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('Model assistants fetch failed:', e)
-      }
-
-      throw e
-    }
-  }
-
   // Actions
   /**
    * Fetches all models from the database if not already loaded
+   * @returns {Promise<void>} Promise that resolves when the models are fetched
    * @throws {LMiXError} If API request fails
    */
   async function selectModels(): Promise<void> {
@@ -146,26 +118,22 @@ export const useModelStore = defineStore('model', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { data, error: apiError } = await client
+      const { data, error: selectError } = await client
         .from('models')
         .select()
         .order('created_at', { ascending: false })
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (selectError) throw new LMiXError(
+        selectError.message,
         'API_ERROR',
-        apiError
+        selectError
       )
 
       models.value = data
     }
     catch (e) {
       error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('Model selection failed:', e)
-      }
-
+      if (import.meta.dev) console.error('Model selection failed:', e)
       throw e
     }
     finally {
@@ -176,6 +144,7 @@ export const useModelStore = defineStore('model', () => {
   /**
    * Creates new models with optimistic updates
    * @param {ModelInsert[]} modelsToInsert - Array of models to create
+   * @returns {Promise<void>} Promise that resolves when the models are created
    * @throws {LMiXError} If API request fails
    */
   async function insertModels(modelsToInsert: ModelInsert[]): Promise<void> {
@@ -197,23 +166,23 @@ export const useModelStore = defineStore('model', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { data, error: apiError } = await client
+      const { data: insertedModels, error: insertError } = await client
         .from('models')
         .insert(modelsToInsert)
         .select()
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (insertError) throw new LMiXError(
+        insertError.message,
         'API_ERROR',
-        apiError
+        insertError
       )
 
-      if (data) {
+      if (insertedModels) {
         tempIds.forEach((tempId, index) => {
           const modelIndex = models.value.findIndex(m => m.uuid === tempId)
 
-          if (modelIndex !== -1 && data[index]) {
-            models.value[modelIndex] = data[index]
+          if (modelIndex !== -1 && insertedModels[index]) {
+            models.value[modelIndex] = insertedModels[index]
           }
         })
       }
@@ -221,11 +190,7 @@ export const useModelStore = defineStore('model', () => {
     catch (e) {
       models.value = models.value.filter(m => !tempIds.includes(m.uuid))
       error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('Model insertion failed:', e)
-      }
-
+      if (import.meta.dev) console.error('Model insertion failed:', e)
       throw e
     }
     finally {
@@ -236,6 +201,7 @@ export const useModelStore = defineStore('model', () => {
   /**
    * Deletes a model with optimistic updates
    * @param {string} uuid - Model identifier
+   * @returns {Promise<void>} Promise that resolves when the model is deleted
    * @throws {LMiXError} If API request fails
    */
   async function deleteModel(uuid: string): Promise<void> {
@@ -244,7 +210,7 @@ export const useModelStore = defineStore('model', () => {
 
     try {
       // Check if model is in use
-      const assistants = await getModelAssistants(uuid)
+      const assistants = useAssistantStore().getAssistantsByModel(uuid)
       if (assistants.length > 0) {
         throw new LMiXError(
           'Cannot delete model because it is in use by one or more assistants',
@@ -253,26 +219,22 @@ export const useModelStore = defineStore('model', () => {
       }
 
       const client = useSupabaseClient<Database>()
-      const { error: apiError } = await client
+      const { error: deleteError } = await client
         .from('models')
         .delete()
         .eq('uuid', uuid)
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (deleteError) throw new LMiXError(
+        deleteError.message,
         'API_ERROR',
-        apiError
+        deleteError
       )
 
       models.value = models.value.filter(m => m.uuid !== uuid)
     }
     catch (e) {
       error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('Model deletion failed:', e)
-      }
-
+      if (import.meta.dev) console.error('Model deletion failed:', e)
       throw e
     }
     finally {
@@ -313,7 +275,6 @@ export const useModelStore = defineStore('model', () => {
     getModelNavigation,
     getModelOptions,
     getModelCount,
-    getModelAssistants,
     // Actions
     selectModels,
     insertModels,

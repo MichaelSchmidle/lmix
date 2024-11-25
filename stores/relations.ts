@@ -1,6 +1,9 @@
 /**
  * Store for managing relations between personas in the application.
  * Handles CRUD operations and state management for relations.
+ * 
+ * @remarks
+ * Relations represent the connections between personas in the application.
  */
 import { defineStore } from 'pinia'
 import type { VerticalNavigationLink } from '#ui/types'
@@ -22,7 +25,8 @@ export const useRelationStore = defineStore('relations', () => {
   // Getters
   /**
    * Returns a function to find a relation by UUID
-   * @returns {(uuid: string) => Relation | undefined} Function that takes a UUID and returns the matching relation or undefined
+   * @param {string} uuid - UUID of the relation to find
+   * @returns {Relation | undefined} The relation object, or undefined if not found
    */
   const getRelation = computed(() => {
     return (uuid: string) => relations.value.find(r => r.uuid === uuid)
@@ -30,7 +34,8 @@ export const useRelationStore = defineStore('relations', () => {
 
   /**
    * Returns an array of persona UUIDs associated with a relation
-   * @returns {(relationUuid: string) => string[]} Function that takes a relation UUID and returns array of persona UUIDs
+   * @param {string} relationUuid - UUID of the relation
+   * @returns {string[]} Array of persona UUIDs
    */
   const getRelationPersonas = computed(() => {
     return (relationUuid: string) => relationPersonas.value
@@ -41,10 +46,11 @@ export const useRelationStore = defineStore('relations', () => {
   /**
    * Returns a formatted label for a relation, using either the relation name
    * or a concatenation of persona names as fallback
-   * @returns {(relationUuid: string) => string} Function that takes a relation UUID and returns formatted label
+   * @param {string} relationUuid - UUID of the relation
+   * @returns {string} Relation label
    */
   const getRelationLabel = computed(() => {
-    return (relationUuid: string) => {
+    return (relationUuid: string): string => {
       const relation = getRelation.value(relationUuid)
 
       // Return relation name if it exists
@@ -63,9 +69,9 @@ export const useRelationStore = defineStore('relations', () => {
 
   /**
    * Returns navigation links for relations, sorted alphabetically
-   * @param filterUuids Optional array of relation UUIDs to filter by
-   * @param icon Optional icon to use for navigation links
-   * @returns Array of navigation links for either all relations or specified relations
+   * @param {string[]} filterUuids Optional array of relation UUIDs to filter by
+   * @param {string} icon Optional icon to use for navigation links
+   * @returns {VerticalNavigationLink[]} Array of navigation links for either all relations or specified relations
    */
   const getRelationNavigation = computed(() => {
     return (filterUuids?: string[], icon?: string): VerticalNavigationLink[] => {
@@ -87,6 +93,7 @@ export const useRelationStore = defineStore('relations', () => {
 
   /**
    * Returns select options for all relations, sorted alphabetically by name
+   * @returns {Array<{ label: string; value: string }>} Array of select options
    */
   const getRelationOptions = computed(() => [
     ...relations.value
@@ -99,7 +106,8 @@ export const useRelationStore = defineStore('relations', () => {
 
   /**
    * Returns relations associated with a specific persona
-   * @returns {(personaUuid: string) => Relation[]} Function that takes a persona UUID and returns array of relations
+   * @param {string} personaUuid - UUID of the persona
+   * @returns {Relation[]} Array of relations
    */
   const getRelationsByPersona = computed(() => {
     return (personaUuid: string) => {
@@ -113,6 +121,7 @@ export const useRelationStore = defineStore('relations', () => {
   // Actions
   /**
    * Fetches all relations and their associated personas from the database if not already loaded
+   * @returns {Promise<void>} Promise that resolves when the relations are fetched
    * @throws {LMiXError} If the API request fails
    */
   async function selectRelations(): Promise<void> {
@@ -124,7 +133,7 @@ export const useRelationStore = defineStore('relations', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { data, error: apiError } = await client
+      const { data: selectedRelations, error: selectError } = await client
         .from('relations')
         .select(`
           *,
@@ -132,22 +141,18 @@ export const useRelationStore = defineStore('relations', () => {
         `)
         .order('created_at', { ascending: false })
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (selectError) throw new LMiXError(
+        selectError.message,
         'API_ERROR',
-        apiError
+        selectError,
       )
 
-      relations.value = data.map(({ relation_personas: _, ...relation }) => relation)
-      relationPersonas.value = data.flatMap(r => r.relation_personas || [])
+      relations.value = selectedRelations.map(({ relation_personas: _, ...relation }) => relation)
+      relationPersonas.value = selectedRelations.flatMap(r => r.relation_personas || [])
     }
     catch (e) {
       error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('Relation selection failed:', e)
-      }
-
+      if (import.meta.dev) console.error('Relation selection failed:', e)
       throw e
     }
     finally {
@@ -160,10 +165,10 @@ export const useRelationStore = defineStore('relations', () => {
    * Creates or updates a relation and its associated personas in the database
    * @param {RelationInsert} relation - The relation data to upsert
    * @param {string[]} personaUuids - Array of persona UUIDs to associate with the relation
-   * @returns {Promise<string | null>} The UUID of the upserted relation, or null if unsuccessful
+   * @returns {Promise<string>} The UUID of the upserted relation
    * @throws {LMiXError} If the API request fails
    */
-  async function upsertRelation(relation: RelationInsert, personaUuids: string[]): Promise<string | null> {
+  async function upsertRelation(relation: RelationInsert, personaUuids: string[]): Promise<string> {
     loading.value = true
     error.value = null
 
@@ -177,20 +182,26 @@ export const useRelationStore = defineStore('relations', () => {
       const client = useSupabaseClient<Database>()
 
       // First upsert the relation
-      const { data: relationData, error: relationError } = await client
+      const { data: upsertedRelation, error: upsertError } = await client
         .from('relations')
         .upsert(relation)
         .select()
+        .single()
 
-      if (relationError) throw new LMiXError(
-        relationError.message,
+      if (upsertError) throw new LMiXError(
+        upsertError.message,
         'API_ERROR',
-        relationError
+        upsertError,
       )
 
-      if (!relationData?.[0]) return null
+      if (!upsertedRelation) {
+        throw new LMiXError(
+          'No relation data returned from API',
+          'API_ERROR',
+        )
+      }
 
-      const relationUuid = relationData[0].uuid
+      const relationUuid = upsertedRelation.uuid
 
       // Then handle the personas
       if (isUpdate) {
@@ -203,38 +214,37 @@ export const useRelationStore = defineStore('relations', () => {
         if (deleteError) throw new LMiXError(
           deleteError.message,
           'API_ERROR',
-          deleteError
+          deleteError,
         )
       }
 
       // Insert new relations
-      if (personaUuids.length > 0) {
-        const { data: personasData, error: insertError } = await client
+      if (personaUuids.length) {
+        const { data: insertedRelationPersonas, error: insertError } = await client
           .from('relation_personas')
           .insert(personaUuids.map(personaUuid => ({
             relation_uuid: relationUuid,
             persona_uuid: personaUuid,
-            user_uuid: relation.user_uuid,
           })))
           .select()
 
         if (insertError) throw new LMiXError(
           insertError.message,
           'API_ERROR',
-          insertError
+          insertError,
         )
 
-        relationPersonas.value = personasData
+        relationPersonas.value = insertedRelationPersonas
       }
 
       if (isUpdate) {
         const index = relations.value.findIndex(r => r.uuid === relationUuid)
         if (index !== -1) {
-          relations.value[index] = relationData[0]
+          relations.value[index] = upsertedRelation
         }
       }
       else {
-        relations.value.unshift(relationData[0])
+        relations.value.unshift(upsertedRelation)
       }
 
       return relationUuid
@@ -243,11 +253,7 @@ export const useRelationStore = defineStore('relations', () => {
       relations.value = original.relations
       relationPersonas.value = original.relationPersonas
       error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('Relation upsert failed:', e)
-      }
-
+      if (import.meta.dev) console.error('Relation upsert failed:', e)
       throw e
     }
     finally {
@@ -258,6 +264,7 @@ export const useRelationStore = defineStore('relations', () => {
   /**
    * Deletes a relation and its associated personas from the database
    * @param {string} uuid - UUID of the relation to delete
+   * @returns {Promise<void>} Promise that resolves when the relation is deleted
    * @throws {LMiXError} If the API request fails
    */
   async function deleteRelation(uuid: string): Promise<void> {
@@ -272,15 +279,15 @@ export const useRelationStore = defineStore('relations', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { error: apiError } = await client
+      const { error: deleteError } = await client
         .from('relations')
         .delete()
         .eq('uuid', uuid)
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (deleteError) throw new LMiXError(
+        deleteError.message,
         'API_ERROR',
-        apiError
+        deleteError,
       )
 
       relations.value = relations.value.filter(r => r.uuid !== uuid)
@@ -290,11 +297,7 @@ export const useRelationStore = defineStore('relations', () => {
       relations.value = original.relations
       relationPersonas.value = original.relationPersonas
       error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('Relation deletion failed:', e)
-      }
-
+      if (import.meta.dev) console.error('Relation deletion failed:', e)
       throw e
     }
     finally {
@@ -306,6 +309,7 @@ export const useRelationStore = defineStore('relations', () => {
    * Removes a persona from a relation in the database
    * @param {string} relationUuid - UUID of the relation
    * @param {string} personaUuid - UUID of the persona to remove
+   * @returns {Promise<void>} Promise that resolves when the relation is updated
    * @throws {LMiXError} If the API request fails
    */
   async function removePersonaFromRelation(relationUuid: string, personaUuid: string): Promise<void> {
@@ -317,7 +321,7 @@ export const useRelationStore = defineStore('relations', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { error: apiError } = await client
+      const { error: deleteError } = await client
         .from('relation_personas')
         .delete()
         .match({
@@ -325,10 +329,10 @@ export const useRelationStore = defineStore('relations', () => {
           persona_uuid: personaUuid
         })
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (deleteError) throw new LMiXError(
+        deleteError.message,
         'API_ERROR',
-        apiError
+        deleteError,
       )
 
       relationPersonas.value = relationPersonas.value.filter(
@@ -338,11 +342,7 @@ export const useRelationStore = defineStore('relations', () => {
     catch (e) {
       relationPersonas.value = original
       error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('Remove persona from relation failed:', e)
-      }
-
+      if (import.meta.dev) console.error('Remove persona from relation failed:', e)
       throw e
     }
     finally {
@@ -350,10 +350,15 @@ export const useRelationStore = defineStore('relations', () => {
     }
   }
 
-  async function addRelations(
+  /**
+   * Adds relations and their associated personas to the store
+   * @param newRelations - The relations to add
+   * @param newRelationPersonas - The personas associated with the relations
+   */
+  function addRelations(
     newRelations: (Relation | RelationWithRelations)[],
     newRelationPersonas: RelationPersona[] = []
-  ): Promise<void> {
+  ) {
     const personaStore = usePersonaStore()
 
     // Extract and add personas from relation_personas if present
@@ -363,7 +368,7 @@ export const useRelationStore = defineStore('relations', () => {
       .filter((p): p is Persona => p !== null)
 
     if (personas.length > 0) {
-      await personaStore.addPersonas(personas)
+      personaStore.addPersonas(personas)
     }
 
     // Add relations

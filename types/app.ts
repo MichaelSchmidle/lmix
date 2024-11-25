@@ -152,7 +152,7 @@ export type UserTurnMessage = {
 }
 
 export type Message = {
-  role: 'system' | 'user' | 'assistant'
+  role: 'user' | 'assistant'
   content: Content
   metadata?: {
     persona_uuid?: string

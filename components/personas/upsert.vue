@@ -44,14 +44,14 @@ const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="persona">
         <FormKit type="text" name="name" :label="t('name.label')" validation="required|not:User"
           :validation-messages="{ required: t('name.required'), not: t('name.notUser') }" />
-        <FormKit type="textarea" auto-height name="self_perception" :label="t('selfPerception.label')"
-          :help="t('selfPerception.help')" />
-        <FormKit type="textarea" auto-height name="public_perception" :label="t('publicPerception.label')"
-          :help="t('publicPerception.help')" />
-        <FormKit type="textarea" auto-height name="private_knowledge" :label="t('privateKnowledge.label')"
-          :help="t('privateKnowledge.help')" />
         <FormKit type="textarea" auto-height name="public_knowledge" :label="t('publicKnowledge.label')"
           :help="t('publicKnowledge.help')" />
+        <FormKit type="textarea" auto-height name="private_knowledge" :label="t('privateKnowledge.label')"
+          :help="t('privateKnowledge.help')" />
+        <FormKit type="textarea" auto-height name="public_perception" :label="t('publicPerception.label')"
+          :help="t('publicPerception.help')" />
+        <FormKit type="textarea" auto-height name="self_perception" :label="t('selfPerception.label')"
+          :help="t('selfPerception.help')" />
         <template #actions="{ disabled }">
           <UiFormActions>
             <PersonasDeleteModal v-if="persona" :persona="persona" @success="navigateTo('/personas/add')" />

@@ -1,6 +1,9 @@
 /**
  * Store for managing assistants in the application.
  * Handles CRUD operations and state management for assistants.
+ * 
+ * @remarks
+ * Assistants represent the AI assistants in the application.
  */
 import { defineStore } from 'pinia'
 import type { VerticalNavigationLink } from '#ui/types'
@@ -8,17 +11,20 @@ import type { Database } from '~/types/api'
 import type { Assistant, AssistantInsert, AssistantWithRelations, Persona } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 
+
+
 export const useAssistantStore = defineStore('assistant', () => {
   // State
   const assistants = ref<Assistant[]>([])
-  const fullyLoaded = ref(false)
   const loading = ref(false)
   const error = ref<LMiXError | null>(null)
+  const fullyLoaded = ref(false)
 
-  // Getters
+  // Getters 
   /**
    * Returns a function to find an assistant by UUID
-   * @returns {(uuid: string) => Assistant | undefined} Function that takes a UUID and returns the matching assistant or undefined
+   * @param {string} uuid - UUID of the assistant
+   * @returns {Assistant | undefined} Assistant object or undefined
    */
   const getAssistant = computed(() => {
     return (uuid: string) => assistants.value.find(a => a.uuid === uuid)
@@ -28,7 +34,8 @@ export const useAssistantStore = defineStore('assistant', () => {
    * Returns navigation links for assistants, sorted alphabetically
    * @param filterUuids Optional array of assistant UUIDs to filter by
    * @param icon Optional icon to use for navigation links
-   * @returns Array of navigation links for either all assistants or specified assistants
+   * @returns {VerticalNavigationLink[]} Array of navigation links for either all assistants or specified assistants
+   * @throws {LMiXError} If API request fails
    */
   const getAssistantNavigation = computed(() => {
     return (filterUuids?: string[], icon?: string): VerticalNavigationLink[] => {
@@ -51,7 +58,7 @@ export const useAssistantStore = defineStore('assistant', () => {
   /**
    * Returns select options for assistants, sorted alphabetically
    * @param filterUuids Optional array of assistant UUIDs to filter by
-   * @returns Array of select options for either all assistants or specified assistants
+   * @returns {Array<{ label: string; value: string }>} Array of select options for either all assistants or specified assistants
    */
   const getAssistantOptions = computed(() => {
     return (filterUuids?: string[]) => {
@@ -71,13 +78,25 @@ export const useAssistantStore = defineStore('assistant', () => {
   })
 
   /**
+   * Returns assistants filtered by model UUID
+   * @param modelUuid UUID of the model
+   * @returns {Assistant[]} Array of assistants
+   */
+  const getAssistantsByModel = computed(() => {
+    return (modelUuid: string) => assistants.value
+      .filter(a => a.model_uuid === modelUuid)
+  })
+
+  /**
    * Returns the total number of assistants
+   * @returns {number} Total count of assistants
    */
   const getAssistantCount = computed(() => assistants.value.length)
 
   // Actions
   /**
-   * Fetches all assistants from the database if not already loaded
+   * Fetches assistants from the database and updates the store.
+   * @returns {Promise<void>} Promise that resolves when the assistants are fetched
    * @throws {LMiXError} If the API request fails
    */
   async function selectAssistants(): Promise<void> {
@@ -89,18 +108,18 @@ export const useAssistantStore = defineStore('assistant', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { data, error: apiError } = await client
+      const { data: selectedAssistants, error: selectError } = await client
         .from('assistants')
         .select()
         .order('created_at', { ascending: false })
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (selectError) throw new LMiXError(
+        selectError.message,
         'API_ERROR',
-        apiError
+        selectError
       )
 
-      assistants.value = data
+      assistants.value = selectedAssistants
     }
     catch (e) {
       error.value = e as LMiXError
@@ -118,12 +137,12 @@ export const useAssistantStore = defineStore('assistant', () => {
   }
 
   /**
-   * Creates or updates an assistant
-   * @param {AssistantInsert} assistant - The assistant data to create or update
-   * @returns {Promise<string | null>} The UUID of the created/updated assistant, or null if unsuccessful
+   * Upserts an assistant in the database and updates the store.
+   * @param {AssistantInsert} assistant - The assistant to upsert
+   * @returns {Promise<string>} Promise that resolves to the UUID of the upserted assistant
    * @throws {LMiXError} If the API request fails
    */
-  async function upsertAssistant(assistant: AssistantInsert): Promise<string | null> {
+  async function upsertAssistant(assistant: AssistantInsert): Promise<string> {
     loading.value = true
     error.value = null
 
@@ -149,40 +168,43 @@ export const useAssistantStore = defineStore('assistant', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { data, error: apiError } = await client
+      const { data: upsertedAssistant, error: upsertError } = await client
         .from('assistants')
         .upsert(assistant)
         .select()
+        .single()
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (upsertError) throw new LMiXError(
+        upsertError.message,
         'API_ERROR',
-        apiError
+        upsertError
       )
 
-      if (data?.[0]) {
-        if (isUpdate) {
-          const index = assistants.value.findIndex(a => a.uuid === data[0].uuid)
-          if (index !== -1) {
-            assistants.value[index] = data[0]
-          }
-        } else if (tempId) {
-          const tempIndex = assistants.value.findIndex(a => a.uuid === tempId)
-          if (tempIndex !== -1) {
-            assistants.value[tempIndex] = data[0]
-          }
-        }
-        return data[0].uuid
+      if (!upsertedAssistant) {
+        throw new LMiXError(
+          'No data returned from assistant upsert',
+          'API_ERROR'
+        )
       }
 
-      return null
+      if (isUpdate) {
+        const index = assistants.value.findIndex(a => a.uuid === upsertedAssistant.uuid)
+        if (index !== -1) {
+          assistants.value[index] = upsertedAssistant
+        }
+      }
+      else if (tempId) {
+        const tempIndex = assistants.value.findIndex(a => a.uuid === tempId)
+        if (tempIndex !== -1) {
+          assistants.value[tempIndex] = upsertedAssistant
+        }
+      }
+      return upsertedAssistant.uuid
     }
     catch (e) {
       assistants.value = original
       error.value = e as LMiXError
-      if (import.meta.dev) {
-        console.error('Assistant upsert failed:', e)
-      }
+      if (import.meta.dev) console.error('Assistant upsert failed:', e)
       throw e
     }
     finally {
@@ -191,8 +213,9 @@ export const useAssistantStore = defineStore('assistant', () => {
   }
 
   /**
-   * Deletes an assistant by UUID
+   * Deletes an assistant from the database and updates the store.
    * @param {string} uuid - The UUID of the assistant to delete
+   * @returns {Promise<void>} Promise that resolves when the assistant is deleted
    * @throws {LMiXError} If the API request fails
    */
   async function deleteAssistant(uuid: string): Promise<void> {
@@ -205,25 +228,21 @@ export const useAssistantStore = defineStore('assistant', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { error: apiError } = await client
+      const { error: deleteError } = await client
         .from('assistants')
         .delete()
         .eq('uuid', uuid)
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (deleteError) throw new LMiXError(
+        deleteError.message,
         'API_ERROR',
-        apiError
+        deleteError
       )
     }
     catch (e) {
       assistants.value = original
       error.value = e as LMiXError
-
-      if (import.meta.dev) {
-        console.error('Assistant deletion failed:', e)
-      }
-
+      if (import.meta.dev) console.error('Assistant deletion failed:', e)
       throw e
     }
     finally {
@@ -231,7 +250,11 @@ export const useAssistantStore = defineStore('assistant', () => {
     }
   }
 
-  async function addAssistants(newAssistants: (Assistant | AssistantWithRelations)[]): Promise<void> {
+  /**
+   * Adds assistants to the store without inserting them into the database
+   * @param {Assistant[]} newAssistants - The assistants to add
+   */
+  function addAssistants(newAssistants: (Assistant | AssistantWithRelations)[]) {
     const personaStore = usePersonaStore()
 
     // Extract and add personas if present
@@ -240,17 +263,19 @@ export const useAssistantStore = defineStore('assistant', () => {
       .filter((p): p is Persona => p !== null && p !== undefined)
 
     if (personas.length > 0) {
-      await personaStore.addPersonas(personas)
+      personaStore.addPersonas(personas)
     }
 
     // Add assistants (strip out nested persona data to avoid duplicates)
-    const assistantsToAdd = newAssistants.filter(newAssistant =>
-      !assistants.value.some(a => a.uuid === newAssistant.uuid)
-    ).map(assistant => {
-      // Remove nested persona data before adding to store
-      const { persona: _, ...assistantData } = assistant as AssistantWithRelations
-      return assistantData
-    })
+    const assistantsToAdd = newAssistants
+      .filter(newAssistant =>
+        !assistants.value.some(a => a.uuid === newAssistant.uuid)
+      )
+      .map(assistant => {
+        // Remove nested persona data before adding to store
+        const { persona: _, ...assistantData } = assistant as AssistantWithRelations
+        return assistantData
+      })
 
     if (assistantsToAdd.length > 0) {
       assistants.value.unshift(...assistantsToAdd)
@@ -262,10 +287,12 @@ export const useAssistantStore = defineStore('assistant', () => {
     assistants,
     loading,
     error,
+    fullyLoaded,
     // Getters
     getAssistant,
     getAssistantNavigation,
     getAssistantOptions,
+    getAssistantsByModel,
     getAssistantCount,
     // Actions
     selectAssistants,

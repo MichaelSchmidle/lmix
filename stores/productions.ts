@@ -1,6 +1,14 @@
 /**
  * Store for managing productions in the application.
  * Handles CRUD operations and state management for productions.
+ * 
+ * @remarks
+ * Productions are the main containers that bring together all components:
+ * - World: Global conditions
+ * - Scenario: Starting context
+ * - Assistants: AI participants
+ * - Personas: User participants
+ * - Relations: Connections between participants
  */
 import { defineStore } from 'pinia'
 import type { VerticalNavigationLink } from '#ui/types'
@@ -19,22 +27,42 @@ export const useProductionStore = defineStore('production', () => {
   const error = ref<LMiXError | null>(null)
 
   // Getters
+  /**
+   * Returns a function to find a production by UUID
+   * @param {string} uuid - UUID of the production
+   * @returns {Production | undefined} Production object or undefined
+   */
   const getProduction = computed(() => {
     return (uuid: string): Production | undefined => productions.value.find(p => p.uuid === uuid)
   })
 
+  /**
+   * Returns the assistant UUIDs associated with a production
+   * @param {string} productionUuid - UUID of the production
+   * @returns {string[]} Array of assistant UUIDs
+   */
   const getProductionAssistants = computed(() => {
     return (productionUuid: string): string[] => productionAssistants.value
       .filter(pa => pa.production_uuid === productionUuid)
       .map(pa => pa.assistant_uuid)
   })
 
+  /**
+   * Returns the persona UUIDs associated with a production
+   * @param {string} productionUuid - UUID of the production
+   * @returns {string[]} Array of persona UUIDs
+   */
   const getProductionPersonas = computed(() => {
     return (productionUuid: string): string[] => productionPersonas.value
       .filter(pp => pp.production_uuid === productionUuid)
       .map(pp => pp.persona_uuid)
   })
 
+  /**
+   * Returns the relation UUIDs associated with a production
+   * @param {string} productionUuid - UUID of the production
+   * @returns {string[]} Array of relation UUIDs
+   */
   const getProductionRelations = computed(() => {
     return (productionUuid: string): string[] => productionRelations.value
       .filter(pr => pr.production_uuid === productionUuid)
@@ -44,7 +72,8 @@ export const useProductionStore = defineStore('production', () => {
   /**
    * Returns a formatted label for a production, using either the production name
    * or the creation date/time as fallback
-   * @returns {(production: Production) => string} Function that returns formatted label
+   * @param {Production} production - Production object
+   * @returns {string} Production label
    */
   const getProductionLabel = computed(() => {
     return (production: Production): string => {
@@ -80,6 +109,8 @@ export const useProductionStore = defineStore('production', () => {
   /**
    * Fetches basic production data for all productions
    * Used for navigation and overview purposes
+   * @returns {Promise<void>} Promise that resolves when the productions are fetched
+   * @throws {LMiXError} If the API request fails
    */
   async function selectProductions(): Promise<void> {
     if (fullyLoaded.value) return
@@ -89,21 +120,24 @@ export const useProductionStore = defineStore('production', () => {
 
     try {
       const client = useSupabaseClient<Database>()
-      const { data, error: apiError } = await client
+      const { data: selectedProductions, error: selectError } = await client
         .from('productions')
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (apiError) throw new LMiXError(apiError.message, 'API_ERROR', apiError)
-      if (!data) return
+      if (selectError) throw new LMiXError(
+        selectError.message,
+        'API_ERROR',
+        selectError,
+      )
 
-      productions.value = data
+      if (!selectedProductions) return
+
+      productions.value = selectedProductions
     }
     catch (e) {
       error.value = e as LMiXError
-
       if (import.meta.dev) console.error('Productions fetch failed:', e)
-
       throw e
     }
     finally {
@@ -115,6 +149,8 @@ export const useProductionStore = defineStore('production', () => {
   /**
    * Fetches detailed production data including all relations
    * @param {string} uuid - UUID of the production to fetch
+   * @returns {Promise<void>} Promise that resolves when the production is fetched
+   * @throws {LMiXError} If the API request fails
    */
   async function selectProduction(uuid: string): Promise<void> {
     if (loading.value) return
@@ -124,7 +160,7 @@ export const useProductionStore = defineStore('production', () => {
 
     try {
       const client = useSupabaseClient<Database>()
-      const { data, error: apiError } = await client
+      const { data: selectedProduction, error: selectError } = await client
         .from('productions')
         .select(`
           *,
@@ -148,10 +184,20 @@ export const useProductionStore = defineStore('production', () => {
         .eq('uuid', uuid)
         .single()
 
-      if (apiError) throw new LMiXError(apiError.message, 'API_ERROR', apiError)
-      if (!data) return
+      if (selectError) throw new LMiXError(
+        selectError.message,
+        'API_ERROR',
+        selectError,
+      )
 
-      const item = data as ProductionWithRelations
+      if (!selectedProduction) {
+        throw new LMiXError(
+          `Production with UUID ${uuid} not found`,
+          'NOT_FOUND',
+        )
+      }
+
+      const item = selectedProduction as ProductionWithRelations
 
       // Update related stores
       const worldStore = useWorldStore()
@@ -160,14 +206,12 @@ export const useProductionStore = defineStore('production', () => {
       const personaStore = usePersonaStore()
       const relationStore = useRelationStore()
 
-      const promises: Promise<void>[] = []
-
       if (item.world) {
-        promises.push(worldStore.addWorlds([item.world]))
+        worldStore.addWorlds([item.world])
       }
 
       if (item.scenario) {
-        promises.push(scenarioStore.addScenarios([item.scenario]))
+        scenarioStore.addScenarios([item.scenario])
       }
 
       const assistants = item.production_assistants
@@ -175,7 +219,7 @@ export const useProductionStore = defineStore('production', () => {
         .filter((a): a is Assistant => a !== null)
 
       if (assistants?.length) {
-        promises.push(assistantStore.addAssistants(assistants))
+        assistantStore.addAssistants(assistants)
       }
 
       const personas = item.production_personas
@@ -183,7 +227,7 @@ export const useProductionStore = defineStore('production', () => {
         .filter((p): p is Persona => p !== null)
 
       if (personas?.length) {
-        promises.push(personaStore.addPersonas(personas))
+        personaStore.addPersonas(personas)
       }
 
       const relations = item.production_relations
@@ -210,11 +254,8 @@ export const useProductionStore = defineStore('production', () => {
           })) ?? []
         }).filter(rp => rp.persona_uuid)
 
-        promises.push(relationStore.addRelations(relations, relationPersonas))
+        relationStore.addRelations(relations, relationPersonas)
       }
-
-      // Wait for all store updates to complete
-      await Promise.all(promises)
 
       // Update production in store if it exists, otherwise add it
       const index = productions.value.findIndex(p => p.uuid === uuid)
@@ -271,9 +312,7 @@ export const useProductionStore = defineStore('production', () => {
     }
     catch (e) {
       error.value = e as LMiXError
-
       if (import.meta.dev) console.error('Production fetch failed:', e)
-
       throw e
     }
     finally {
@@ -284,10 +323,12 @@ export const useProductionStore = defineStore('production', () => {
   /**
    * Creates or updates a production with its relations
    * @param {ProductionInsert} production - The production data to upsert
-   * @param {Object} options - Additional options for related data
+   * @param {object} options - Additional options for related data
    * @param {string[]} options.assistantUuids - UUIDs of related assistants
    * @param {string[]} options.personaUuids - UUIDs of related personas
    * @param {string[]} options.relationUuids - UUIDs of related relations
+   * @returns {Promise<string>} Promise resolving to the UUID of the created/updated production
+   * @throws {LMiXError} If the API request fails
    */
   async function upsertProduction(
     production: ProductionInsert,
@@ -296,7 +337,7 @@ export const useProductionStore = defineStore('production', () => {
       personaUuids?: string[]
       relationUuids?: string[]
     } = {}
-  ): Promise<string | null> {
+  ): Promise<string> {
     loading.value = true
     error.value = null
     const isUpdate = !!production.uuid
@@ -332,22 +373,29 @@ export const useProductionStore = defineStore('production', () => {
       const client = useSupabaseClient<Database>()
 
       // 1. Upsert core production data only
-      const { data: productionData, error: productionError } = await client
+      const { data: upsertedProduction, error: upsertError } = await client
         .from('productions')
         .upsert({
           uuid: production.uuid,
-          user_uuid: production.user_uuid,
           name: production.name,
           world_uuid: production.world_uuid,
           scenario_uuid: production.scenario_uuid,
         })
         .select()
+        .single()
 
-      if (productionError) throw new LMiXError(productionError.message, 'API_ERROR', productionError)
+      if (upsertError) throw new LMiXError(
+        upsertError.message,
+        'API_ERROR',
+        upsertError,
+      )
 
-      if (!productionData?.[0]) return null
+      if (!upsertedProduction) throw new LMiXError(
+        'No production data returned from upsert',
+        'API_ERROR',
+      )
 
-      const productionUuid = productionData[0].uuid
+      const productionUuid = upsertedProduction.uuid
 
       // 2. If updating, remove existing relations
       if (isUpdate) {
@@ -360,7 +408,11 @@ export const useProductionStore = defineStore('production', () => {
         const deleteResults = await Promise.all(deletePromises)
 
         deleteResults.forEach(({ error }) => {
-          if (error) throw new LMiXError(error.message, 'API_ERROR', error)
+          if (error) throw new LMiXError(
+            error.message,
+            'API_ERROR',
+            error,
+          )
         })
       }
 
@@ -372,7 +424,6 @@ export const useProductionStore = defineStore('production', () => {
         const assistantRelations = options.assistantUuids.map(uuid => ({
           production_uuid: productionUuid,
           assistant_uuid: uuid,
-          user_uuid: production.user_uuid,
           created_at: now
         }))
         insertPromises.push(
@@ -384,7 +435,6 @@ export const useProductionStore = defineStore('production', () => {
         const personaRelations = options.personaUuids.map(uuid => ({
           production_uuid: productionUuid,
           persona_uuid: uuid,
-          user_uuid: production.user_uuid,
           created_at: now
         }))
         insertPromises.push(
@@ -396,7 +446,6 @@ export const useProductionStore = defineStore('production', () => {
         const relationRelations = options.relationUuids.map(uuid => ({
           production_uuid: productionUuid,
           relation_uuid: uuid,
-          user_uuid: production.user_uuid,
           created_at: now
         }))
         insertPromises.push(
@@ -407,20 +456,24 @@ export const useProductionStore = defineStore('production', () => {
       const insertResults = await Promise.all(insertPromises)
 
       insertResults.forEach(({ error }) => {
-        if (error) throw new LMiXError(error.message, 'API_ERROR', error)
+        if (error) throw new LMiXError(
+          error.message,
+          'API_ERROR',
+          error,
+        )
       })
 
       // 4. Update store state
       if (isUpdate) {
         const index = productions.value.findIndex(p => p.uuid === productionUuid)
         if (index !== -1) {
-          productions.value[index] = productionData[0]
+          productions.value[index] = upsertedProduction
         }
       }
       else if (tempId) {
         const tempIndex = productions.value.findIndex(p => p.uuid === tempId)
         if (tempIndex !== -1) {
-          productions.value[tempIndex] = productionData[0]
+          productions.value[tempIndex] = upsertedProduction
         }
       }
 
@@ -454,9 +507,7 @@ export const useProductionStore = defineStore('production', () => {
       productionPersonas.value = original.productionPersonas
       productionRelations.value = original.productionRelations
       error.value = e as LMiXError
-
       if (import.meta.dev) console.error('Production upsert failed:', e)
-
       throw e
     }
     finally {
@@ -465,8 +516,9 @@ export const useProductionStore = defineStore('production', () => {
   }
 
   /**
-   * Deletes a production from the database
+   * Deletes a production and all its relations from the database
    * @param {string} uuid - UUID of the production to delete
+   * @returns {Promise<void>} Promise that resolves when the production is deleted
    * @throws {LMiXError} If the API request fails
    */
   async function deleteProduction(uuid: string): Promise<void> {
@@ -478,23 +530,21 @@ export const useProductionStore = defineStore('production', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { error: apiError } = await client
+      const { error: deleteError } = await client
         .from('productions')
         .delete()
         .eq('uuid', uuid)
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (deleteError) throw new LMiXError(
+        deleteError.message,
         'API_ERROR',
-        apiError
+        deleteError,
       )
     }
     catch (e) {
       productions.value = original
       error.value = e as LMiXError
-
       if (import.meta.dev) console.error('Production deletion failed:', e)
-
       throw e
     }
     finally {

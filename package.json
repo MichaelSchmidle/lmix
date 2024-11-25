@@ -33,9 +33,9 @@
     "lodash-es": "^4.17.21",
     "markdown-it": "^14.1.0",
     "nuxt": "^3.14.1592",
-    "openai": "^4.73.0",
+    "openai": "^4.73.1",
     "pinia": "^2.2.6",
-    "tailwind-merge": "^2.5.4",
+    "tailwind-merge": "^2.5.5",
     "vue": "latest",
     "vue-router": "latest",
     "zod": "^3.23.8"

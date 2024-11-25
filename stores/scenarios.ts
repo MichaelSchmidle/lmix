@@ -1,6 +1,9 @@
 /**
  * Store for managing scenarios in the application.
  * Handles CRUD operations and state management for scenarios.
+ * 
+ * @remarks
+ * Scenarios represent the settings and rules for a production.
  */
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
@@ -18,7 +21,8 @@ export const useScenarioStore = defineStore('scenario', () => {
   // Getters
   /**
    * Returns a function to find a scenario by UUID
-   * @returns {(uuid: string) => Scenario | undefined} Function that takes a UUID and returns the matching scenario or undefined
+   * @param {string} uuid - UUID of the scenario
+   * @returns {Scenario | undefined} The scenario if found, undefined otherwise
    */
   const getScenario = computed(() => {
     return (uuid: string) => scenarios.value.find(s => s.uuid === uuid)
@@ -26,9 +30,9 @@ export const useScenarioStore = defineStore('scenario', () => {
 
   /**
    * Returns navigation links for scenarios, sorted alphabetically
-   * @param filterUuids Optional array of scenario UUIDs to filter by
-   * @param icon Optional icon to use for navigation links
-   * @returns Array of navigation links for either all scenarios or specified scenarios
+   * @param {string[]} filterUuids Optional array of scenario UUIDs to filter by
+   * @param {string} icon Optional icon to use for navigation links
+   * @returns {VerticalNavigationLink[]} Array of navigation links for either all scenarios or specified scenarios
    */
   const getScenarioNavigation = computed(() => {
     return (filterUuids?: string[], icon?: string): VerticalNavigationLink[] => {
@@ -81,15 +85,15 @@ export const useScenarioStore = defineStore('scenario', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { data, error: apiError } = await client
+      const { data, error: selectError } = await client
         .from('scenarios')
         .select()
         .order('created_at', { ascending: false })
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (selectError) throw new LMiXError(
+        selectError.message,
         'API_ERROR',
-        apiError
+        selectError,
       )
 
       scenarios.value = data
@@ -108,10 +112,10 @@ export const useScenarioStore = defineStore('scenario', () => {
   /**
    * Creates or updates a scenario in the database
    * @param {ScenarioInsert} scenario - The scenario data to upsert
-   * @returns {Promise<string | null>} The UUID of the upserted scenario, or null if unsuccessful
+   * @returns {Promise<string>} The UUID of the upserted scenario
    * @throws {LMiXError} If the API request fails
    */
-  async function upsertScenario(scenario: ScenarioInsert): Promise<string | null> {
+  async function upsertScenario(scenario: ScenarioInsert): Promise<string> {
     loading.value = true
     error.value = null
 
@@ -124,7 +128,8 @@ export const useScenarioStore = defineStore('scenario', () => {
       if (index !== -1) {
         scenarios.value[index] = { ...scenarios.value[index], ...scenario }
       }
-    } else {
+    }
+    else {
       tempId = crypto.randomUUID()
       scenarios.value.unshift({
         ...scenario,
@@ -136,40 +141,45 @@ export const useScenarioStore = defineStore('scenario', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { data, error: apiError } = await client
+      const { data: selectedScenario, error: selectError } = await client
         .from('scenarios')
         .upsert(scenario)
         .select()
+        .single()
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (selectError) throw new LMiXError(
+        selectError.message,
         'API_ERROR',
-        apiError
+        selectError,
       )
 
-      if (data?.[0]) {
-        if (isUpdate) {
-          const index = scenarios.value.findIndex(s => s.uuid === data[0].uuid)
-          if (index !== -1) {
-            scenarios.value[index] = data[0]
-          }
-        } else if (tempId) {
-          const tempIndex = scenarios.value.findIndex(s => s.uuid === tempId)
-          if (tempIndex !== -1) {
-            scenarios.value[tempIndex] = data[0]
-          }
-        }
-        return data[0].uuid
+      if (!selectedScenario) {
+        throw new LMiXError(
+          'No scenario was selected.',
+          'API_ERROR',
+        )
       }
 
-      return null
+
+      if (isUpdate) {
+        const index = scenarios.value.findIndex(s => s.uuid === selectedScenario.uuid)
+        if (index !== -1) {
+          scenarios.value[index] = selectedScenario
+        }
+      }
+      else if (tempId) {
+        const tempIndex = scenarios.value.findIndex(s => s.uuid === tempId)
+        if (tempIndex !== -1) {
+          scenarios.value[tempIndex] = selectedScenario
+        }
+      }
+
+      return selectedScenario.uuid
     }
     catch (e) {
       scenarios.value = original
       error.value = e as LMiXError
-      if (import.meta.dev) {
-        console.error('Scenario upsert failed:', e)
-      }
+      if (import.meta.dev) console.error('Scenario upsert failed:', e)
       throw e
     }
     finally {
@@ -180,6 +190,7 @@ export const useScenarioStore = defineStore('scenario', () => {
   /**
    * Deletes a scenario from the database
    * @param {string} uuid - UUID of the scenario to delete
+   * @returns {Promise<void>} Promise that resolves when the scenario is deleted
    * @throws {LMiXError} If the API request fails
    */
   async function deleteScenario(uuid: string): Promise<void> {
@@ -192,15 +203,15 @@ export const useScenarioStore = defineStore('scenario', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      const { error: apiError } = await client
+      const { error: deleteError } = await client
         .from('scenarios')
         .delete()
         .eq('uuid', uuid)
 
-      if (apiError) throw new LMiXError(
-        apiError.message,
+      if (deleteError) throw new LMiXError(
+        deleteError.message,
         'API_ERROR',
-        apiError
+        deleteError,
       )
     }
     catch (e) {
@@ -215,14 +226,14 @@ export const useScenarioStore = defineStore('scenario', () => {
   }
 
   /**
-   * Adds scenarios to the store
-   * @param {Scenario[]} newScenarios - The new scenarios to add
-   * @throws {LMiXError} If the API request fails
-   */
-  async function addScenarios(newScenarios: Scenario[]): Promise<void> {
+ * Adds scenarios to the store without inserting them into the database
+ * @param {Scenario[]} newScenarios - The new scenarios to add
+ */
+  function addScenarios(newScenarios: Scenario[]): void {
     const scenariosToAdd = newScenarios.filter(newScenario =>
       !scenarios.value.some(s => s.uuid === newScenario.uuid)
     )
+
     if (scenariosToAdd.length > 0) {
       scenarios.value.push(...scenariosToAdd)
     }
@@ -245,3 +256,7 @@ export const useScenarioStore = defineStore('scenario', () => {
     addScenarios,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useScenarioStore, import.meta.hot))
+}

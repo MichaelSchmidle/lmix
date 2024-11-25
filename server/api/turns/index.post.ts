@@ -1,53 +1,38 @@
+import { readFileSync } from 'fs'
+import { resolve } from 'path'
 import OpenAI from 'openai'
 import { zodResponseFormat } from "openai/helpers/zod"
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
 import { z } from 'zod'
 import { LMiXError } from '~/types/errors'
-import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
+import { modelResponseSchema } from '~/types/model'
 
 // Request body schema
 const requestSchema = z.object({
+  api: z.object({
+    endpoint: z.string(),
+    key: z.string().nullable(),
+  }),
   messages: z.array(z.object({
     role: z.enum(['system', 'user', 'assistant', 'function', 'tool']),
     content: z.string(),
     name: z.string().optional(),
     function_call: z.unknown().optional(),
     tool_calls: z.unknown().optional(),
-  }))
+  })),
+  model: z.string(),
 })
 
-type RequestBody = z.infer<typeof requestSchema>
-
-// Schema for what the model generates (subset of Content type)
-const modelResponseSchema = z.object({
-  performance: z.string(),
-  vectors: z.object({
-    location: z.string().optional(),
-    posture: z.string().optional(),
-    direction: z.string().optional(),
-    momentum: z.string().optional(),
-  }).optional(),
-  evolution: z.object({
-    self_perception: z.string().optional(),
-    private_knowledge: z.string().optional(),
-    note_to_future_self: z.string().optional(),
-  }).optional(),
-  meta: z.string().optional(),
-})
+const systemOpenPrompt = readFileSync(resolve('./prompts/systemOpen.md'), 'utf-8')
+const systemClosePrompt = readFileSync(resolve('./prompts/systemClose.md'), 'utf-8')
 
 export default defineLazyEventHandler(async () => {
-  const config = useRuntimeConfig()
-  
-  const openai = new OpenAI({
-    apiKey: '',
-    baseURL: 'http://localhost:1234/v1',
-  })
-
   return defineEventHandler(async (event) => {
     try {
       // Validate request body
       const body = await readBody(event)
       const result = requestSchema.safeParse(body)
-      
+
       if (!result.success) {
         throw new LMiXError(
           'Invalid request body',
@@ -56,6 +41,12 @@ export default defineLazyEventHandler(async () => {
         )
       }
 
+      // Set up OpenAI client
+      const openai = new OpenAI({
+        apiKey: result.data.api.key || '',
+        baseURL: result.data.api.endpoint,
+      })
+
       // Set up proper streaming response headers
       setHeader(event, 'Content-Type', 'text/event-stream')
       setHeader(event, 'Cache-Control', 'no-cache')
@@ -63,8 +54,18 @@ export default defineLazyEventHandler(async () => {
 
       try {
         const stream = await openai.chat.completions.create({
-          messages: result.data.messages as ChatCompletionMessageParam[],
-          model: 'llama-3.2-1b-instruct',
+          messages: [
+            {
+              role: 'system',
+              content: systemOpenPrompt,
+            },
+            ...result.data.messages,
+            {
+              role: 'system',
+              content: systemClosePrompt,
+            },
+          ] as ChatCompletionMessageParam[],
+          model: result.data.model,
           response_format: zodResponseFormat(modelResponseSchema, 'response'),
           stream: true,
         })

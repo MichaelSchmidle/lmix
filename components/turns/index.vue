@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Turn } from '~/types/app'
+import type { Message, Turn } from '~/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const { m } = useMarkdown()
@@ -23,15 +23,15 @@ const props = defineProps({
             <UAvatar :alt="turn.message.role" />
           </UTooltip>
         </template>
-        <div class="prose dark:prose-invert" v-html="m(JSON.stringify(turn.message.content))" />
+        <div class="prose dark:prose-invert" v-html="m(turn.message.content.performance, true)" />
       </UiMediaObject>
-      <UiMediaObject v-if="getStreamingTurn?.message" class="lg:gap-0">
+      <UiMediaObject v-if="getStreamingTurn" class="lg:gap-0">
         <template #media>
-          <UTooltip class="lg:-ms-12" :text="getStreamingTurn.message.role">
-            <UAvatar :alt="getStreamingTurn.message.role" />
+          <UTooltip class="lg:-ms-12" :text="getStreamingTurn.role">
+            <UAvatar :alt="getStreamingTurn.role" />
           </UTooltip>
         </template>
-        <div class="prose dark:prose-invert" v-html="m(JSON.stringify(getStreamingTurn.message.content) || '')" />
+        <div class="prose dark:prose-invert" v-html="m(JSON.stringify(getStreamingTurn.content) || '', true)" />
       </UiMediaObject>
     </UContainer>
   </div>

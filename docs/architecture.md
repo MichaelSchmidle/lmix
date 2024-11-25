@@ -272,13 +272,14 @@ export const useProductionStore = defineStore('production', () => {
   async function createProduction(data: ProductionCreate) {
     // Optimistic update
     const tempId = crypto.randomUUID()
-    productions.value.push({ ...data, uuid: tempId })
+    productions.value.push({ ...data, id: tempId })
     
     try {
       const result = await $fetch('/api/productions', {
         method: 'POST',
         body: data,
       })
+
       // Update with real data
       const idx = productions.value.findIndex(p => p.uuid === tempId)
       productions.value[idx] = result
@@ -354,6 +355,82 @@ async function handleCreate() {
 </script>
 ```
 
+### Code Documentation Practices
+
+#### Store Documentation
+
+Pinia stores are documented using TypeScript JSDoc comments following these principles:
+
+1. **Store Overview**: Each store file starts with a brief JSDoc comment describing its purpose:
+```ts
+/**
+ * Store for managing [resource] in the application.
+ * Handles CRUD operations and state management for [resource].
+ */
+```
+
+2. **State Properties**: Document state properties with their types and purposes:
+```ts
+/**
+ * @property items - List of items in the store
+ * @property loading - Whether the store is currently loading data
+ * @property error - Error that occurred during the last operation
+ */
+```
+
+3. **Getters and Actions**: Each getter and action must be documented with:
+   - Description of what the function does
+   - Parameters and their types
+   - Return value and type
+   - Exceptions that may be thrown
+   - Example usage if not obvious
+
+Example of a getter:
+```ts
+/**
+ * Finds an item by its UUID.
+ * 
+ * @param uuid - The UUID of the item to find
+ * @returns The item if found, undefined otherwise
+ * @example
+ * const item = getItem('123e4567-e89b-12d3-a456-426614174000')
+ */
+const getItem = computed(() => {
+  return (uuid: string) => items.value.find(i => i.uuid === uuid)
+})
+```
+
+Example of an action:
+```ts
+/**
+ * Creates or updates an item in the store and database.
+ * 
+ * @param item - The item data to upsert
+ * @throws {ValidationError} If the item data is invalid
+ * @throws {DatabaseError} If the database operation fails
+ * @returns The UUID of the created/updated item
+ * 
+ * @remarks
+ * - Creates a new item if UUID is not provided
+ * - Updates existing item if UUID matches
+ * - Performs optimistic update in the store
+ */
+async function upsertItem(item: ItemInsert): Promise<string> {
+  // Implementation
+}
+```
+
+4. **Type Annotations**: 
+   - Define interfaces and types in dedicated type files
+   - Use descriptive names that reflect the business domain
+   - Document complex types with JSDoc comments
+
+This approach ensures:
+- Clear documentation of parameter requirements and return values
+- Proper error handling through documented exceptions
+- IDE support for autocomplete and type checking
+- Self-documenting code through TypeScript's type system
+
 ### Testing Strategy
 
 #### Unit Tests
@@ -379,7 +456,7 @@ async function handleCreate() {
 
 #### Test File Organization
 
-```
+````
 src/
   utils/
     format.ts

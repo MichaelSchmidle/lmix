@@ -4,7 +4,7 @@ import type { Production } from '~/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const productionStore = useProductionStore()
-const { getProductionAssistants, getProductionPersonas, getProductionRelations } = storeToRefs(productionStore)
+const { getProductionAssistantUuids, getProductionPersonaUuids, getProductionRelationUuids } = storeToRefs(productionStore)
 const personaStore = usePersonaStore()
 const { getPersonaNavigation } = storeToRefs(personaStore)
 const assistantStore = useAssistantStore()
@@ -50,9 +50,9 @@ const accordionItems = ref([
   },
 ])
 
-const personaNavigation = computed(() => getPersonaNavigation.value(getProductionPersonas.value(props.production.uuid), 'i-ph-mask-happy'))
-const assistantNavigation = computed(() => getAssistantNavigation.value(getProductionAssistants.value(props.production.uuid), 'i-ph-head-circuit'))
-const relationNavigation = computed(() => getRelationNavigation.value(getProductionRelations.value(props.production.uuid), 'i-ph-share-network'))
+const personaNavigation = computed(() => getPersonaNavigation.value(getProductionPersonaUuids.value(props.production.uuid), 'i-ph-mask-happy'))
+const assistantNavigation = computed(() => getAssistantNavigation.value(getProductionAssistantUuids.value(props.production.uuid), 'i-ph-head-circuit'))
+const relationNavigation = computed(() => getRelationNavigation.value(getProductionRelationUuids.value(props.production.uuid), 'i-ph-share-network'))
 
 const scenarioNavigation = computed(() => {
   // Type guard to ensure scenario_uuid is not null within computed
@@ -76,7 +76,8 @@ const worldNavigation = computed(() => {
   </UiPanelHeader>
   <UiPanelContent>
     <UVerticalNavigation :links="navigationItems" />
-    <UAccordion color="gray" default-open :items="accordionItems" variant="ghost" :ui="{ default: { class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold' } }">
+    <UAccordion color="gray" default-open :items="accordionItems" variant="ghost"
+      :ui="{ default: { class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold' } }">
       <template #ensemble>
         <UVerticalNavigation :links="personaNavigation" />
         <UVerticalNavigation :links="assistantNavigation" />

@@ -1,18 +1,10 @@
 <script setup lang="ts">
 const { t } = useI18n({ useScope: 'local' })
-const assistantStore = useAssistantStore()
-const { getAssistant } = storeToRefs(assistantStore)
-const turnStore = useTurnStore()
-const { insertAssistantTurn } = turnStore
 
 const props = defineProps({
   productionUuid: {
     required: true,
     type: String,
-  },
-  assistantUuids: {
-    required: true,
-    type: Array as PropType<string[]>,
   },
 })
 
@@ -99,22 +91,17 @@ onBeforeUnmount(() => {
   if (animationTimer.value !== null)
     clearTimeout(animationTimer.value)
 })
-
-const handleAssistantKickoff = async (assistantUuid: string) => {
-  await insertAssistantTurn(props.productionUuid, assistantUuid)
-}
 </script>
 
 <template>
   <UContainer class="max-w-prose w-full">
     <UiHero icon="i-ph-popcorn-thin" :description="t('description')">
       <template #title>
-        <i18n-t class="font-serif prose dark:prose-invert prose-xl relative" keypath="title" tag="h1"><template #type>&nbsp;<span class="text-primary">{{ currentText }}</span><span class="absolute -ms-1 typing-cursor">|</span>&nbsp;</template></i18n-t>
+        <i18n-t class="font-serif prose dark:prose-invert prose-xl relative" keypath="title" tag="h1"><template
+            #type>&nbsp;<span class="text-primary">{{ currentText }}</span><span
+              class="absolute -ms-1 typing-cursor">|</span>&nbsp;</template></i18n-t>
       </template>
     </UiHero>
-    <div class="flex flex-wrap gap-x-4 gap-y-3 justify-center">
-      <UButton v-for="assistantUuid in props.assistantUuids" :key="assistantUuid" color="cyan" :label="getAssistant(assistantUuid)?.name" size="lg" @click="handleAssistantKickoff(assistantUuid)" />
-    </div>
   </UContainer>
 </template>
 
@@ -149,5 +136,5 @@ en:
   game: Game
   discovery: Discovery
   exploration: Exploration
-  description: 'Take the first turn to start your production – or simply trigger an assistant to get it started for you:'
+  description: Take the first turn to start your production – or simply trigger an assistant to get it started for you.
 </i18n>

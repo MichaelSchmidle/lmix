@@ -98,7 +98,7 @@ export type AssistantWithRelations = Assistant & {
 }
 
 export type ProductionAssistantWithRelations = ProductionAssistant & {
-  assistant: Assistant
+  assistant: AssistantWithRelations
 }
 
 export type ProductionPersonaWithRelations = ProductionPersona & {

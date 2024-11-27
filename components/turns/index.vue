@@ -17,7 +17,8 @@ const props = defineProps({
 <template>
   <div ref="chatContainer">
     <UContainer v-auto-animate>
-      <UiMediaObject v-for="turn in turns" :key="`${turn.production_uuid}-${turn.parent_turn_uuid || 'root'}-${turn.uuid}`" class="xl:gap-0">
+      <UiMediaObject v-for="turn in turns"
+        :key="`${turn.production_uuid}-${turn.parent_turn_uuid || 'root'}-${turn.uuid}`" class="xl:gap-0">
         <template #media>
           <UTooltip class="xl:-ms-16" :text="turn.message.content.persona_name">
             <UAvatar :alt="turn.message.content.persona_name" size="md" />
@@ -31,4 +32,5 @@ const props = defineProps({
 
 <i18n lang="yaml">
 en:
+  streaming: Assistant responding
 </i18n>

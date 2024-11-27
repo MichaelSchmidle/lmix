@@ -31,9 +31,9 @@ const formInitialValue = computed(() => {
 
   return {
     ...props.production,
-    production_assistant_uuids: productionStore.getProductionAssistants(props.production.uuid),
-    production_persona_uuids: productionStore.getProductionPersonas(props.production.uuid),
-    production_relation_uuids: productionStore.getProductionRelations(props.production.uuid),
+    production_assistant_uuids: productionStore.getProductionAssistantUuids(props.production.uuid),
+    production_persona_uuids: productionStore.getProductionPersonaUuids(props.production.uuid),
+    production_relation_uuids: productionStore.getProductionRelationUuids(props.production.uuid),
   }
 })
 

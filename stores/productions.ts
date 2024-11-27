@@ -41,7 +41,7 @@ export const useProductionStore = defineStore('production', () => {
    * @param {string} productionUuid - UUID of the production
    * @returns {string[]} Array of assistant UUIDs
    */
-  const getProductionAssistants = computed(() => {
+  const getProductionAssistantUuids = computed(() => {
     return (productionUuid: string): string[] => productionAssistants.value
       .filter(pa => pa.production_uuid === productionUuid)
       .map(pa => pa.assistant_uuid)
@@ -52,7 +52,7 @@ export const useProductionStore = defineStore('production', () => {
    * @param {string} productionUuid - UUID of the production
    * @returns {string[]} Array of persona UUIDs
    */
-  const getProductionPersonas = computed(() => {
+  const getProductionPersonaUuids = computed(() => {
     return (productionUuid: string): string[] => productionPersonas.value
       .filter(pp => pp.production_uuid === productionUuid)
       .map(pp => pp.persona_uuid)
@@ -63,7 +63,7 @@ export const useProductionStore = defineStore('production', () => {
    * @param {string} productionUuid - UUID of the production
    * @returns {string[]} Array of relation UUIDs
    */
-  const getProductionRelations = computed(() => {
+  const getProductionRelationUuids = computed(() => {
     return (productionUuid: string): string[] => productionRelations.value
       .filter(pr => pr.production_uuid === productionUuid)
       .map(pr => pr.relation_uuid)
@@ -167,14 +167,15 @@ export const useProductionStore = defineStore('production', () => {
           world:worlds (*),
           scenario:scenarios (*),
           production_assistants (*,
-            assistant:assistants (*)
+            assistant:assistants (*,
+              persona:personas (*)
+              )
           ),
           production_personas (*,
             persona:personas (*)
           ),
           production_relations (*,
-            relation:relations (
-              *,
+            relation:relations (*,
               relation_personas (*,
                 persona:personas (*)
               )
@@ -588,9 +589,9 @@ export const useProductionStore = defineStore('production', () => {
     getProductionLabel,
     getProductionNavigation,
     getProductionCount,
-    getProductionAssistants,
-    getProductionPersonas,
-    getProductionRelations,
+    getProductionAssistantUuids,
+    getProductionPersonaUuids,
+    getProductionRelationUuids,
     // Actions
     selectProductions,
     selectProduction,

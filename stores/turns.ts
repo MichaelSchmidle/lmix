@@ -43,7 +43,6 @@ export const useTurnStore = defineStore('turn', () => {
   const error = ref<LMiXError | null>(null)
   const streamingState = ref<StreamingState>({
     isStreaming: false,
-    currentPhase: null,
     error: null,
     turnUuid: null
   })
@@ -58,7 +57,6 @@ export const useTurnStore = defineStore('turn', () => {
    */
   interface StreamingState {
     isStreaming: boolean
-    currentPhase: 'performing' | 'vectorizing' | 'evolving' | 'commenting' | null
     error: string | null
     turnUuid: string | null
   }
@@ -116,6 +114,14 @@ export const useTurnStore = defineStore('turn', () => {
     if (!streamingState.value.turnUuid) return null
     const turn = turns.value.find(t => t.uuid === streamingState.value.turnUuid)
     return turn?.message || null
+  })
+
+  /**
+   * Retrieves the current streaming state
+   * @returns {StreamingState} The current streaming state
+   */
+  const getStreamingState = computed(() => {
+    return streamingState.value
   })
 
   /**
@@ -391,9 +397,9 @@ export const useTurnStore = defineStore('turn', () => {
     const scenarioStore = useScenarioStore()
     const worldStore = useWorldStore()
     const modelStore = useModelStore()
+
     streamingState.value = {
       isStreaming: true,
-      currentPhase: null,
       error: null,
       turnUuid: null
     }
@@ -477,10 +483,10 @@ export const useTurnStore = defineStore('turn', () => {
       }
 
       // Add production personas
-      const productionPersonaUuids = productionStore.getProductionPersonas(productionUuid)
+      const productionPersonaUuids = productionStore.getProductionPersonaUuids(productionUuid)
         .filter(uuid => uuid !== assistant.persona_uuid) // Exclude the receiving assistant's persona
 
-      const productionAssistantUuids = productionStore.getProductionAssistants(productionUuid)
+      const productionAssistantUuids = productionStore.getProductionAssistantUuids(productionUuid)
         .filter(uuid => uuid !== assistant.uuid) // Exclude the receiving assistant
 
       const productionAssistantPersonaUuids = productionAssistantUuids
@@ -514,7 +520,7 @@ export const useTurnStore = defineStore('turn', () => {
       }
 
       // Add system message for the production's relations between personas
-      const productionRelationUuids = productionStore.getProductionRelations(productionUuid)
+      const productionRelationUuids = productionStore.getProductionRelationUuids(productionUuid)
 
       for (const productionRelationUuid of productionRelationUuids) {
         const relation = relationStore.getRelation(productionRelationUuid)
@@ -692,7 +698,6 @@ export const useTurnStore = defineStore('turn', () => {
     finally {
       streamingState.value = {
         isStreaming: false,
-        currentPhase: null,
         error: null,
         turnUuid: null
       }
@@ -711,6 +716,7 @@ export const useTurnStore = defineStore('turn', () => {
     getProductionTurns,
     getActiveTurnUuid,
     getPersonaEvolutions,
+    getStreamingState,
     getStreamingTurn,
     getLatestProductionTurn,
     // Actions

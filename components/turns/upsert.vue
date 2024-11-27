@@ -4,13 +4,13 @@ import type { Production, UserTurnMessage } from '~/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const productionStore = useProductionStore()
-const { getProductionAssistants, getProductionPersonas } = storeToRefs(productionStore)
+const { getProductionAssistantUuids, getProductionPersonaUuids } = storeToRefs(productionStore)
 const assistantStore = useAssistantStore()
 const { getAssistantOptions } = storeToRefs(assistantStore)
 const personaStore = usePersonaStore()
 const { getPersonaOptions } = storeToRefs(personaStore)
 const turnStore = useTurnStore()
-const { triggerTurn } = turnStore
+const { insertUserTurn } = turnStore
 
 const props = defineProps({
   production: {
@@ -19,34 +19,35 @@ const props = defineProps({
   },
 })
 
-const personaOptions = computed(() => getPersonaOptions.value(getProductionPersonas.value(props.production.uuid)))
-const assistantOptions = computed(() => getAssistantOptions.value(getProductionAssistants.value(props.production.uuid)))
+const personaOptions = computed(() => getPersonaOptions.value(getProductionPersonaUuids.value(props.production.uuid)))
+const assistantOptions = computed(() => getAssistantOptions.value(getProductionAssistantUuids.value(props.production.uuid)))
 
 const defaultPersona = computed(() => personaOptions.value.length === 1 ? personaOptions.value[0].value : undefined)
 const defaultAssistant = computed(() => assistantOptions.value.length === 1 ? assistantOptions.value[0].value : undefined)
 
 const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => {
   try {
-    if (userMessage.performance) {
-      await insertUserTurn(userMessage)
+    await insertUserTurn(userMessage)
 
-      // Clear form after successful submission, keeping the user's selection
-      node.reset({
-        sending_persona_uuid: userMessage.sending_persona_uuid,
-        receiving_assistant_uuid: userMessage.receiving_assistant_uuid,
-      })
-    }
-  } catch (error) {
-    // Error handling is done in the store and shown in the index component
-    console.error('Failed to submit turn:', error)
+    // Reset form after successful submission, keeping the user's selection
+    node.reset({
+      sending_persona_uuid: userMessage.sending_persona_uuid,
+      receiving_assistant_uuid: userMessage.receiving_assistant_uuid,
+    })
+  }
+  catch (e) {
+    console.error(e)
+    node.setErrors([t('turnError')])
   }
 }
 </script>
 
 <template>
-  <FormKit type="form" :actions="false" :incomplete-message="false" name="message" #default="{ disabled, node }" @submit="handleSubmit">
+  <FormKit type="form" :actions="false" :incomplete-message="false" name="message" #default="{ disabled, node }"
+    @submit="handleSubmit">
     <FormKit type="meta" name="production_uuid" :value="production.uuid" />
-    <FormKit auto-height :max-auto-height="256" name="performance" :placeholder="t('performance.placeholder')" type="textarea" @keydown.enter.exact.prevent="node.submit()">
+    <FormKit auto-height :max-auto-height="256" name="performance" :placeholder="t('performance.placeholder')"
+      type="textarea" @keydown.enter.exact.prevent="node.submit()">
       <template #help="context">
         <i18n-t :class="context.classes.help" keypath="performance.help" tag="div">
           <template #enter>
@@ -60,13 +61,17 @@ const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => 
     </FormKit>
     <div class="flex gap-2 sm:gap-4 items-start">
       <div v-if="personaOptions.length" class="flex-1">
-        <FormKit type="dropdown" name="sending_persona_uuid" :options="personaOptions" :placeholder="t('persona.placeholder')" :help="t('persona.help')" :value="defaultPersona" />
+        <FormKit type="dropdown" name="sending_persona_uuid" :options="personaOptions"
+          :placeholder="t('persona.placeholder')" :help="t('persona.help')" :value="defaultPersona" />
       </div>
       <div class="flex-1">
-        <FormKit type="dropdown" name="receiving_assistant_uuid" :options="assistantOptions" :placeholder="t('assistant.placeholder')" :help="t('assistant.help')" :value="defaultAssistant" required validation="required" :validation-messages="{ required: t('assistant.required') }" />
+        <FormKit type="dropdown" name="receiving_assistant_uuid" :options="assistantOptions"
+          :placeholder="t('assistant.placeholder')" :help="t('assistant.help')" :value="defaultAssistant" required
+          validation="required" :validation-messages="{ required: t('assistant.required') }" />
       </div>
       <UTooltip :shortcuts="['Enter']" :text="t('send.tooltip')">
-        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :loading="(disabled as boolean)" size="lg" square type="submit" />
+        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :loading="(disabled as boolean)" size="lg" square
+          type="submit" />
       </UTooltip>
     </div>
   </FormKit>
@@ -86,4 +91,5 @@ en:
     required: Please select an assistant.
   send:
     tooltip: Send
+  turnError: Something went wrong, please try again.
 </i18n>

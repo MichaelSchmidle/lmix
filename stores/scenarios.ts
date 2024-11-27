@@ -8,7 +8,7 @@
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
 import type { Scenario, ScenarioInsert } from '~/types/app'
-import { LMiXError } from '~/types/errors'
+import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
 import type { VerticalNavigationLink } from '#ui/types'
 
 export const useScenarioStore = defineStore('scenario', () => {
@@ -88,7 +88,7 @@ export const useScenarioStore = defineStore('scenario', () => {
       const { data, error: selectError } = await client
         .from('scenarios')
         .select()
-        .order('created_at', { ascending: false })
+        .order('inserted_at', { ascending: false })
 
       if (selectError) throw new LMiXError(
         selectError.message,
@@ -134,7 +134,7 @@ export const useScenarioStore = defineStore('scenario', () => {
       scenarios.value.unshift({
         ...scenario,
         uuid: tempId,
-        created_at: new Date().toISOString(),
+        inserted_at: new Date().toISOString(),
       } as Scenario)
     }
 
@@ -147,19 +147,31 @@ export const useScenarioStore = defineStore('scenario', () => {
         .select()
         .single()
 
-      if (selectError) throw new LMiXError(
-        selectError.message,
-        'API_ERROR',
-        selectError,
-      )
-
-      if (!selectedScenario) {
-        throw new LMiXError(
-          'No scenario was selected.',
-          'API_ERROR',
+      if (selectError) {
+        // Convert Supabase errors to appropriate LMiX error types
+        if (selectError.code === '42501') {
+          throw new AuthenticationError(
+            'Not authorized to upsert scenario',
+            selectError
+          )
+        }
+        if (selectError.code === '23502') {
+          throw new ValidationError(
+            'Missing required fields for scenario',
+            selectError
+          )
+        }
+        throw new ApiError(
+          selectError.message,
+          selectError
         )
       }
 
+      if (!selectedScenario) {
+        throw new ApiError(
+          'No scenario data returned from API'
+        )
+      }
 
       if (isUpdate) {
         const index = scenarios.value.findIndex(s => s.uuid === selectedScenario.uuid)
@@ -177,9 +189,18 @@ export const useScenarioStore = defineStore('scenario', () => {
       return selectedScenario.uuid
     }
     catch (e) {
+      // Rollback optimistic update
       scenarios.value = original
+
+      // Set error state for UI feedback
       error.value = e as LMiXError
-      if (import.meta.dev) console.error('Scenario upsert failed:', e)
+
+      // Log in development only
+      if (import.meta.dev) {
+        console.error('Scenario upsert failed:', e)
+      }
+
+      // Re-throw for UI handling
       throw e
     }
     finally {

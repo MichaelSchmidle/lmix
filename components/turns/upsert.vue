@@ -28,7 +28,7 @@ const defaultAssistant = computed(() => assistantOptions.value.length === 1 ? as
 const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => {
   try {
     if (userMessage.performance) {
-      await triggerTurn(userMessage)
+      await insertUserTurn(userMessage)
 
       // Clear form after successful submission, keeping the user's selection
       node.reset({
@@ -44,11 +44,9 @@ const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => 
 </script>
 
 <template>
-  <FormKit type="form" :actions="false" :incomplete-message="false" name="message" #default="{ disabled, node }"
-    @submit="handleSubmit">
+  <FormKit type="form" :actions="false" :incomplete-message="false" name="message" #default="{ disabled, node }" @submit="handleSubmit">
     <FormKit type="meta" name="production_uuid" :value="production.uuid" />
-    <FormKit auto-height :max-auto-height="256" name="performance" :placeholder="t('performance.placeholder')"
-      type="textarea" @keydown.enter.exact.prevent="node.submit()">
+    <FormKit auto-height :max-auto-height="256" name="performance" :placeholder="t('performance.placeholder')" type="textarea" @keydown.enter.exact.prevent="node.submit()">
       <template #help="context">
         <i18n-t :class="context.classes.help" keypath="performance.help" tag="div">
           <template #enter>
@@ -62,17 +60,13 @@ const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => 
     </FormKit>
     <div class="flex gap-2 sm:gap-4 items-start">
       <div v-if="personaOptions.length" class="flex-1">
-        <FormKit type="dropdown" name="sending_persona_uuid" :options="personaOptions"
-          :placeholder="t('persona.placeholder')" :help="t('persona.help')" :value="defaultPersona" />
+        <FormKit type="dropdown" name="sending_persona_uuid" :options="personaOptions" :placeholder="t('persona.placeholder')" :help="t('persona.help')" :value="defaultPersona" />
       </div>
       <div class="flex-1">
-        <FormKit type="dropdown" name="receiving_assistant_uuid" :options="assistantOptions"
-          :placeholder="t('assistant.placeholder')" :help="t('assistant.help')" :value="defaultAssistant" required
-          validation="required" :validation-messages="{ required: t('assistant.required') }" />
+        <FormKit type="dropdown" name="receiving_assistant_uuid" :options="assistantOptions" :placeholder="t('assistant.placeholder')" :help="t('assistant.help')" :value="defaultAssistant" required validation="required" :validation-messages="{ required: t('assistant.required') }" />
       </div>
       <UTooltip :shortcuts="['Enter']" :text="t('send.tooltip')">
-        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :loading="(disabled as boolean)" size="lg" square
-          type="submit" />
+        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :loading="(disabled as boolean)" size="lg" square type="submit" />
       </UTooltip>
     </div>
   </FormKit>

@@ -8,7 +8,7 @@
 import { defineStore } from 'pinia'
 import type { Database } from '~/types/api'
 import type { World, WorldInsert } from '~/types/app'
-import { LMiXError } from '~/types/errors'
+import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
 import type { VerticalNavigationLink } from '#ui/types'
 
 export const useWorldStore = defineStore('world', () => {
@@ -89,7 +89,7 @@ export const useWorldStore = defineStore('world', () => {
       const { data: selectedWorlds, error: selectError } = await client
         .from('worlds')
         .select()
-        .order('created_at', { ascending: false })
+        .order('inserted_at', { ascending: false })
 
       if (selectError) throw new LMiXError(
         selectError.message,
@@ -126,7 +126,6 @@ export const useWorldStore = defineStore('world', () => {
 
     if (isUpdate) {
       const index = worlds.value.findIndex(w => w.uuid === world.uuid)
-
       if (index !== -1) {
         worlds.value[index] = { ...worlds.value[index], ...world }
       }
@@ -136,7 +135,7 @@ export const useWorldStore = defineStore('world', () => {
       worlds.value.unshift({
         ...world,
         uuid: tempId,
-        created_at: new Date().toISOString(),
+        inserted_at: new Date().toISOString(),
       } as World)
     }
 
@@ -149,16 +148,29 @@ export const useWorldStore = defineStore('world', () => {
         .select()
         .single()
 
-      if (upsertError) throw new LMiXError(
-        upsertError.message,
-        'API_ERROR',
-        upsertError
-      )
+      if (upsertError) {
+        // Convert Supabase errors to appropriate LMiX error types
+        if (upsertError.code === '42501') {
+          throw new AuthenticationError(
+            'Not authorized to upsert world',
+            upsertError
+          )
+        }
+        if (upsertError.code === '23502') {
+          throw new ValidationError(
+            'Missing required fields for world',
+            upsertError
+          )
+        }
+        throw new ApiError(
+          upsertError.message,
+          upsertError
+        )
+      }
 
       if (!upsertedWorld) {
-        throw new LMiXError(
-          'No data returned from API',
-          'API_ERROR',
+        throw new ApiError(
+          'No world data returned from API'
         )
       }
 
@@ -178,9 +190,18 @@ export const useWorldStore = defineStore('world', () => {
       return upsertedWorld.uuid
     }
     catch (e) {
+      // Rollback optimistic update
       worlds.value = original
+
+      // Set error state for UI feedback
       error.value = e as LMiXError
-      if (import.meta.dev) console.error('World upsert failed:', e)
+
+      // Log in development only
+      if (import.meta.dev) {
+        console.error('World upsert failed:', e)
+      }
+
+      // Re-throw for UI handling
       throw e
     }
     finally {

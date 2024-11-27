@@ -17,21 +17,13 @@ const props = defineProps({
 <template>
   <div ref="chatContainer">
     <UContainer v-auto-animate>
-      <UiMediaObject v-for="turn in turns" :key="turn.uuid" class="lg:gap-0">
+      <UiMediaObject v-for="turn in turns" :key="`${turn.production_uuid}-${turn.parent_turn_uuid || 'root'}-${turn.uuid}`" class="xl:gap-0">
         <template #media>
-          <UTooltip class="lg:-ms-12" :text="turn.message.role">
-            <UAvatar :alt="turn.message.role" />
+          <UTooltip class="xl:-ms-16" :text="turn.message.content.persona_name">
+            <UAvatar :alt="turn.message.content.persona_name" size="md" />
           </UTooltip>
         </template>
         <div class="prose dark:prose-invert" v-html="m(turn.message.content.performance, true)" />
-      </UiMediaObject>
-      <UiMediaObject v-if="getStreamingTurn" class="lg:gap-0">
-        <template #media>
-          <UTooltip class="lg:-ms-12" :text="getStreamingTurn.role">
-            <UAvatar :alt="getStreamingTurn.role" />
-          </UTooltip>
-        </template>
-        <div class="prose dark:prose-invert" v-html="m(JSON.stringify(getStreamingTurn.content) || '', true)" />
       </UiMediaObject>
     </UContainer>
   </div>

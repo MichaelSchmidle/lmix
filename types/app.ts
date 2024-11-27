@@ -158,3 +158,8 @@ export type Message = {
     persona_uuid?: string
   }
 }
+
+export type ActiveTurn = {
+  production_uuid: string
+  turn_uuid: string
+}

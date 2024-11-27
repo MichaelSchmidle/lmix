@@ -2,6 +2,19 @@
 const { t } = useI18n({ useScope: 'local' })
 const assistantStore = useAssistantStore()
 const { getAssistant } = storeToRefs(assistantStore)
+const turnStore = useTurnStore()
+const { insertAssistantTurn } = turnStore
+
+const props = defineProps({
+  productionUuid: {
+    required: true,
+    type: String,
+  },
+  assistantUuids: {
+    required: true,
+    type: Array as PropType<string[]>,
+  },
+})
 
 // Array of different endings to cycle through
 const titleEndings = ref([
@@ -87,12 +100,9 @@ onBeforeUnmount(() => {
     clearTimeout(animationTimer.value)
 })
 
-const props = defineProps({
-  assistantUuids: {
-    required: true,
-    type: Array as PropType<string[]>,
-  },
-})
+const handleAssistantKickoff = async (assistantUuid: string) => {
+  await insertAssistantTurn(props.productionUuid, assistantUuid)
+}
 </script>
 
 <template>
@@ -103,7 +113,7 @@ const props = defineProps({
       </template>
     </UiHero>
     <div class="flex flex-wrap gap-x-4 gap-y-3 justify-center">
-      <UButton v-for="assistantUuid in props.assistantUuids" :key="assistantUuid" color="cyan" :label="getAssistant(assistantUuid)?.name" size="lg" />
+      <UButton v-for="assistantUuid in props.assistantUuids" :key="assistantUuid" color="cyan" :label="getAssistant(assistantUuid)?.name" size="lg" @click="handleAssistantKickoff(assistantUuid)" />
     </div>
   </UContainer>
 </template>

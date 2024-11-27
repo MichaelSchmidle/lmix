@@ -78,7 +78,7 @@ SET default_table_access_method = "heap";
 
 CREATE TABLE IF NOT EXISTS "public"."assistants" (
     "uuid" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "inserted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_uuid" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "name" "text" NOT NULL,
     "model_uuid" "uuid" NOT NULL,
@@ -91,7 +91,7 @@ ALTER TABLE "public"."assistants" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."models" (
     "uuid" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "inserted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_uuid" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "id" "text" NOT NULL,
     "api_endpoint" "text" NOT NULL,
@@ -104,7 +104,7 @@ ALTER TABLE "public"."models" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."personas" (
     "uuid" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "inserted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_uuid" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "name" "text" NOT NULL,
     "self_perception" "text",
@@ -120,7 +120,7 @@ ALTER TABLE "public"."personas" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."production_assistants" (
     "uuid" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "inserted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_uuid" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "production_uuid" "uuid" NOT NULL,
     "assistant_uuid" "uuid" NOT NULL
@@ -132,7 +132,7 @@ ALTER TABLE "public"."production_assistants" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."production_persona_evolutions" (
     "uuid" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "inserted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_uuid" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "production_uuid" "uuid" NOT NULL,
     "persona_uuid" "uuid" NOT NULL,
@@ -147,7 +147,7 @@ ALTER TABLE "public"."production_persona_evolutions" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."production_personas" (
     "uuid" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "inserted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_uuid" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "production_uuid" "uuid" NOT NULL,
     "persona_uuid" "uuid" NOT NULL
@@ -159,7 +159,7 @@ ALTER TABLE "public"."production_personas" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."production_relations" (
     "uuid" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "inserted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_uuid" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "production_uuid" "uuid" NOT NULL,
     "relation_uuid" "uuid" NOT NULL
@@ -171,7 +171,7 @@ ALTER TABLE "public"."production_relations" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."productions" (
     "uuid" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "inserted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_uuid" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "name" "text",
     "world_uuid" "uuid",
@@ -184,7 +184,7 @@ ALTER TABLE "public"."productions" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."relation_personas" (
     "uuid" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "inserted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_uuid" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "relation_uuid" "uuid" NOT NULL,
     "persona_uuid" "uuid" NOT NULL
@@ -196,7 +196,7 @@ ALTER TABLE "public"."relation_personas" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."relations" (
     "uuid" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "inserted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_uuid" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "private_description" "text",
     "public_description" "text",
@@ -209,7 +209,7 @@ ALTER TABLE "public"."relations" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."scenarios" (
     "uuid" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "inserted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_uuid" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "name" "text" NOT NULL,
     "description" "text"
@@ -221,11 +221,12 @@ ALTER TABLE "public"."scenarios" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."turns" (
     "uuid" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "inserted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_uuid" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "production_uuid" "uuid" NOT NULL,
     "parent_turn_uuid" "uuid",
-    "message" "jsonb" NOT NULL
+    "message" "jsonb" NOT NULL,
+    "created_at" timestamp with time zone NOT NULL
 );
 
 
@@ -234,7 +235,7 @@ ALTER TABLE "public"."turns" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."worlds" (
     "uuid" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "inserted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "user_uuid" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "name" "text" NOT NULL,
     "description" "text"
@@ -275,7 +276,7 @@ ALTER TABLE ONLY "public"."production_persona_evolutions"
 
 
 ALTER TABLE ONLY "public"."production_persona_evolutions"
-    ADD CONSTRAINT "production_persona_evolutions_unique" UNIQUE ("production_uuid", "persona_uuid", "created_at");
+    ADD CONSTRAINT "production_persona_evolutions_unique" UNIQUE ("production_uuid", "persona_uuid", "inserted_at");
 
 
 
@@ -330,7 +331,7 @@ ALTER TABLE ONLY "public"."turns"
 
 
 ALTER TABLE ONLY "public"."turns"
-    ADD CONSTRAINT "turns_production_created_unique" UNIQUE ("production_uuid", "created_at");
+    ADD CONSTRAINT "turns_production_created_unique" UNIQUE ("production_uuid", "inserted_at");
 
 
 

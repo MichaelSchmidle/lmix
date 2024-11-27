@@ -14,7 +14,7 @@ import { defineStore } from 'pinia'
 import type { VerticalNavigationLink } from '#ui/types'
 import type { Database } from '~/types/api'
 import type { Assistant, Persona, Production, ProductionAssistant, ProductionInsert, ProductionPersona, ProductionRelation, ProductionWithRelations, Relation } from '~/types/app'
-import { LMiXError } from '~/types/errors'
+import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
 
 export const useProductionStore = defineStore('production', () => {
   // State
@@ -82,7 +82,7 @@ export const useProductionStore = defineStore('production', () => {
       }
 
       // Fall back to formatted creation date and time
-      return new Date(production.created_at).toLocaleString()
+      return new Date(production.inserted_at).toLocaleString()
     }
   })
 
@@ -123,7 +123,7 @@ export const useProductionStore = defineStore('production', () => {
       const { data: selectedProductions, error: selectError } = await client
         .from('productions')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('inserted_at', { ascending: false })
 
       if (selectError) throw new LMiXError(
         selectError.message,
@@ -239,7 +239,7 @@ export const useProductionStore = defineStore('production', () => {
           const personas = (r as Relation & {
             relation_personas?: Array<{
               uuid: string
-              created_at: string
+              inserted_at: string
               user_uuid: string
               persona: Persona | null
             }>
@@ -249,7 +249,7 @@ export const useProductionStore = defineStore('production', () => {
             relation_uuid: r.uuid,
             persona_uuid: rp.persona?.uuid ?? '',
             uuid: rp.uuid,
-            created_at: rp.created_at,
+            inserted_at: rp.inserted_at,
             user_uuid: rp.user_uuid
           })) ?? []
         }).filter(rp => rp.persona_uuid)
@@ -283,7 +283,7 @@ export const useProductionStore = defineStore('production', () => {
       if (item.production_assistants?.length) {
         productionAssistants.value.push(...item.production_assistants.map(pa => ({
           uuid: pa.uuid,
-          created_at: pa.created_at,
+          inserted_at: pa.inserted_at,
           production_uuid: uuid,
           assistant_uuid: pa.assistant?.uuid ?? '',
           user_uuid: pa.user_uuid
@@ -293,7 +293,7 @@ export const useProductionStore = defineStore('production', () => {
       if (item.production_personas?.length) {
         productionPersonas.value.push(...item.production_personas.map(pp => ({
           uuid: pp.uuid,
-          created_at: pp.created_at,
+          inserted_at: pp.inserted_at,
           production_uuid: uuid,
           persona_uuid: pp.persona?.uuid ?? '',
           user_uuid: pp.user_uuid
@@ -303,7 +303,7 @@ export const useProductionStore = defineStore('production', () => {
       if (item.production_relations?.length) {
         productionRelations.value.push(...item.production_relations.map(pr => ({
           uuid: pr.uuid,
-          created_at: pr.created_at,
+          inserted_at: pr.inserted_at,
           production_uuid: uuid,
           relation_uuid: pr.relation?.uuid ?? '',
           user_uuid: pr.user_uuid
@@ -351,21 +351,18 @@ export const useProductionStore = defineStore('production', () => {
 
     let tempId: string | null = null
 
-    // Handle optimistic updates for core production data only
     if (isUpdate) {
       const index = productions.value.findIndex(p => p.uuid === production.uuid)
-
       if (index !== -1) {
         productions.value[index] = { ...productions.value[index], ...production }
       }
     }
     else {
       tempId = crypto.randomUUID()
-
       productions.value.unshift({
         ...production,
         uuid: tempId,
-        created_at: new Date().toISOString(),
+        inserted_at: new Date().toISOString(),
       } as Production)
     }
 
@@ -384,16 +381,31 @@ export const useProductionStore = defineStore('production', () => {
         .select()
         .single()
 
-      if (upsertError) throw new LMiXError(
-        upsertError.message,
-        'API_ERROR',
-        upsertError,
-      )
+      if (upsertError) {
+        // Convert Supabase errors to appropriate LMiX error types
+        if (upsertError.code === '42501') {
+          throw new AuthenticationError(
+            'Not authorized to upsert production',
+            upsertError
+          )
+        }
+        if (upsertError.code === '23502') {
+          throw new ValidationError(
+            'Missing required fields for production',
+            upsertError
+          )
+        }
+        throw new ApiError(
+          upsertError.message,
+          upsertError
+        )
+      }
 
-      if (!upsertedProduction) throw new LMiXError(
-        'No production data returned from upsert',
-        'API_ERROR',
-      )
+      if (!upsertedProduction) {
+        throw new ApiError(
+          'No production data returned from API'
+        )
+      }
 
       const productionUuid = upsertedProduction.uuid
 
@@ -408,11 +420,12 @@ export const useProductionStore = defineStore('production', () => {
         const deleteResults = await Promise.all(deletePromises)
 
         deleteResults.forEach(({ error }) => {
-          if (error) throw new LMiXError(
-            error.message,
-            'API_ERROR',
-            error,
-          )
+          if (error) {
+            throw new ApiError(
+              'Failed to delete existing production relations',
+              error
+            )
+          }
         })
       }
 
@@ -424,7 +437,7 @@ export const useProductionStore = defineStore('production', () => {
         const assistantRelations = options.assistantUuids.map(uuid => ({
           production_uuid: productionUuid,
           assistant_uuid: uuid,
-          created_at: now
+          inserted_at: now
         }))
         insertPromises.push(
           client.from('production_assistants').insert(assistantRelations).select()
@@ -435,7 +448,7 @@ export const useProductionStore = defineStore('production', () => {
         const personaRelations = options.personaUuids.map(uuid => ({
           production_uuid: productionUuid,
           persona_uuid: uuid,
-          created_at: now
+          inserted_at: now
         }))
         insertPromises.push(
           client.from('production_personas').insert(personaRelations).select()
@@ -446,7 +459,7 @@ export const useProductionStore = defineStore('production', () => {
         const relationRelations = options.relationUuids.map(uuid => ({
           production_uuid: productionUuid,
           relation_uuid: uuid,
-          created_at: now
+          inserted_at: now
         }))
         insertPromises.push(
           client.from('production_relations').insert(relationRelations).select()
@@ -456,11 +469,12 @@ export const useProductionStore = defineStore('production', () => {
       const insertResults = await Promise.all(insertPromises)
 
       insertResults.forEach(({ error }) => {
-        if (error) throw new LMiXError(
-          error.message,
-          'API_ERROR',
-          error,
-        )
+        if (error) {
+          throw new ApiError(
+            'Failed to insert production relations',
+            error
+          )
+        }
       })
 
       // 4. Update store state
@@ -502,12 +516,21 @@ export const useProductionStore = defineStore('production', () => {
       return productionUuid
     }
     catch (e) {
+      // Rollback all original state
       productions.value = original.productions
       productionAssistants.value = original.productionAssistants
       productionPersonas.value = original.productionPersonas
       productionRelations.value = original.productionRelations
+
+      // Set error state for UI feedback
       error.value = e as LMiXError
-      if (import.meta.dev) console.error('Production upsert failed:', e)
+
+      // Log in development only
+      if (import.meta.dev) {
+        console.error('Production upsert failed:', e)
+      }
+
+      // Re-throw for UI handling
       throw e
     }
     finally {

@@ -3,20 +3,7 @@ const { t } = useI18n({ useScope: 'local' })
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const productionStore = useProductionStore()
-const { $reset: resetProductionStore } = productionStore
 const { getProductionNavigation } = storeToRefs(productionStore)
-const assistantStore = useAssistantStore()
-const { $reset: resetAssistantStore } = assistantStore
-const modelStore = useModelStore()
-const { $reset: resetModelStore } = modelStore
-const personaStore = usePersonaStore()
-const { $reset: resetPersonaStore } = personaStore
-const relationStore = useRelationStore()
-const { $reset: resetRelationStore } = relationStore
-const scenarioStore = useScenarioStore()
-const { $reset: resetScenarioStore } = scenarioStore
-const worldStore = useWorldStore()
-const { $reset: resetWorldStore } = worldStore
 
 const props = defineProps({
   isSlideover: {
@@ -88,14 +75,6 @@ async function handleSignOut() {
 
   const signOutPromise = supabase.auth.signOut()
   const delayPromise = new Promise(resolve => setTimeout(resolve, 2000))
-
-  resetProductionStore()
-  resetAssistantStore()
-  resetModelStore()
-  resetPersonaStore()
-  resetRelationStore()
-  resetScenarioStore()
-  resetWorldStore()
 
   await Promise.all([signOutPromise, delayPromise])
   isSigningOut.value = false

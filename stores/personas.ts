@@ -98,7 +98,7 @@ export const usePersonaStore = defineStore('persona', () => {
       const { data: selectedPersonas, error: selectError } = await client
         .from('personas')
         .select()
-        .order('created_at', { ascending: false })
+        .order('inserted_at', { ascending: false })
 
       if (selectError) throw new LMiXError(
         selectError.message,
@@ -144,7 +144,7 @@ export const usePersonaStore = defineStore('persona', () => {
       personas.value.unshift({
         ...persona,
         uuid: tempId,
-        created_at: new Date().toISOString(),
+        inserted_at: new Date().toISOString(),
       } as Persona)
     }
 

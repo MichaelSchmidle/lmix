@@ -111,7 +111,7 @@ export const useAssistantStore = defineStore('assistant', () => {
       const { data: selectedAssistants, error: selectError } = await client
         .from('assistants')
         .select()
-        .order('created_at', { ascending: false })
+        .order('inserted_at', { ascending: false })
 
       if (selectError) throw new LMiXError(
         selectError.message,
@@ -161,7 +161,7 @@ export const useAssistantStore = defineStore('assistant', () => {
       assistants.value.unshift({
         ...assistant,
         uuid: tempId,
-        created_at: new Date().toISOString(),
+        inserted_at: new Date().toISOString(),
       } as Assistant)
     }
 

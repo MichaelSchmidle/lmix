@@ -161,5 +161,5 @@ export type Message = {
 
 export type ActiveTurn = {
   production_uuid: string
-  turn_uuid: string
+  turn_uuid: string | null
 }

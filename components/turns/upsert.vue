@@ -10,6 +10,7 @@ const { getAssistantOptions } = storeToRefs(assistantStore)
 const personaStore = usePersonaStore()
 const { getPersonaOptions } = storeToRefs(personaStore)
 const turnStore = useTurnStore()
+const { getStreamingState } = storeToRefs(turnStore)
 const { insertUserTurn } = turnStore
 
 const props = defineProps({
@@ -27,6 +28,8 @@ const defaultAssistant = computed(() => assistantOptions.value.length === 1 ? as
 
 const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => {
   try {
+    if (getStreamingState.value.isStreaming) return
+
     await insertUserTurn(userMessage)
 
     // Reset form after successful submission, keeping the user's selection
@@ -70,8 +73,8 @@ const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => 
           validation="required" :validation-messages="{ required: t('assistant.required') }" />
       </div>
       <UTooltip :shortcuts="['Enter']" :text="t('send.tooltip')">
-        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :loading="(disabled as boolean)" size="lg" square
-          type="submit" />
+        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :disabled="getStreamingState.isStreaming"
+          :loading="(disabled as boolean)" size="lg" square type="submit" />
       </UTooltip>
     </div>
   </FormKit>

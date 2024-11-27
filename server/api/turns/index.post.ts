@@ -20,6 +20,9 @@ const requestSchema = z.object({
     function_call: z.unknown().optional(),
     tool_calls: z.unknown().optional(),
   })),
+  metadata: z.object({
+    persona_uuid: z.string(),
+  }).optional(),
   model: z.string(),
 })
 

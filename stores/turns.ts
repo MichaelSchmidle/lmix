@@ -18,6 +18,7 @@ import type {
 } from '~/types/app'
 import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
 import { JSONParser } from '@streamparser/json'
+import type { set } from 'zod'
 
 /**
  * Type guards for content properties
@@ -36,6 +37,21 @@ const isTopLevelProperty = (prop: string): prop is keyof Content => {
 
 export const useTurnStore = defineStore('turn', () => {
   // State management
+  /**
+   * Represents the state of a streaming operation
+   * @interface StreamingState
+   * @property {boolean} isStreaming - Whether a streaming operation is in progress
+   * @property {string | null} error - Error message if the streaming operation failed
+   * @property {string | null} assistantUuid - UUID of the assistant currently being streamed
+   * @property {string | null} turnUuid - UUID of the turn currently being streamed
+   */
+  interface StreamingState {
+    isStreaming: boolean
+    error: string | null
+    assistantUuid: string | null
+    turnUuid: string | null
+  }
+
   const turns = ref<Turn[]>([])
   const activeTurns = ref<ActiveTurn[]>([])
   const evolutions = ref<ProductionPersonaEvolution[]>([])
@@ -44,22 +60,11 @@ export const useTurnStore = defineStore('turn', () => {
   const streamingState = ref<StreamingState>({
     isStreaming: false,
     error: null,
+    assistantUuid: null,
     turnUuid: null
   })
 
-  /**
-   * Represents the state of a streaming operation
-   * @interface StreamingState
-   * @property isStreaming - Whether a streaming operation is in progress
-   * @property currentPhase - The current phase of the streaming operation
-   * @property error - Error message if the streaming operation failed
-   * @property turnUuid - UUID of the turn currently being streamed
-   */
-  interface StreamingState {
-    isStreaming: boolean
-    error: string | null
-    turnUuid: string | null
-  }
+
 
   // Getters
   /**
@@ -68,7 +73,7 @@ export const useTurnStore = defineStore('turn', () => {
    * @returns {Turn | undefined} The turn data, or undefined if not found
    */
   const getTurn = computed(() => {
-    return (uuid: string) => turns.value.find(t => t.uuid === uuid)
+    return (uuid: string): Turn | undefined => turns.value.find(t => t.uuid === uuid)
   })
 
   /**
@@ -77,7 +82,7 @@ export const useTurnStore = defineStore('turn', () => {
    * @returns {Turn[]} The list of turns for the production
    */
   const getProductionTurns = computed(() => {
-    return (productionUuid: string) => turns.value
+    return (productionUuid: string): Turn[] => turns.value
       .filter(t => t.production_uuid === productionUuid)
       .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
   })
@@ -88,7 +93,8 @@ export const useTurnStore = defineStore('turn', () => {
    * @returns {string | undefined} The active/latest turn UUID for the production, or undefined if none found
    */
   const getActiveTurnUuid = computed(() => {
-    return (productionUuid: string) => activeTurns.value.find(t => t.production_uuid === productionUuid)?.turn_uuid || getLatestProductionTurn.value(productionUuid)?.uuid
+    return (productionUuid: string): string | undefined => activeTurns.value
+      .find(t => t.production_uuid === productionUuid)?.turn_uuid || getLatestProductionTurn.value(productionUuid)?.uuid
   })
 
   /**
@@ -98,7 +104,7 @@ export const useTurnStore = defineStore('turn', () => {
    * @returns {Evolutions[]} The list of evolutions for the production and persona
    */
   const getPersonaEvolutions = computed(() => {
-    return (productionUuid: string, personaUuid: string) => evolutions.value
+    return (productionUuid: string, personaUuid: string): ProductionPersonaEvolution[] => evolutions.value
       .filter(e =>
         e.production_uuid === productionUuid &&
         e.persona_uuid === personaUuid
@@ -120,7 +126,7 @@ export const useTurnStore = defineStore('turn', () => {
    * Retrieves the current streaming state
    * @returns {StreamingState} The current streaming state
    */
-  const getStreamingState = computed(() => {
+  const getStreamingState = computed((): StreamingState => {
     return streamingState.value
   })
 
@@ -130,10 +136,45 @@ export const useTurnStore = defineStore('turn', () => {
    * @returns {Turn | undefined} The latest turn UUID for the production, or undefined if none found
    */
   const getLatestProductionTurn = computed(() => {
-    return (productionUuid: string) => turns.value
+    return (productionUuid: string): Turn | undefined => turns.value
       .filter(t => t.production_uuid === productionUuid)
       .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
       .at(-1)
+  })
+
+  /**
+   * Retrieves the ancestor's uuid of a given turn out of a list
+   * @param {string} turnUuid - UUID of the turn to find the ancestor for
+   * @param {string[]} turnUuids - List of uuids to match against
+   * @returns {string | undefined} The matching ancestor uuid, or undefined if not found
+   */
+  const getAncestorTurnUuid = computed(() => {
+    return (turnUuid: string, turnUuids: string[]): string | undefined => {
+      const matchingUuid = turnUuids.find(uuid => uuid === turnUuid)
+
+      if (matchingUuid) return matchingUuid
+
+      const turn = getTurn.value(turnUuid)
+
+      if (turn?.parent_turn_uuid) {
+        return getAncestorTurnUuid.value(turn.parent_turn_uuid, turnUuids)
+      }
+
+      return undefined
+    }
+  })
+
+  /**
+   * Retrieves the immediate children's uuids of a given turn
+   * @param {string} productionUuid - UUID of the production
+   * @param {string | null} turnUuid - UUID of the turn to find the immediate children for
+   * @returns {string[]} The list of immediate children uuids
+   */
+  const getChildTurnUuids = computed(() => {
+    return (productionUuid: string, turnUuid: string | null): string[] =>
+      getProductionTurns.value(productionUuid)
+        .filter(t => t.parent_turn_uuid === turnUuid)
+        .map(t => t.uuid)
   })
 
   // Actions
@@ -197,10 +238,10 @@ export const useTurnStore = defineStore('turn', () => {
   /**
    * Sets the active turn for a production
    * @param {string} productionUuid - UUID of the production to set the active turn for
-   * @param {string} turnUuid - UUID of the turn to set as active
+   * @param {string | null} turnUuid - UUID of the turn to set as active
    * @returns {void}
    */
-  function setActiveTurn(productionUuid: string, turnUuid: string): void {
+  function setActiveTurn(productionUuid: string, turnUuid: string | null): void {
     const existingIndex = activeTurns.value.findIndex(
       t => t.production_uuid === productionUuid
     )
@@ -227,7 +268,8 @@ export const useTurnStore = defineStore('turn', () => {
     loading.value = true
     error.value = null
 
-    const original = [...turns.value]
+    const originalTurns = [...turns.value]
+    const originalActiveTurnUuid = getActiveTurnUuid.value(turn.production_uuid)
     const tempId = crypto.randomUUID()
 
     // Optimistically insert turn in state
@@ -237,9 +279,11 @@ export const useTurnStore = defineStore('turn', () => {
       inserted_at: new Date().toISOString(),
       user_uuid: useSupabaseUser().value?.id!,
       parent_turn_uuid: turn.parent_turn_uuid || null,
+      assistant_uuid: turn.assistant_uuid || null
     }
 
     turns.value.push(stateTurn)
+    setActiveTurn(turn.production_uuid, stateTurn.uuid)
 
     if (inStateOnly) return stateTurn.uuid
 
@@ -249,27 +293,17 @@ export const useTurnStore = defineStore('turn', () => {
       // Insert new turn
       const { data: insertedTurn, error: insertError } = await client
         .from('turns')
-        .insert(turn)
+        .insert({
+          ...turn,
+          parent_turn_uuid: originalActiveTurnUuid || null
+        })
         .select()
         .single()
 
       if (insertError) {
-        // Convert Supabase errors to appropriate LMiX error types
-        if (insertError.code === '42501') {
-          throw new AuthenticationError(
-            'Not authorized to insert turn',
-            insertError
-          )
-        }
-        if (insertError.code === '23502') {
-          throw new ValidationError(
-            'Missing required fields for turn',
-            insertError
-          )
-        }
         throw new ApiError(
           insertError.message,
-          insertError
+          insertError,
         )
       }
 
@@ -285,11 +319,13 @@ export const useTurnStore = defineStore('turn', () => {
         turns.value[tempIndex] = insertedTurn as Turn
       }
 
+      setActiveTurn(turn.production_uuid, insertedTurn.uuid)
       return insertedTurn.uuid
     }
     catch (e) {
       // Rollback optimistic update
-      turns.value = original
+      turns.value = originalTurns
+      setActiveTurn(turn.production_uuid, originalActiveTurnUuid || null)
 
       // Set error state for UI feedback
       error.value = e as LMiXError
@@ -314,27 +350,38 @@ export const useTurnStore = defineStore('turn', () => {
    * @throws {LMiXError} When the API request fails
    */
   async function persistTurn(turnUuid: string): Promise<string> {
-    const turn = getTurn.value(turnUuid)
+    const turn = getTurn.value(turnUuid) as TurnInsert
 
-    if (!turn) throw new LMiXError('Turn not found', 'TURN_NOT_FOUND')
-
+    if (!turn) throw new LMiXError(
+      'Turn not found',
+      'TURN_NOT_FOUND',
+    )
     const client = useSupabaseClient<Database>()
 
-    const { data: persistedTurn, error: persistError } = await client
+    const { data: insertedTurn, error: insertError } = await client
       .from('turns')
-      .upsert(turn, {
-        onConflict: 'uuid'
-      })
+      .insert({ ...turn, uuid: undefined, inserted_at: undefined })
       .select()
       .single()
 
-    if (persistError) throw new LMiXError(
-      persistError.message,
+    if (insertError) throw new LMiXError(
+      insertError.message,
       'API_ERROR',
-      persistError,
+      insertError,
     )
 
-    return persistedTurn.uuid
+    if (!insertedTurn) throw new LMiXError(
+      'No turn data returned from API',
+      'API_ERROR',
+    )
+
+    const index = turns.value.findIndex(t => t.uuid === turnUuid)
+    if (index !== -1) {
+      turns.value[index].uuid = insertedTurn.uuid
+      turns.value[index].inserted_at = insertedTurn.inserted_at
+    }
+    setActiveTurn(turn.production_uuid, insertedTurn.uuid)
+    return insertedTurn.uuid
   }
 
   /**
@@ -344,15 +391,12 @@ export const useTurnStore = defineStore('turn', () => {
    * @throws {LMiXError} When the API request fails
    */
   async function insertUserTurn(message: UserTurnMessage): Promise<void> {
-    // Retrieve the potential parent turn UUID
-    const activeTurnUuid = getActiveTurnUuid.value(message.production_uuid)
-    const userTurnUuid = ref<string | undefined>(undefined)
+    let turnUuid: string | undefined = undefined
 
     // Persist user turn only if it has performance content
     if (message.performance) {
       const userTurn: TurnInsert = {
         production_uuid: message.production_uuid,
-        parent_turn_uuid: activeTurnUuid,
         message: {
           role: 'user',
           content: {
@@ -368,12 +412,12 @@ export const useTurnStore = defineStore('turn', () => {
         created_at: new Date().toISOString(),
       }
 
-      // Insert the user turn and mark it as active
-      userTurnUuid.value = await insertTurn(userTurn)
+      // Insert the user turn
+      turnUuid = await insertTurn(userTurn)
     }
 
-    // Insert the assistant turn in response to the user turn or active turn
-    await insertAssistantTurn(message.production_uuid, message.receiving_assistant_uuid, userTurnUuid.value || activeTurnUuid)
+    // Insert the assistant turn in response
+    await insertAssistantTurn(message.production_uuid, message.receiving_assistant_uuid, turnUuid)
   }
 
   /**
@@ -385,11 +429,11 @@ export const useTurnStore = defineStore('turn', () => {
    * 
    * @param {string} productionUuid - UUID of the production to insert the assistant turn for
    * @param {string} assistantUuid - UUID of the assistant to prompt for a turn
-   * @param {string | undefined} turnUuid - UUID of the parent turn to respond to, or undefined if generating the first turn in a production
+   * @param {string | undefined} parentTurnUuid - Optional UUID of the parent turn to respond to, or undefined if generating the first turn in a production
    * @returns {Promise<void>} Promise that resolves when the turn is triggered
    * @throws {LMiXError} When assistant or model is not found, or API calls fail
    */
-  async function insertAssistantTurn(productionUuid: string, assistantUuid: string, turnUuid?: string): Promise<void> {
+  async function insertAssistantTurn(productionUuid: string, assistantUuid: string, parentTurnUuid?: string): Promise<void> {
     const productionStore = useProductionStore()
     const assistantStore = useAssistantStore()
     const personaStore = usePersonaStore()
@@ -401,7 +445,8 @@ export const useTurnStore = defineStore('turn', () => {
     streamingState.value = {
       isStreaming: true,
       error: null,
-      turnUuid: null
+      assistantUuid: assistantUuid,
+      turnUuid: null,
     }
 
     // Create a turn in state only
@@ -428,18 +473,21 @@ export const useTurnStore = defineStore('turn', () => {
     const turn: TurnInsert = {
       user_uuid: useSupabaseUser().value?.id!,
       production_uuid: productionUuid,
-      parent_turn_uuid: turnUuid || null,
+      parent_turn_uuid: parentTurnUuid,
       message: {
         role: 'assistant',
         content: {
           persona_name: persona.name,
           performance: '', // Gets replaced by streaming response
         },
+        metadata: {
+          persona_uuid: assistant.persona_uuid,
+        }
       },
       created_at: tempCreatedAt,
+      assistant_uuid: assistantUuid
     }
 
-    // Add placeholder turn to state
     streamingState.value.turnUuid = await insertTurn(turn, true)
 
     try {
@@ -699,8 +747,61 @@ export const useTurnStore = defineStore('turn', () => {
       streamingState.value = {
         isStreaming: false,
         error: null,
-        turnUuid: null
+        assistantUuid: null,
+        turnUuid: null,
       }
+    }
+  }
+
+  /**
+   * Deletes a turn from the database
+   * @param {string} uuid - UUID of the turn to delete
+   * @returns {Promise<void>} Promise that resolves when the turn is deleted
+   * @throws {LMiXError} If the API request fails
+   */
+  async function deleteTurn(uuid: string): Promise<void> {
+    loading.value = true
+    error.value = null
+
+    const turn = getTurn.value(uuid)
+
+    if (!turn) {
+      throw new LMiXError(
+        'Turn not found',
+        'TURN_NOT_FOUND',
+      )
+    }
+
+    // Set active turn to parent turn or null
+    if (getActiveTurnUuid.value(turn.production_uuid) === uuid) {
+      setActiveTurn(turn.production_uuid, turn.parent_turn_uuid || null)
+    }
+
+    const original = [...turns.value]
+    turns.value = turns.value.filter(t => t.uuid !== uuid)
+
+    try {
+      const client = useSupabaseClient<Database>()
+
+      const { error: deleteError } = await client
+        .from('turns')
+        .delete()
+        .eq('uuid', uuid)
+
+      if (deleteError) throw new LMiXError(
+        deleteError.message,
+        'API_ERROR',
+        deleteError,
+      )
+    }
+    catch (e) {
+      turns.value = original
+      error.value = e as LMiXError
+      if (import.meta.dev) console.error('Turn deletion failed:', e)
+      throw e
+    }
+    finally {
+      loading.value = false
     }
   }
 
@@ -719,11 +820,14 @@ export const useTurnStore = defineStore('turn', () => {
     getStreamingState,
     getStreamingTurn,
     getLatestProductionTurn,
+    getAncestorTurnUuid,
+    getChildTurnUuids,
     // Actions
     selectTurns,
-    insertTurn,
     insertUserTurn,
     insertAssistantTurn,
+    setActiveTurn,
+    deleteTurn,
   }
 })
 

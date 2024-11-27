@@ -413,6 +413,7 @@ export type Database = {
       }
       turns: {
         Row: {
+          assistant_uuid: string | null
           created_at: string
           inserted_at: string
           message: Json
@@ -422,6 +423,7 @@ export type Database = {
           uuid: string
         }
         Insert: {
+          assistant_uuid?: string | null
           created_at: string
           inserted_at?: string
           message: Json
@@ -431,6 +433,7 @@ export type Database = {
           uuid?: string
         }
         Update: {
+          assistant_uuid?: string | null
           created_at?: string
           inserted_at?: string
           message?: Json
@@ -440,6 +443,13 @@ export type Database = {
           uuid?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "turns_assistant_uuid_fkey"
+            columns: ["assistant_uuid"]
+            isOneToOne: false
+            referencedRelation: "assistants"
+            referencedColumns: ["uuid"]
+          },
           {
             foreignKeyName: "turns_parent_turn_uuid_fkey"
             columns: ["parent_turn_uuid"]

@@ -69,7 +69,7 @@ const handleSubmit = async (form: Partial<ScenarioInsert>, node: FormKitNode) =>
       required: Name is required
     description:
       label: Description
-      help: Provide context about the setting as starting point for your production from which it can evolve.
+      help: Provide context about the setting as starting point for your production from which it can evolve. Define instructions shared by all assistants in this scenario.
       required: Description is required
     createScenario: Create Scenario
     updateScenario: Update

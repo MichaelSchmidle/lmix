@@ -16,9 +16,8 @@ import type {
   TurnInsert,
   UserTurnMessage,
 } from '~/types/app'
-import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
+import { LMiXError, ApiError } from '~/types/errors'
 import { JSONParser } from '@streamparser/json'
-import type { set } from 'zod'
 
 /**
  * Type guards for content properties
@@ -63,8 +62,6 @@ export const useTurnStore = defineStore('turn', () => {
     assistantUuid: null,
     turnUuid: null
   })
-
-
 
   // Getters
   /**
@@ -175,6 +172,51 @@ export const useTurnStore = defineStore('turn', () => {
       getProductionTurns.value(productionUuid)
         .filter(t => t.parent_turn_uuid === turnUuid)
         .map(t => t.uuid)
+  })
+
+  /**
+   * Gets the latest descendant turn of a given turn by efficiently traversing the subtree
+   * @param {string} turnUuid - UUID of the turn to find the latest descendant for
+   * @returns {Turn | undefined} The latest descendant turn, or the turn itself if it has no children
+   */
+  const getLatestDescendantTurn = computed(() => {
+    return (turnUuid: string): Turn | undefined => {
+      const turn = turns.value.find(t => t.uuid === turnUuid)
+      if (!turn) return undefined
+
+      // Track the latest turn we've found so far
+      let latestTurn = turn
+      let latestDate = new Date(turn.created_at)
+
+      // Stack-based DFS is more efficient than recursion for this case
+      const stack: string[] = [turnUuid]
+      const seen = new Set<string>()
+
+      while (stack.length > 0) {
+        const currentUuid = stack.pop()!
+        if (seen.has(currentUuid)) continue
+        seen.add(currentUuid)
+
+        // Use existing computed property to get child UUIDs
+        const childUuids = getChildTurnUuids.value(turn.production_uuid, currentUuid)
+
+        // Check each child's timestamp
+        for (const childUuid of childUuids) {
+          const childTurn = turns.value.find(t => t.uuid === childUuid)
+          if (!childTurn) continue
+
+          const childDate = new Date(childTurn.created_at)
+          if (childDate > latestDate) {
+            latestTurn = childTurn
+            latestDate = childDate
+          }
+
+          stack.push(childUuid)
+        }
+      }
+
+      return latestTurn
+    }
   })
 
   // Actions
@@ -429,11 +471,11 @@ export const useTurnStore = defineStore('turn', () => {
    * 
    * @param {string} productionUuid - UUID of the production to insert the assistant turn for
    * @param {string} assistantUuid - UUID of the assistant to prompt for a turn
-   * @param {string | undefined} parentTurnUuid - Optional UUID of the parent turn to respond to, or undefined if generating the first turn in a production
+   * @param {string | null | undefined} parentTurnUuid - Optional UUID of the parent turn to respond to, or undefined if generating the first turn in a production
    * @returns {Promise<void>} Promise that resolves when the turn is triggered
    * @throws {LMiXError} When assistant or model is not found, or API calls fail
    */
-  async function insertAssistantTurn(productionUuid: string, assistantUuid: string, parentTurnUuid?: string): Promise<void> {
+  async function insertAssistantTurn(productionUuid: string, assistantUuid: string, parentTurnUuid?: string | null): Promise<void> {
     const productionStore = useProductionStore()
     const assistantStore = useAssistantStore()
     const personaStore = usePersonaStore()
@@ -772,10 +814,8 @@ export const useTurnStore = defineStore('turn', () => {
       )
     }
 
-    // Set active turn to parent turn or null
-    if (getActiveTurnUuid.value(turn.production_uuid) === uuid) {
-      setActiveTurn(turn.production_uuid, turn.parent_turn_uuid || null)
-    }
+    // Set active turn to null
+    setActiveTurn(turn.production_uuid, null)
 
     const original = [...turns.value]
     turns.value = turns.value.filter(t => t.uuid !== uuid)
@@ -808,6 +848,7 @@ export const useTurnStore = defineStore('turn', () => {
   return {
     // State
     turns,
+    activeTurns,
     evolutions,
     loading,
     error,
@@ -822,6 +863,7 @@ export const useTurnStore = defineStore('turn', () => {
     getLatestProductionTurn,
     getAncestorTurnUuid,
     getChildTurnUuids,
+    getLatestDescendantTurn,
     // Actions
     selectTurns,
     insertUserTurn,

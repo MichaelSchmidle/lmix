@@ -24,12 +24,12 @@ await turnStore.selectTurns(props.production.uuid)
 // Get active top-level turn for this production
 const childTurnUuids = computed(() => getChildTurnUuids.value(props.production.uuid, null))
 const activeTurnUuid = computed(() => getActiveTurnUuid.value(props.production.uuid))
-const ancestorTurnUuid = computed(() => getAncestorTurnUuid.value(activeTurnUuid.value, childTurnUuids.value))
-const turn = computed(() => getTurn.value(ancestorTurnUuid.value))
+const ancestorTurnUuid = computed(() => activeTurnUuid.value ? getAncestorTurnUuid.value(activeTurnUuid.value, childTurnUuids.value) : undefined)
+const turn = computed(() => ancestorTurnUuid.value ? getTurn.value(ancestorTurnUuid.value) : undefined)
 
 const handleAssistantTurn = async (assistantUuid: string) => {
   try {
-    await insertAssistantTurn(props.production.uuid, assistantUuid)
+    await insertAssistantTurn(props.production.uuid, assistantUuid, activeTurnUuid.value)
   }
   catch (e) {
     toast.add({
@@ -52,9 +52,9 @@ const handleAssistantTurn = async (assistantUuid: string) => {
         <NavPanelSlideover class="xl:hidden" :production="production" />
       </template>
     </UiPanelHeader>
-    <UiPanelContent v-auto-animate>
+    <UiPanelContent>
       <UContainer v-auto-animate>
-        <Turns v-if="ancestorTurnUuid" :turn="turn" />
+        <Turns v-if="turn" :turn="turn" />
         <ProductionsNoData v-else :production-uuid="production.uuid" />
         <div class="flex flex-wrap gap-x-4 gap-y-3 justify-center">
           <UButton v-for="assistantUuid in getProductionAssistantUuids(production.uuid)" :key="assistantUuid"

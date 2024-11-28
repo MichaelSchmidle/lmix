@@ -13,7 +13,7 @@ defineProps<{
     <div v-if="$slots.media" :class="['self-start', collapsible ? 'hidden sm:flex' : 'flex']">
       <slot name="media" />
     </div>
-    <div v-if="$slots.default" :class="['w-full', isInverse ? 'text-end' : 'text-start']">
+    <div v-if="$slots.default" :class="isInverse ? 'text-end' : 'text-start'">
       <slot />
     </div>
   </div>

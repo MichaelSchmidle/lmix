@@ -52,7 +52,7 @@ const handleAssistantTurn = async (assistantUuid: string) => {
         <NavPanelSlideover class="xl:hidden" :production="production" />
       </template>
     </UiPanelHeader>
-    <UiPanelContent>
+    <UiPanelContent class="overflow-x-hidden">
       <UContainer v-auto-animate>
         <Turns v-if="turn" :turn="turn" />
         <ProductionsNoData v-else :production-uuid="production.uuid" />
@@ -67,7 +67,7 @@ const handleAssistantTurn = async (assistantUuid: string) => {
     </UiPanelContent>
     <UiPanelFooter>
       <UContainer class="max-w-prose w-full">
-        <TurnsUpsert :production="production" />
+        <TurnsInsert :production="production" />
       </UContainer>
     </UiPanelFooter>
   </UiPanel>

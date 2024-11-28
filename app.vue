@@ -8,12 +8,12 @@ useHead({
 </script>
 
 <template>
-  <div v-auto-animate>
+  <div>
     <NuxtRouteAnnouncer />
     <NuxtLoadingIndicator color="primary" />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-    <UNotifications />
+    <UNotifications v-auto-animate />
   </div>
 </template>

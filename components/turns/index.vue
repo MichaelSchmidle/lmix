@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { HorizontalNavigationLink } from '#ui/types'
-import type { Persona, Turn } from '~/types/app'
+import type { DropdownItem } from '#ui/types'
+import type { Turn } from '~/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const { m } = useMarkdown()
@@ -8,8 +8,12 @@ const toast = useToast()
 const personaStore = usePersonaStore()
 const { getPersona } = storeToRefs(personaStore)
 const turnStore = useTurnStore()
-const { getActiveTurnUuid, getAncestorTurnUuid, getChildTurnUuids, getTurn, getLatestDescendantTurn } = storeToRefs(turnStore)
+const { getActiveTurnUuid, getAncestorTurnUuid, getChildTurnUuids, getLatestDescendantTurn, getStreamingState, getTurn } = storeToRefs(turnStore)
 const { insertAssistantTurn, deleteTurn, setActiveTurn } = turnStore
+const productionStore = useProductionStore()
+const { getProductionAssistantUuids } = storeToRefs(productionStore)
+const assistantStore = useAssistantStore()
+const { getAssistant } = storeToRefs(assistantStore)
 
 const props = defineProps({
   turn: {
@@ -51,98 +55,100 @@ const navigateToSibling = (direction: 'back' | 'forward') => {
   }
 }
 
-const items: HorizontalNavigationLink[] = []
-
-if (props.turn.assistant_uuid) {
-  items.push({
-    icon: 'i-ph-arrows-clockwise',
-    label: t('regenerate.label'),
-    click: async () => {
-      try {
-        await insertAssistantTurn(
-          props.turn.production_uuid,
-          props.turn.assistant_uuid!,
-          props.turn.parent_turn_uuid,
-        )
-      }
-      catch (e) {
-        console.error(e)
-        toast.add({
-          color: 'rose',
-          icon: 'i-ph-x-circle',
-          title: t('regenerate.error'),
-        })
-      }
-    },
+const items = computed(() => {
+  const assistantUuids = getProductionAssistantUuids.value(props.turn.production_uuid)
+  return assistantUuids.map((assistantUuid: string) => {
+    return [{
+      click: () => handleRegenerateTurn(assistantUuid),
+      label: getAssistant.value(assistantUuid)?.name,
+      icon: 'i-ph-head-circuit',
+    }] as DropdownItem[]
   })
+})
+
+const handleRegenerateTurn = async (assistantUuid: string) => {
+  try {
+    await insertAssistantTurn(
+      props.turn.production_uuid,
+      assistantUuid,
+      props.turn.parent_turn_uuid,
+    )
+  }
+  catch (e) {
+    console.error(e)
+    toast.add({
+      color: 'rose',
+      icon: 'i-ph-x-circle',
+      title: t('regenerate.error'),
+    })
+  }
 }
 
-items.push({
-    icon: 'i-ph-trash',
-    label: t('delete.label'),
-    click: async () => {
-      try {
-        await deleteTurn(props.turn.uuid)
-        toast.add({
-          color: 'lime',
-          icon: 'i-ph-check-circle',
-          title: t('delete.success'),
-        })
-      }
-      catch (e) {
-        console.error(e)
-        toast.add({
-          color: 'rose',
-          icon: 'i-ph-x-circle',
-          title: t('delete.error'),
-        })
-      }
-    },
-  })
+const handleDeleteTurn = async () => {
+  try {
+    await deleteTurn(props.turn.uuid)
+    toast.add({
+      color: 'lime',
+      icon: 'i-ph-check-circle',
+      title: t('delete.success'),
+    })
+  }
+  catch (e) {
+    console.error(e)
+    toast.add({
+      color: 'rose',
+      icon: 'i-ph-x-circle',
+      title: t('delete.error'),
+    })
+  }
+}
 </script>
 
 <template>
-  <template v-if="turn">
-    <UiMediaObject class="xl:gap-0">
+  <div v-if="turn" class="space-y-4" v-auto-animate>
+    <UiMediaObject class="xl:gap-0" :key="turn.created_at">
       <template #media>
         <UTooltip class="xl:-ms-16" :text="name">
           <UAvatar :alt="name" size="md" />
         </UTooltip>
       </template>
-      <div class="space-y-4">
-        <div class="prose dark:prose-invert prose-a:text-primary prose-headings:font-serif"
-          v-html="m(turn.message.content.performance, true)" />
-        <UiFormActions>
-          <div v-if="siblingTurnUuids.length > 1">
-            <UTooltip :text="t('navigation.back')">
-              <UButton 
-                color="gray" 
-                icon="i-ph-arrow-u-up-left" 
-                size="xs" 
-                variant="ghost"
-                :disabled="currentSiblingIndex <= 0"
-                @click="navigateToSibling('back')" 
-              />
-            </UTooltip>
-            <UTooltip :text="t('navigation.forward')">
-              <UButton 
-                color="gray" 
-                icon="i-ph-arrow-u-up-right" 
-                size="xs" 
-                variant="ghost"
-                :disabled="currentSiblingIndex === -1 || currentSiblingIndex >= siblingTurnUuids.length - 1"
-                @click="navigateToSibling('forward')" 
-              />
-            </UTooltip>
-          </div>
-          <UTooltip v-for="item in items" :key="item.label" :text="item.label">
-            <UButton color="gray" :icon="item.icon" size="xs" variant="ghost" @click="item.click" />
-          </UTooltip>
-        </UiFormActions>
-      </div>
+      <div class="prose dark:prose-invert prose-a:text-primary prose-headings:font-serif"
+        v-html="m(turn.message.content.performance, true)" />
     </UiMediaObject>
-    <Turns v-if="ancestorTurn" :turn="ancestorTurn" />
-  </template>
+    <UiFormActions v-auto-animate>
+      <div v-if="siblingTurnUuids.length > 1">
+        <UTooltip :popper="{ placement: 'top' }" :text="t('navigation.back')">
+          <UButton color="gray" icon="i-ph-arrow-u-up-left" size="2xs" variant="ghost"
+            :disabled="currentSiblingIndex <= 0 || getStreamingState.isStreaming" @click="navigateToSibling('back')" />
+        </UTooltip>
+        <UTooltip :popper="{ placement: 'top' }" :text="t('navigation.forward')">
+          <UButton color="gray" icon="i-ph-arrow-u-up-right" size="2xs" variant="ghost"
+            :disabled="currentSiblingIndex === -1 || currentSiblingIndex >= siblingTurnUuids.length - 1 || getStreamingState.isStreaming"
+            @click="navigateToSibling('forward')" />
+        </UTooltip>
+      </div>
+      <UTooltip v-if="turn.assistant_uuid" :popper="{ placement: 'top' }" :text="t('regenerate.label')">
+        <UButton color="gray" :disabled="getStreamingState.isStreaming" icon="i-ph-arrow-clockwise" size="2xs"
+          variant="ghost" @click="handleRegenerateTurn(turn.assistant_uuid)" />
+      </UTooltip>
+      <UTooltip v-if="turn.assistant_uuid" :popper="{ placement: 'top' }" :text="t('switch.label')">
+        <UDropdown :items="items" mode="hover">
+          <UButton color="gray" :disabled="getStreamingState.isStreaming" icon="i-ph-arrows-clockwise" size="2xs"
+            variant="ghost" />
+        </UDropdown>
+      </UTooltip>
+      <UTooltip :popper="{ placement: 'top' }" :text="t('edit.label')">
+        <TurnsUpdate :turn="turn" #default="{ openModal }">
+          <UButton color="gray" :disabled="getStreamingState.isStreaming" icon="i-ph-eye" size="2xs" variant="ghost" @click="openModal" />
+        </TurnsUpdate>
+      </UTooltip>
+      <UTooltip :popper="{ placement: 'top' }" :text="t('delete.label')">
+        <UButton color="gray" :disabled="getStreamingState.isStreaming" icon="i-ph-trash" size="2xs" variant="ghost"
+          @click="handleDeleteTurn" />
+      </UTooltip>
+    </UiFormActions>
+  </div>
+  <Turns v-if="ancestorTurn" :turn="ancestorTurn" />
 </template>
 
 <i18n lang="yaml">
@@ -154,6 +160,11 @@ en:
   regenerate:
     label: Regenerate
     error: Failed to regenerate turn.
+  switch:
+    label: Regenerate with…
+    error: Failed to regenerate turn.
+  edit:
+    label: Show & edit details…
   delete:
     label: Remove
     success: Turn removed.

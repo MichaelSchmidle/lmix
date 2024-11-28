@@ -23,15 +23,11 @@ import { JSONParser } from '@streamparser/json'
  * Type guards for content properties
  */
 const isVectorProperty = (prop: string): prop is keyof Content['vectors'] => {
-  return ['location', 'posture', 'direction', 'momentum'].includes(prop)
-}
-
-const isEvolutionProperty = (prop: string): prop is keyof Content['evolution'] => {
-  return ['self_perception', 'private_knowledge', 'note_to_future_self'].includes(prop)
+  return ['position', 'posture', 'direction', 'momentum'].includes(prop)
 }
 
 const isTopLevelProperty = (prop: string): prop is keyof Content => {
-  return ['performance', 'vectors', 'evolution', 'persona_name', 'meta'].includes(prop)
+  return ['performance', 'vectors', 'meta', 'note_to_future_self', 'persona_name'].includes(prop)
 }
 
 export const useTurnStore = defineStore('turn', () => {
@@ -90,8 +86,19 @@ export const useTurnStore = defineStore('turn', () => {
    * @returns {string | undefined} The active/latest turn UUID for the production, or undefined if none found
    */
   const getActiveTurnUuid = computed(() => {
-    return (productionUuid: string): string | undefined => activeTurns.value
-      .find(t => t.production_uuid === productionUuid)?.turn_uuid || getLatestProductionTurn.value(productionUuid)?.uuid
+    return (productionUuid: string): string | undefined => {
+      // First try to get the explicitly set active turn
+      const activeTurnUuid = activeTurns.value
+        .find(t => t.production_uuid === productionUuid)?.turn_uuid
+
+      // Check if this turn actually exists in our turns array
+      if (activeTurnUuid && turns.value.some(t => t.uuid === activeTurnUuid)) {
+        return activeTurnUuid
+      }
+
+      // If no valid active turn, try to get the latest turn (if any exist)
+      return getLatestProductionTurn.value(productionUuid)?.uuid
+    }
   })
 
   /**
@@ -491,48 +498,48 @@ export const useTurnStore = defineStore('turn', () => {
       turnUuid: null,
     }
 
-    // Create a turn in state only
-    const assistant = assistantStore.getAssistant(assistantUuid)
-
-    if (!assistant) {
-      throw new LMiXError(
-        'Assistant not found',
-        'ASSISTANT_NOT_FOUND',
-      )
-    }
-
-    const persona = personaStore.getPersona(assistant.persona_uuid)
-
-    if (!persona) {
-      throw new LMiXError(
-        'Persona not found',
-        'PERSONA_NOT_FOUND',
-      )
-    }
-
-    const tempCreatedAt = new Date().toISOString()
-
-    const turn: TurnInsert = {
-      user_uuid: useSupabaseUser().value?.id!,
-      production_uuid: productionUuid,
-      parent_turn_uuid: parentTurnUuid,
-      message: {
-        role: 'assistant',
-        content: {
-          persona_name: persona.name,
-          performance: '', // Gets replaced by streaming response
-        },
-        metadata: {
-          persona_uuid: assistant.persona_uuid,
-        }
-      },
-      created_at: tempCreatedAt,
-      assistant_uuid: assistantUuid
-    }
-
-    streamingState.value.turnUuid = await insertTurn(turn, true)
-
     try {
+      // Create a turn in state only
+      const assistant = assistantStore.getAssistant(assistantUuid)
+
+      if (!assistant) {
+        throw new LMiXError(
+          'Assistant not found',
+          'ASSISTANT_NOT_FOUND',
+        )
+      }
+
+      const persona = personaStore.getPersona(assistant.persona_uuid)
+
+      if (!persona) {
+        throw new LMiXError(
+          'Persona not found',
+          'PERSONA_NOT_FOUND',
+        )
+      }
+
+      const tempCreatedAt = new Date().toISOString()
+
+      const turn: TurnInsert = {
+        user_uuid: useSupabaseUser().value?.id!,
+        production_uuid: productionUuid,
+        parent_turn_uuid: parentTurnUuid,
+        message: {
+          role: 'assistant',
+          content: {
+            persona_name: persona.name,
+            performance: '', // Gets replaced by streaming response
+          },
+          metadata: {
+            persona_uuid: assistant.persona_uuid,
+          }
+        },
+        created_at: tempCreatedAt,
+        assistant_uuid: assistantUuid
+      }
+
+      streamingState.value.turnUuid = await insertTurn(turn, true)
+
       // Construct system messages based on production configuration
       const systemMessages: { role: 'system', content: string }[] = []
       const production = productionStore.getProduction(productionUuid)
@@ -736,11 +743,6 @@ export const useTurnStore = defineStore('turn', () => {
               content.vectors = { ...content.vectors, [key]: value }
             }
           }
-          else if (path.length === 2 && path[0] === 'evolution' && isEvolutionProperty(key)) {
-            if (typeof value === 'string') {
-              content.evolution = { ...content.evolution, [key]: value }
-            }
-          }
 
           // Update the turn with new content
           updatedTurn.message = {
@@ -815,9 +817,10 @@ export const useTurnStore = defineStore('turn', () => {
     }
 
     // Set active turn to null
+    const originalActiveTurnUuid = getActiveTurnUuid.value(turn.production_uuid)
     setActiveTurn(turn.production_uuid, null)
 
-    const original = [...turns.value]
+    const originalTurns = [...turns.value]
     turns.value = turns.value.filter(t => t.uuid !== uuid)
 
     try {
@@ -835,7 +838,8 @@ export const useTurnStore = defineStore('turn', () => {
       )
     }
     catch (e) {
-      turns.value = original
+      turns.value = originalTurns
+      if (originalActiveTurnUuid) setActiveTurn(turn.production_uuid, originalActiveTurnUuid)
       error.value = e as LMiXError
       if (import.meta.dev) console.error('Turn deletion failed:', e)
       throw e

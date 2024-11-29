@@ -9,7 +9,7 @@ import { defineStore } from 'pinia'
 import type { VerticalNavigationLink } from '#ui/types'
 import type { Database } from '~/types/api'
 import type { Persona, Relation, RelationInsert, RelationPersona, RelationWithRelations } from '~/types/app'
-import { LMiXError } from '~/types/errors'
+import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
 
 export const useRelationStore = defineStore('relations', () => {
   const personaStore = usePersonaStore()
@@ -139,7 +139,7 @@ export const useRelationStore = defineStore('relations', () => {
           *,
           relation_personas (*)
         `)
-        .order('created_at', { ascending: false })
+        .order('inserted_at', { ascending: false })
 
       if (selectError) throw new LMiXError(
         selectError.message,
@@ -178,6 +178,23 @@ export const useRelationStore = defineStore('relations', () => {
       relationPersonas: [...relationPersonas.value]
     }
 
+    let tempId: string | null = null
+
+    if (isUpdate) {
+      const index = relations.value.findIndex(r => r.uuid === relation.uuid)
+      if (index !== -1) {
+        relations.value[index] = { ...relations.value[index], ...relation }
+      }
+    }
+    else {
+      tempId = crypto.randomUUID()
+      relations.value.unshift({
+        ...relation,
+        uuid: tempId,
+        inserted_at: new Date().toISOString(),
+      } as Relation)
+    }
+
     try {
       const client = useSupabaseClient<Database>()
 
@@ -188,16 +205,29 @@ export const useRelationStore = defineStore('relations', () => {
         .select()
         .single()
 
-      if (upsertError) throw new LMiXError(
-        upsertError.message,
-        'API_ERROR',
-        upsertError,
-      )
+      if (upsertError) {
+        // Convert Supabase errors to appropriate LMiX error types
+        if (upsertError.code === '42501') {
+          throw new AuthenticationError(
+            'Not authorized to upsert relation',
+            upsertError
+          )
+        }
+        if (upsertError.code === '23502') {
+          throw new ValidationError(
+            'Missing required fields for relation',
+            upsertError
+          )
+        }
+        throw new ApiError(
+          upsertError.message,
+          upsertError
+        )
+      }
 
       if (!upsertedRelation) {
-        throw new LMiXError(
-          'No relation data returned from API',
-          'API_ERROR',
+        throw new ApiError(
+          'No relation data returned from API'
         )
       }
 
@@ -211,11 +241,12 @@ export const useRelationStore = defineStore('relations', () => {
           .delete()
           .eq('relation_uuid', relationUuid)
 
-        if (deleteError) throw new LMiXError(
-          deleteError.message,
-          'API_ERROR',
-          deleteError,
-        )
+        if (deleteError) {
+          throw new ApiError(
+            'Failed to delete existing relation personas',
+            deleteError
+          )
+        }
       }
 
       // Insert new relations
@@ -228,11 +259,12 @@ export const useRelationStore = defineStore('relations', () => {
           })))
           .select()
 
-        if (insertError) throw new LMiXError(
-          insertError.message,
-          'API_ERROR',
-          insertError,
-        )
+        if (insertError) {
+          throw new ApiError(
+            'Failed to insert relation personas',
+            insertError
+          )
+        }
 
         relationPersonas.value = insertedRelationPersonas
       }
@@ -243,17 +275,29 @@ export const useRelationStore = defineStore('relations', () => {
           relations.value[index] = upsertedRelation
         }
       }
-      else {
-        relations.value.unshift(upsertedRelation)
+      else if (tempId) {
+        const tempIndex = relations.value.findIndex(r => r.uuid === tempId)
+        if (tempIndex !== -1) {
+          relations.value[tempIndex] = upsertedRelation
+        }
       }
 
       return relationUuid
     }
     catch (e) {
+      // Rollback optimistic update
       relations.value = original.relations
       relationPersonas.value = original.relationPersonas
+
+      // Set error state for UI feedback
       error.value = e as LMiXError
-      if (import.meta.dev) console.error('Relation upsert failed:', e)
+
+      // Log in development only
+      if (import.meta.dev) {
+        console.error('Relation upsert failed:', e)
+      }
+
+      // Re-throw for UI handling
       throw e
     }
     finally {

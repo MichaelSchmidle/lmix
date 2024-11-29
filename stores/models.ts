@@ -9,7 +9,7 @@ import { defineStore } from 'pinia'
 import type { AccordionItem, VerticalNavigationLink } from '#ui/types'
 import type { Database } from '~/types/api'
 import type { ApiConfiguration, ApiModel, ApiModelOption, Model, ModelInsert, Assistant } from '~/types/app'
-import { LMiXError } from '~/types/errors'
+import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
 
 export const useModelStore = defineStore('model', () => {
   // State
@@ -121,7 +121,7 @@ export const useModelStore = defineStore('model', () => {
       const { data, error: selectError } = await client
         .from('models')
         .select()
-        .order('created_at', { ascending: false })
+        .order('inserted_at', { ascending: false })
 
       if (selectError) throw new LMiXError(
         selectError.message,
@@ -151,12 +151,13 @@ export const useModelStore = defineStore('model', () => {
     loading.value = true
     error.value = null
 
-    const tempIds = modelsToInsert.map(() => crypto.randomUUID() as Model['uuid'])
+    const original = [...models.value]
+    const tempIds = modelsToInsert.map(() => crypto.randomUUID())
 
     const optimisticModels: Model[] = modelsToInsert.map((model, index) => ({
       ...model,
       uuid: tempIds[index],
-      created_at: new Date().toISOString(),
+      inserted_at: new Date().toISOString(),
       user_uuid: useSupabaseUser().value?.id!,
       api_key: model.api_key ?? null
     }))
@@ -171,26 +172,53 @@ export const useModelStore = defineStore('model', () => {
         .insert(modelsToInsert)
         .select()
 
-      if (insertError) throw new LMiXError(
-        insertError.message,
-        'API_ERROR',
-        insertError
-      )
-
-      if (insertedModels) {
-        tempIds.forEach((tempId, index) => {
-          const modelIndex = models.value.findIndex(m => m.uuid === tempId)
-
-          if (modelIndex !== -1 && insertedModels[index]) {
-            models.value[modelIndex] = insertedModels[index]
-          }
-        })
+      if (insertError) {
+        // Convert Supabase errors to appropriate LMiX error types
+        if (insertError.code === '42501') {
+          throw new AuthenticationError(
+            'Not authorized to insert models',
+            insertError
+          )
+        }
+        if (insertError.code === '23502') {
+          throw new ValidationError(
+            'Missing required fields for models',
+            insertError
+          )
+        }
+        throw new ApiError(
+          insertError.message,
+          insertError
+        )
       }
+
+      if (!insertedModels) {
+        throw new ApiError(
+          'No model data returned from API'
+        )
+      }
+
+      tempIds.forEach((tempId, index) => {
+        const modelIndex = models.value.findIndex(m => m.uuid === tempId)
+
+        if (modelIndex !== -1 && insertedModels[index]) {
+          models.value[modelIndex] = insertedModels[index]
+        }
+      })
     }
     catch (e) {
-      models.value = models.value.filter(m => !tempIds.includes(m.uuid))
+      // Rollback optimistic update
+      models.value = original
+
+      // Set error state for UI feedback
       error.value = e as LMiXError
-      if (import.meta.dev) console.error('Model insertion failed:', e)
+
+      // Log in development only
+      if (import.meta.dev) {
+        console.error('Model insertion failed:', e)
+      }
+
+      // Re-throw for UI handling
       throw e
     }
     finally {

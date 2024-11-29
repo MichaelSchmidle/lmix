@@ -29,7 +29,7 @@ export default defineAppConfig({
     button: {
       color: {
         gray: {
-          ghost: 'hover:bg-gray-100',
+          ghost: 'text-gray-500 dark:text-gray-400 hover:bg-gray-100',
         },
       },
       default: {
@@ -69,6 +69,7 @@ export default defineAppConfig({
         background: 'bg-white/80 dark:bg-black/80',
         base: 'backdrop-blur-sm',
       },
+      width: 'w-full max-w-prose sm:max-w-prose',
     },
     notifications: {
       // Show toasts at the top right of the screen

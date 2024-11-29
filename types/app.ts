@@ -98,7 +98,7 @@ export type AssistantWithRelations = Assistant & {
 }
 
 export type ProductionAssistantWithRelations = ProductionAssistant & {
-  assistant: Assistant
+  assistant: AssistantWithRelations
 }
 
 export type ProductionPersonaWithRelations = ProductionPersona & {
@@ -157,4 +157,9 @@ export type Message = {
   metadata?: {
     persona_uuid?: string
   }
+}
+
+export type ActiveTurn = {
+  production_uuid: string
+  turn_uuid: string | null
 }

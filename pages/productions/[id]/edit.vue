@@ -8,7 +8,6 @@ const { getProductionLabel } = storeToRefs(productionStore)
 definePageMeta({
   middleware: [
     'assistants',
-    'personas',
     'relations',
     'scenarios',
     'worlds',

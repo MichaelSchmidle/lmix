@@ -45,6 +45,10 @@ export const usePersonaStore = defineStore('persona', () => {
       return personaList
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((persona): VerticalNavigationLink => ({
+          avatar: {
+            alt: persona.name,
+            src: persona.avatar_url || undefined,
+          },
           label: persona.name,
           to: `/personas/${persona.uuid}`,
           ...(icon && { icon }),
@@ -98,7 +102,7 @@ export const usePersonaStore = defineStore('persona', () => {
       const { data: selectedPersonas, error: selectError } = await client
         .from('personas')
         .select()
-        .order('created_at', { ascending: false })
+        .order('inserted_at', { ascending: false })
 
       if (selectError) throw new LMiXError(
         selectError.message,
@@ -144,7 +148,7 @@ export const usePersonaStore = defineStore('persona', () => {
       personas.value.unshift({
         ...persona,
         uuid: tempId,
-        created_at: new Date().toISOString(),
+        inserted_at: new Date().toISOString(),
       } as Persona)
     }
 
@@ -207,9 +211,14 @@ export const usePersonaStore = defineStore('persona', () => {
     error.value = null
 
     const original = [...personas.value]
-    personas.value = personas.value.filter(p => p.uuid !== uuid)
+    const personaToDelete = personas.value.find(p => p.uuid === uuid)
 
     try {
+      // Delete avatar first if it exists
+      if (personaToDelete?.avatar_url) {
+        await deleteAvatar(uuid)
+      }
+
       const client = useSupabaseClient<Database>()
 
       const { error: deleteError } = await client
@@ -222,6 +231,8 @@ export const usePersonaStore = defineStore('persona', () => {
         'API_ERROR',
         deleteError
       )
+
+      personas.value = personas.value.filter(p => p.uuid !== uuid)
     }
     catch (e) {
       personas.value = original
@@ -247,6 +258,101 @@ export const usePersonaStore = defineStore('persona', () => {
     }
   }
 
+  /**
+   * Uploads an avatar image for a persona
+   * @param {string} personaUuid - UUID of the persona
+   * @param {File} file - The image file to upload
+   * @returns {Promise<string>} The signed URL of the uploaded avatar
+   * @throws {LMiXError} If the upload fails
+   */
+  async function uploadAvatar(personaUuid: string, file: File): Promise<string> {
+    if (!file.type.startsWith('image/')) {
+      throw new LMiXError('Invalid file type', 'VALIDATION_ERROR')
+    }
+    if (file.size > 6 * 1024 * 1024) {
+      throw new LMiXError('File too large', 'VALIDATION_ERROR')
+    }
+
+    const client = useSupabaseClient()
+    const userUuid = useSupabaseUser().value?.id
+
+    if (!userUuid) {
+      throw new LMiXError('User not authenticated', 'AUTH_ERROR')
+    }
+
+    const filePath = `${userUuid}/${personaUuid}`
+    const { error: uploadError } = await client.storage
+      .from('persona_avatars')
+      .upload(filePath, file, {
+        upsert: true,
+        contentType: file.type,
+      })
+
+    if (uploadError) {
+      throw new LMiXError(uploadError.message, 'API_ERROR', uploadError)
+    }
+
+    // Get signed URL instead of public URL
+    const { data: signedUrlData, error: signedUrlError } = await client.storage
+      .from('persona_avatars')
+      .createSignedUrl(filePath, 60 * 60 * 24 * 365) // 1 year expiry
+
+    if (signedUrlError || !signedUrlData) {
+      throw new LMiXError(
+        signedUrlError?.message || 'Failed to get signed URL',
+        'API_ERROR',
+        signedUrlError
+      )
+    }
+
+    // Add timestamp to URL to bust cache
+    const url = new URL(signedUrlData.signedUrl)
+    url.searchParams.set('v', Date.now().toString())
+
+    // Update persona with new avatar URL
+    const persona = personas.value.find(p => p.uuid === personaUuid)
+    if (persona) {
+      await upsertPersona({
+        ...persona,
+        avatar_url: url.toString(),
+      })
+    }
+
+    return url.toString()
+  }
+
+  /**
+   * Deletes the avatar for a persona
+   * @param {string} personaUuid - UUID of the persona
+   * @throws {LMiXError} If the deletion fails
+   */
+  async function deleteAvatar(personaUuid: string): Promise<void> {
+    const client = useSupabaseClient()
+    const userUuid = useSupabaseUser().value?.id
+
+    if (!userUuid) {
+      throw new LMiXError('User not authenticated', 'AUTH_ERROR')
+    }
+
+    const filePath = `${userUuid}/${personaUuid}`
+    const { error: deleteError } = await client.storage
+      .from('persona_avatars')
+      .remove([filePath])
+
+    if (deleteError) {
+      throw new LMiXError(deleteError.message, 'API_ERROR', deleteError)
+    }
+
+    // Update persona to remove avatar URL
+    const persona = personas.value.find(p => p.uuid === personaUuid)
+    if (persona) {
+      await upsertPersona({
+        ...persona,
+        avatar_url: null,
+      })
+    }
+  }
+
   return {
     // State
     personas,
@@ -262,6 +368,8 @@ export const usePersonaStore = defineStore('persona', () => {
     upsertPersona,
     deletePersona,
     addPersonas,
+    uploadAvatar,
+    deleteAvatar,
   }
 })
 

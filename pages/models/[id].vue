@@ -33,7 +33,7 @@ useHead({
         <UCard>
           <dl class="prose dark:prose-invert w-full">
             <dt>{{ t('modelId') }}</dt>
-            <dd>{{ model?.id }}</dd>
+            <dd><code>{{ model?.id }}</code></dd>
             <dt>{{ t('modelApiEndpoint') }}</dt>
             <dd><code>{{ model?.api_endpoint }}</code></dd>
           </dl>

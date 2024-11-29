@@ -2,9 +2,14 @@
 import type { Production } from '~/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
+const toast = useToast()
 const productionStore = useProductionStore()
+const { getProductionAssistantUuids, getProductionLabel } = storeToRefs(productionStore)
+const assistantStore = useAssistantStore()
+const { getAssistant } = storeToRefs(assistantStore)
 const turnStore = useTurnStore()
-const { getProductionAssistants, getProductionLabel } = storeToRefs(productionStore)
+const { getActiveTurnUuid, getAncestorTurnUuid, getChildTurnUuids, getStreamingState, getTurn } = storeToRefs(turnStore)
+const { insertAssistantTurn } = turnStore
 
 const props = defineProps({
   production: {
@@ -16,8 +21,24 @@ const props = defineProps({
 // Fetch turns
 await turnStore.selectTurns(props.production.uuid)
 
-// Get turns for this production
-const turns = computed(() => turnStore.getProductionTurns(props.production.uuid))
+// Get active top-level turn for this production
+const childTurnUuids = computed(() => getChildTurnUuids.value(props.production.uuid, null))
+const activeTurnUuid = computed(() => getActiveTurnUuid.value(props.production.uuid))
+const ancestorTurnUuid = computed(() => activeTurnUuid.value ? getAncestorTurnUuid.value(activeTurnUuid.value, childTurnUuids.value) : undefined)
+const turn = computed(() => ancestorTurnUuid.value ? getTurn.value(ancestorTurnUuid.value) : undefined)
+
+const handleAssistantTurn = async (assistantUuid: string) => {
+  try {
+    await insertAssistantTurn(props.production.uuid, assistantUuid, activeTurnUuid.value)
+  }
+  catch (e) {
+    toast.add({
+      color: 'rose',
+      icon: 'i-ph-x-circle-duotone',
+      title: t('insert.error'),
+    })
+  }
+}
 </script>
 
 <template>
@@ -31,18 +52,29 @@ const turns = computed(() => turnStore.getProductionTurns(props.production.uuid)
         <NavPanelSlideover class="xl:hidden" :production="production" />
       </template>
     </UiPanelHeader>
-    <UiPanelContent v-auto-animate>
-      <Turns v-if="turns.length" :turns="turns" />
-      <ProductionsNoData v-else :assistant-uuids="getProductionAssistants(production.uuid)" />
+    <UiPanelContent class="overflow-x-hidden">
+      <UContainer v-auto-animate>
+        <Turns v-if="turn" :turn="turn" />
+        <ProductionsNoData v-else :production-uuid="production.uuid" />
+        <div class="flex flex-wrap gap-x-4 gap-y-3 justify-center">
+          <UButton v-for="assistantUuid in getProductionAssistantUuids(production.uuid)" :key="assistantUuid"
+            color="cyan" :disabled="getStreamingState.isStreaming"
+            :loading="getStreamingState.isStreaming && getStreamingState.assistantUuid === assistantUuid"
+            icon="i-ph-paper-plane-tilt-duotone" :label="getAssistant(assistantUuid)?.name"
+            @click="handleAssistantTurn(assistantUuid)" />
+        </div>
+      </UContainer>
     </UiPanelContent>
     <UiPanelFooter>
       <UContainer class="max-w-prose w-full">
-        <TurnsUpsert :production="production" />
+        <TurnsInsert :production="production" />
       </UContainer>
     </UiPanelFooter>
   </UiPanel>
 </template>
 
 <i18n lang="yaml">
-  en:
+en:
+  insert:
+    error: Failed to insert turn.
 </i18n>

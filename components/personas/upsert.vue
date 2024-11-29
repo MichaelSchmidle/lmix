@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { FormKitNode } from '@formkit/core'
 import type { Persona, PersonaInsert } from '@/types/app'
+import { LMiXError } from '@/types/errors'
+import { ref, computed } from 'vue'
 
 const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
@@ -15,12 +17,9 @@ const props = defineProps({
 
 const isUpdate = computed(() => !!props.persona)
 
-const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
+const handleSubmit = async (persona: PersonaInsert, node: FormKitNode) => {
   try {
-    const uuid = await personaStore.upsertPersona({
-      ...form,
-      uuid: props.persona?.uuid,
-    } as PersonaInsert)
+    const uuid = await personaStore.upsertPersona(persona)
 
     toast.add({
       color: 'lime',
@@ -30,9 +29,59 @@ const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
 
     navigateTo(`/personas/${uuid}`)
   }
-  catch (error) {
+  catch (error: any) {
     console.error(error)
-    node.setErrors([t('saveFailed')])
+    node.setErrors([error instanceof LMiXError ? t(error.message) : t('saveFailed')])
+  }
+}
+
+const handleNavigation = (to: string) => {
+  navigateTo(to)
+}
+
+const fileInput = ref<HTMLInputElement | null>(null)
+
+const handleAvatarUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  if (!input.files?.length) return
+
+  try {
+    const file = input.files[0]
+    await personaStore.uploadAvatar(props.persona!.uuid, file)
+
+    toast.add({
+      color: 'lime',
+      icon: 'i-ph-check-circle',
+      title: t('avatar.uploaded'),
+    })
+  }
+  catch (error: any) {
+    console.error(error)
+    toast.add({
+      color: 'red',
+      icon: 'i-ph-warning-circle',
+      title: error instanceof LMiXError ? t(error.message) : t('avatar.uploadFailed'),
+    })
+  }
+}
+
+const handleAvatarDelete = async () => {
+  try {
+    await personaStore.deleteAvatar(props.persona!.uuid)
+
+    toast.add({
+      color: 'lime',
+      icon: 'i-ph-check-circle',
+      title: t('avatar.deleted'),
+    })
+  }
+  catch (error: any) {
+    console.error(error)
+    toast.add({
+      color: 'red',
+      icon: 'i-ph-warning-circle',
+      title: error instanceof LMiXError ? t(error.message) : t('avatar.deleteFailed'),
+    })
   }
 }
 </script>
@@ -41,6 +90,14 @@ const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
   <UiSection icon="i-ph-mask-happy-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleInsert')"
     :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionInsert')">
     <UCard>
+      <div v-if="isUpdate" class="mx-auto relative w-fit">
+        <UAvatar :alt="persona?.name" :src="persona?.avatar_url || undefined" size="3xl" />
+        <div class="absolute bottom-0 right-0">
+          <input type="file" accept="image/*" class="hidden" ref="fileInput" @change="handleAvatarUpload">
+          <UButton v-if="persona?.avatar_url" color="rose" icon="i-ph-trash" size="2xs" @click="handleAvatarDelete" />
+          <UButton v-else color="cyan" icon="i-ph-user-focus" size="2xs" @click="fileInput?.click()" />
+        </div>
+      </div>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="persona">
         <FormKit type="text" name="name" :label="t('name.label')" validation="required|not:User"
           :validation-messages="{ required: t('name.required'), not: t('name.notUser') }" />
@@ -54,7 +111,7 @@ const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
           :help="t('selfPerception.help')" />
         <template #actions="{ disabled }">
           <UiFormActions>
-            <PersonasDeleteModal v-if="persona" :persona="persona" @success="navigateTo('/personas/add')" />
+            <PersonasDeleteModal v-if="persona" :persona="persona" @success="handleNavigation('/personas/add')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
               :label="t(isUpdate ? 'updatePersona' : 'createPersona')" :loading="disabled as boolean" type="submit" />
           </UiFormActions>
@@ -65,30 +122,39 @@ const handleSubmit = async (form: PersonaInsert, node: FormKitNode) => {
 </template>
 
 <i18n lang="yaml">
-  en:
-    titleInsert: Create
-    titleUpdate: Update
-    descriptionInsert: Create a new persona with their own perceptions and knowledge states.
-    descriptionUpdate: Configure this persona’s perceptions and knowledge states.
-    name:
-      label: Name
-      required: Name is required.
-      notUser: ‘User’ is a reserved name, please choose a different name.
-    selfPerception:
-      label: Self Perception
-      help: How the persona views themselves
-    publicPerception:
-      label: Public Perception
-      help: How others perceive the persona
-    privateKnowledge:
-      label: Private Knowledge
-      help: What only the persona knows
-    publicKnowledge:
-      label: Public Knowledge
-      help: What others know for a fact about the persona
-    createPersona: Create
-    updatePersona: Update
-    personaCreated: Persona created.
-    personaUpdated: Persona updated.
-    saveFailed: Failed to save persona.
+en:
+  titleInsert: Create
+  titleUpdate: Update
+  descriptionInsert: Create a new persona with their own perceptions and knowledge states.
+  descriptionUpdate: Configure this persona’s perceptions and knowledge states.
+  name:
+    label: Name
+    required: Name is required.
+    notUser: ‘User’ is a reserved name, please choose a different name.
+  selfPerception:
+    label: Self Perception
+    help: How the persona views themselves
+  publicPerception:
+    label: Public Perception
+    help: How others perceive the persona
+  privateKnowledge:
+    label: Private Knowledge
+    help: What only the persona knows
+  publicKnowledge:
+    label: Public Knowledge
+    help: What others know for a fact about the persona
+  createPersona: Create
+  updatePersona: Update
+  personaCreated: Persona created.
+  personaUpdated: Persona updated.
+  saveFailed: Failed to save persona.
+  avatar:
+    label: Avatar
+    help: 'Upload an image (maximum file size: 6MB)'
+    invalidType: Please upload an image file
+    tooLarge: Image must be smaller than 6MB
+    uploaded: Avatar uploaded successfully.
+    deleted: Avatar removed successfully.
+    uploadFailed: Failed to upload avatar.
+    deleteFailed: Failed to remove avatar.
 </i18n>

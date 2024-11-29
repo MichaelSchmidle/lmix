@@ -4,13 +4,14 @@ import type { Production, UserTurnMessage } from '~/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
 const productionStore = useProductionStore()
-const { getProductionAssistants, getProductionPersonas } = storeToRefs(productionStore)
+const { getProductionAssistantUuids, getProductionPersonaUuids } = storeToRefs(productionStore)
 const assistantStore = useAssistantStore()
 const { getAssistantOptions } = storeToRefs(assistantStore)
 const personaStore = usePersonaStore()
 const { getPersonaOptions } = storeToRefs(personaStore)
 const turnStore = useTurnStore()
-const { triggerTurn } = turnStore
+const { getStreamingState } = storeToRefs(turnStore)
+const { insertUserTurn } = turnStore
 
 const props = defineProps({
   production: {
@@ -19,26 +20,27 @@ const props = defineProps({
   },
 })
 
-const personaOptions = computed(() => getPersonaOptions.value(getProductionPersonas.value(props.production.uuid)))
-const assistantOptions = computed(() => getAssistantOptions.value(getProductionAssistants.value(props.production.uuid)))
+const personaOptions = computed(() => getPersonaOptions.value(getProductionPersonaUuids.value(props.production.uuid)))
+const assistantOptions = computed(() => getAssistantOptions.value(getProductionAssistantUuids.value(props.production.uuid)))
 
 const defaultPersona = computed(() => personaOptions.value.length === 1 ? personaOptions.value[0].value : undefined)
 const defaultAssistant = computed(() => assistantOptions.value.length === 1 ? assistantOptions.value[0].value : undefined)
 
 const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => {
   try {
-    if (userMessage.performance) {
-      await triggerTurn(userMessage)
+    if (getStreamingState.value.isStreaming) return
 
-      // Clear form after successful submission, keeping the user's selection
-      node.reset({
-        sending_persona_uuid: userMessage.sending_persona_uuid,
-        receiving_assistant_uuid: userMessage.receiving_assistant_uuid,
-      })
-    }
-  } catch (error) {
-    // Error handling is done in the store and shown in the index component
-    console.error('Failed to submit turn:', error)
+    await insertUserTurn(userMessage)
+
+    // Reset form after successful submission, keeping the user's selection
+    node.reset({
+      sending_persona_uuid: userMessage.sending_persona_uuid,
+      receiving_assistant_uuid: userMessage.receiving_assistant_uuid,
+    })
+  }
+  catch (e) {
+    console.error(e)
+    node.setErrors([t('turnError')])
   }
 }
 </script>
@@ -71,8 +73,8 @@ const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => 
           validation="required" :validation-messages="{ required: t('assistant.required') }" />
       </div>
       <UTooltip :shortcuts="['Enter']" :text="t('send.tooltip')">
-        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :loading="(disabled as boolean)" size="lg" square
-          type="submit" />
+        <UButton color="cyan" icon="i-ph-paper-plane-tilt-duotone" :disabled="getStreamingState.isStreaming"
+          :loading="(disabled as boolean)" size="lg" square type="submit" />
       </UTooltip>
     </div>
   </FormKit>
@@ -92,4 +94,5 @@ en:
     required: Please select an assistant.
   send:
     tooltip: Send
+  turnError: Something went wrong, please try again.
 </i18n>

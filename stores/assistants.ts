@@ -48,6 +48,10 @@ export const useAssistantStore = defineStore('assistant', () => {
       return assistantList
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((assistant): VerticalNavigationLink => ({
+          avatar: usePersonaStore().getPersona(assistant.persona_uuid)?.avatar_url ? {
+            alt: assistant.name,
+            src: usePersonaStore().getPersona(assistant.persona_uuid)?.avatar_url || undefined,
+          } : undefined,
           label: assistant.name,
           to: `/assistants/${assistant.uuid}`,
           ...(icon && { icon }),

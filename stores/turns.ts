@@ -531,9 +531,8 @@ export const useTurnStore = defineStore('turn', () => {
           content: JSON.stringify({
             your_persona: {
               name: assistantPersona.name,
-              public_knowledge: assistantPersona.public_knowledge,
-              self_perception: assistantPersona.self_perception,
-              private_knowledge: assistantPersona.private_knowledge,
+              universal: assistantPersona.universal,
+              internal: assistantPersona.internal,
             },
           })
         })
@@ -562,14 +561,15 @@ export const useTurnStore = defineStore('turn', () => {
       for (const personaUuid of personaUuids) {
         const persona = personaStore.getPersona(personaUuid)
 
-        if (persona) {
+        // Only include personas that are "tangible" for others (via universal or external properties)
+        if (persona && (persona.universal || persona.external)) {
           systemMessages.push({
             role: 'system',
             content: JSON.stringify({
               other_persona: {
                 name: persona.name,
-                public_perception: persona.public_perception,
-                public_knowledge: persona.public_knowledge,
+                universal: persona.universal,
+                external: persona.external,
               },
             })
           })
@@ -593,7 +593,9 @@ export const useTurnStore = defineStore('turn', () => {
             content: JSON.stringify({
               [`${propertyPrefix}relation`]: {
                 name: useRelationStore().getRelationLabel(relation.uuid),
-                description: isOwnRelation ? relation.private_description : relation.public_description
+                universal: relation.universal,
+                internal: isOwnRelation ? relation.internal : undefined,
+                external: isOwnRelation ? undefined : relation.external,
               },
             })
           })
@@ -620,7 +622,22 @@ export const useTurnStore = defineStore('turn', () => {
       // Construct user and assistant message history
       const messages: { role: 'user' | 'assistant', content: string }[] = []
 
-      for (const turn of getProductionTurns.value(productionUuid)) {
+      // If there's a parent turn, collect all ancestor turns up to the root
+      const turnUuidsInBranch: string[] = []
+      if (parentTurnUuid) {
+        let currentTurnUuid: string | null = parentTurnUuid
+        while (currentTurnUuid) {
+          turnUuidsInBranch.unshift(currentTurnUuid) // Add at start to maintain chronological order
+          const turn = getTurn.value(currentTurnUuid)
+          currentTurnUuid = turn?.parent_turn_uuid ?? null
+        }
+      }
+
+      // Get the turns in chronological order and filter to only include those in the branch
+      const branchTurns = getProductionTurns.value(productionUuid)
+        .filter(turn => turnUuidsInBranch.includes(turn.uuid))
+
+      for (const turn of branchTurns) {
         messages.push({
           role: turn.message.role,
           content: JSON.stringify({

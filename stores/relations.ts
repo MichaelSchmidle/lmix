@@ -266,7 +266,10 @@ export const useRelationStore = defineStore('relations', () => {
           )
         }
 
-        relationPersonas.value = insertedRelationPersonas
+        relationPersonas.value = [
+          ...relationPersonas.value.filter(rp => rp.relation_uuid !== relationUuid),
+          ...insertedRelationPersonas
+        ]
       }
 
       if (isUpdate) {

@@ -19,16 +19,13 @@ const props = defineProps({
 const isUpdate = computed(() => !!props.relation)
 const selectedPersonas = ref<string[]>(props.relation ? getRelationPersonas.value(props.relation.uuid) : [])
 
-const formData = computed(() => ({
-  public_description: props.relation?.public_description ?? '',
-  private_description: props.relation?.private_description ?? '',
-}))
-
-const handleSubmit = async (form: RelationInsert, node: FormKitNode) => {
+const handleSubmit = async (relation: RelationInsert, node: FormKitNode) => {
   try {
     const uuid = await relationStore.upsertRelation({
-      public_description: form.public_description,
-      private_description: form.private_description,
+      name: relation.name,
+      universal: relation.universal,
+      internal: relation.internal,
+      external: relation.external,
       uuid: props.relation?.uuid,
     } as RelationInsert, selectedPersonas.value)
 
@@ -51,14 +48,15 @@ const handleSubmit = async (form: RelationInsert, node: FormKitNode) => {
   <UiSection icon="i-ph-share-network-thin" :title="t(isUpdate ? 'titleUpdate' : 'titleInsert')"
     :description="t(isUpdate ? 'descriptionUpdate' : 'descriptionInsert')">
     <UCard>
-      <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="formData">
-        <FormKit type="text" name="name" :label="t('name.label')" />
+      <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="relation">
+        <FormKit type="text" name="name" :label="t('name.label')" :help="t('name.help')" />
         <FormKit type="taglist" :options="getPersonaOptions()" v-model="selectedPersonas" :label="t('personas.label')"
-          :help="t('personas.help')" validation="min:2" :validation-messages="{ min: t('personas.minimum') }" />
-        <FormKit type="textarea" auto-height name="private_description" :label="t('privateDescription.label')"
-          :help="t('privateDescription.help')" />
-        <FormKit type="textarea" auto-height name="public_description" :label="t('publicDescription.label')"
-          :help="t('publicDescription.help')" />
+          :help="t('personas.help')" validation="required|min:2"
+          :validation-messages="{ required: t('personas.minimum'), min: t('personas.minimum') }" />
+        <FormKit type="textarea" auto-height name="universal" :label="t('universal.label')"
+          :help="t('universal.help')" />
+        <FormKit type="textarea" auto-height name="internal" :label="t('internal.label')" :help="t('internal.help')" />
+        <FormKit type="textarea" auto-height name="external" :label="t('external.label')" :help="t('external.help')" />
         <template #actions="{ disabled }">
           <UiFormActions>
             <RelationsDeleteModal v-if="relation" :relation="relation" @success="navigateTo('/relations/add')" />
@@ -73,26 +71,30 @@ const handleSubmit = async (form: RelationInsert, node: FormKitNode) => {
 </template>
 
 <i18n lang="yaml">
-  en:
-    titleInsert: Create
-    titleUpdate: Update
-    descriptionInsert: Create a new relation between personas.
-    descriptionUpdate: Configure this relation’s personas and descriptions.
-    name:
-      label: Name
-    personas:
-      label: Personas
-      help: Select the personas that will be part of this relation.
-      minimum: Please select at least two personas.
-    privateDescription:
-      label: Private Description
-      help: What this relation means to the personas involved.
-    publicDescription:
-      label: Public Description
-      help: How this relation appears to personas outside the relation.
-    createRelation: Create
-    updateRelation: Update
-    relationCreated: Relation created.
-    relationUpdated: Relation updated.
-    saveFailed: Failed to save relation.
+en:
+  titleInsert: Create
+  titleUpdate: Update
+  descriptionInsert: Create a new relation between personas.
+  descriptionUpdate: Configure this relation’s personas and descriptions.
+  name:
+    label: Name
+    help: If no name is provided, LMiX will label this relation automatically by concatenating the names of the selected personas.
+  personas:
+    label: Personas
+    help: Select the personas that will be part of this relation.
+    minimum: Please select at least two personas.
+  universal:
+    label: Universal
+    help: What’s true for all personas about this relation – personas in the relation included.
+  internal:
+    label: Internal
+    help: What’s true only for personas in this relation.
+  external:
+    label: External
+    help: What’s true only for outside personas about this relation.
+  createRelation: Create
+  updateRelation: Update
+  relationCreated: Relation created.
+  relationUpdated: Relation updated.
+  saveFailed: Failed to save relation.
 </i18n>

@@ -39,12 +39,14 @@ export const useTurnStore = defineStore('turn', () => {
    * @property {string | null} error - Error message if the streaming operation failed
    * @property {string | null} assistantUuid - UUID of the assistant currently being streamed
    * @property {string | null} turnUuid - UUID of the turn currently being streamed
+   * @property {Set<keyof Content>} streamingProperties - Set of properties currently being streamed
    */
   interface StreamingState {
     isStreaming: boolean
     error: string | null
     assistantUuid: string | null
     turnUuid: string | null
+    streamingProperties: Set<keyof Content>
   }
 
   const turns = ref<Turn[]>([])
@@ -56,7 +58,8 @@ export const useTurnStore = defineStore('turn', () => {
     isStreaming: false,
     error: null,
     assistantUuid: null,
-    turnUuid: null
+    turnUuid: null,
+    streamingProperties: new Set(),
   })
 
   // Getters
@@ -496,6 +499,7 @@ export const useTurnStore = defineStore('turn', () => {
       error: null,
       assistantUuid: assistantUuid,
       turnUuid: null,
+      streamingProperties: new Set(),
     }
 
     try {
@@ -714,44 +718,49 @@ export const useTurnStore = defineStore('turn', () => {
       try {
         // In the streaming handler, update the turn directly
         const parser = new JSONParser({
+          paths: ['$.*'],
+          keepStack: false,
           emitPartialTokens: true,
           emitPartialValues: true,
         })
 
         parser.onValue = ({ value, key, stack }) => {
-          if (typeof key !== 'string') return
+          const keyStr = String(key)
+          if (!keyStr || stack.length !== 1) return
 
-          const path = stack.map(s => s.key).filter(Boolean) as string[]
-          path.push(key)
-
-          // Find the streaming turn in the turns array
-          const turnIndex = turns.value.findIndex(t => t.uuid === streamingState.value.turnUuid)
-          if (turnIndex === -1) return
-
-          // Create a new turn object to maintain reactivity
-          const updatedTurn = { ...turns.value[turnIndex] }
-          let content = { ...updatedTurn.message.content }
-
-          // Update the appropriate content field
-          if (path.length === 1 && isTopLevelProperty(key)) {
-            if (typeof value === 'string') {
-              content = { ...content, [key]: value }
-            }
+          // Track streaming properties at the top level
+          if (isTopLevelProperty(keyStr)) {
+            streamingState.value.streamingProperties.add(keyStr)
           }
-          else if (path.length === 2 && path[0] === 'vectors' && isVectorProperty(key)) {
-            if (typeof value === 'string') {
-              content.vectors = { ...content.vectors, [key]: value }
+
+          // Handle nested vector properties
+          if (keyStr === 'vectors' && typeof value === 'object' && value !== null) {
+            for (const vectorKey in value) {
+              if (isVectorProperty(vectorKey) && value[vectorKey] !== undefined) {
+                streamingState.value.streamingProperties.add('vectors')
+                break
+              }
             }
           }
 
-          // Update the turn with new content
-          updatedTurn.message = {
-            ...updatedTurn.message,
-            content
-          }
+          // Update turn content
+          const turn = turns.value.find(t => t.uuid === streamingState.value.turnUuid)
+          if (!turn) return
 
-          // Update the turn in state
-          turns.value[turnIndex] = updatedTurn
+          if (isTopLevelProperty(keyStr)) {
+            if (keyStr === 'vectors' && typeof value === 'object' && value !== null) {
+              // Ensure value matches the expected vectors type
+              const vectors: Content['vectors'] = {}
+              for (const vectorKey in value) {
+                if (isVectorProperty(vectorKey) && typeof value[vectorKey] === 'string') {
+                  vectors[vectorKey] = value[vectorKey]
+                }
+              }
+              turn.message.content.vectors = vectors
+            } else if (keyStr !== 'vectors' && typeof value === 'string') {
+              (turn.message.content as any)[keyStr] = value
+            }
+          }
         }
 
         // Process the stream
@@ -793,6 +802,7 @@ export const useTurnStore = defineStore('turn', () => {
         error: null,
         assistantUuid: null,
         turnUuid: null,
+        streamingProperties: new Set(),
       }
     }
   }
@@ -816,16 +826,30 @@ export const useTurnStore = defineStore('turn', () => {
       )
     }
 
+    // Get all child turns recursively
+    const getAllChildTurnUuids = (turnUuid: string): string[] => {
+      const childUuids = getChildTurnUuids.value(turn.production_uuid, turnUuid)
+      return [
+        ...childUuids,
+        ...childUuids.flatMap(childUuid => getAllChildTurnUuids(childUuid))
+      ]
+    }
+
+    // Get all child turns that need to be deleted
+    const childTurnUuids = getAllChildTurnUuids(uuid)
+
     // Set active turn to null
     const originalActiveTurnUuid = getActiveTurnUuid.value(turn.production_uuid)
     setActiveTurn(turn.production_uuid, null)
 
     const originalTurns = [...turns.value]
-    turns.value = turns.value.filter(t => t.uuid !== uuid)
+    // Remove the parent turn and all child turns from the store
+    turns.value = turns.value.filter(t => t.uuid !== uuid && !childTurnUuids.includes(t.uuid))
 
     try {
       const client = useSupabaseClient<Database>()
 
+      // Supabase will handle cascade deletion of child turns
       const { error: deleteError } = await client
         .from('turns')
         .delete()

@@ -3,7 +3,7 @@ const { t } = useI18n({ useScope: 'local' })
 const route = useRoute()
 const personaStore = usePersonaStore()
 const { getPersona } = storeToRefs(personaStore)
-const persona = getPersona.value(route.params.id as string)
+const persona = computed(() => getPersona.value(route.params.id as string))
 
 if (!persona) {
   showError({
@@ -13,7 +13,7 @@ if (!persona) {
 }
 
 useHead({
-  title: t('title', { name: persona?.name }),
+  title: t('title', { name: persona.value?.name }),
 })
 
 // Use middleware instead of direct store calls

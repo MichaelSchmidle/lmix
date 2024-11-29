@@ -15,7 +15,7 @@ export const modelResponseSchema = z.object({
   }).optional()
     .describe('Physical presence details for spatial continuity'),
   meta: z.string().optional()
-    .describe('In-character commentary on scene dynamics, written in first person from the persona’s perspective, breaking the fourth wall'),
+    .describe('In-character commentary on scene dynamics and review of own performance, written in first person from the persona’s perspective, breaking the fourth wall'),
   note_to_future_self: z.string().optional()
     .describe('Context bridge to next turn to help maintain modified state'),
 })

@@ -18,7 +18,7 @@ defineProps({
 // Compute styles based on orientation
 const styles = computed(() => ({
   wrapper: {
-    vertical: 'space-y-3',
+    vertical: 'space-y-4',
     horizontal: 'grid md:grid-cols-3 items-start gap-4'
   },
   container: {
@@ -51,7 +51,7 @@ const styles = computed(() => ({
         </div>
       </div>
     </div>
-    <div :class="['space-y-3', styles.content[orientation]]">
+    <div :class="['space-y-4', styles.content[orientation]]">
       <slot />
     </div>
   </div>

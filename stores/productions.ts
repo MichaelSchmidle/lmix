@@ -374,29 +374,13 @@ export const useProductionStore = defineStore('production', () => {
       // 1. Upsert core production data
       const { data: upsertedProduction, error: upsertError } = await client
         .from('productions')
-        .upsert({
-          uuid: production.uuid,
-          name: production.name,
-          world_uuid: production.world_uuid,
-          scenario_uuid: production.scenario_uuid,
+        .upsert(production, {
+          onConflict: 'uuid',
         })
         .select()
         .single()
 
       if (upsertError) {
-        // Convert Supabase errors to appropriate LMiX error types
-        if (upsertError.code === '42501') {
-          throw new AuthenticationError(
-            'Not authorized to upsert production',
-            upsertError
-          )
-        }
-        if (upsertError.code === '23502') {
-          throw new ValidationError(
-            'Missing required fields for production',
-            upsertError
-          )
-        }
         throw new ApiError(
           upsertError.message,
           upsertError
@@ -413,140 +397,147 @@ export const useProductionStore = defineStore('production', () => {
 
       // 2. Always clear existing relations when updating
       if (isUpdate) {
-        const deletePromises = [
-          client.from('production_assistants').delete().eq('production_uuid', productionUuid),
-          client.from('production_personas').delete().eq('production_uuid', productionUuid),
-          client.from('production_relations').delete().eq('production_uuid', productionUuid)
-        ]
+        const deletePromises = []
 
-        const deleteResults = await Promise.all(deletePromises)
+        if (Array.isArray(options.assistantUuids) && options.assistantUuids.length === 0) {
+          deletePromises.push(client.from('production_assistants').delete().eq('production_uuid', productionUuid))
+        }
+        if (Array.isArray(options.personaUuids) && options.personaUuids.length === 0) {
+          deletePromises.push(client.from('production_personas').delete().eq('production_uuid', productionUuid))
+        }
+        if (Array.isArray(options.relationUuids) && options.relationUuids.length === 0) {
+          deletePromises.push(client.from('production_relations').delete().eq('production_uuid', productionUuid))
+        }
 
-        deleteResults.forEach(({ error }) => {
+        if (deletePromises.length > 0) {
+          const deleteResults = await Promise.all(deletePromises)
+
+          deleteResults.forEach(({ error }) => {
+            if (error) {
+              throw new ApiError(
+                'Failed to delete existing production relations',
+                error
+              )
+            }
+          })
+
+          // Optimistically clear relations in state
+          productionAssistants.value = productionAssistants.value.filter(pa => pa.production_uuid !== productionUuid)
+          productionPersonas.value = productionPersonas.value.filter(pp => pp.production_uuid !== productionUuid)
+          productionRelations.value = productionRelations.value.filter(pr => pr.production_uuid !== productionUuid)
+        }
+
+        // 3. Insert new relations
+        const now = new Date().toISOString()
+        const upsertPromises = []
+
+        if (options.assistantUuids?.length) {
+          const assistantRelations = options.assistantUuids.map(uuid => ({
+            uuid: crypto.randomUUID(),
+            user_uuid: useSupabaseUser().value?.id!,
+            production_uuid: productionUuid,
+            assistant_uuid: uuid,
+            inserted_at: now,
+          }))
+          upsertPromises.push(
+            client
+              .from('production_assistants')
+              .upsert(assistantRelations, {
+                onConflict: 'production_uuid,assistant_uuid',
+                ignoreDuplicates: true
+              })
+              .select()
+          )
+
+          // Optimistic update for assistants
+          productionAssistants.value.push(...assistantRelations)
+        }
+
+        if (options.personaUuids?.length) {
+          const personaRelations = options.personaUuids.map(uuid => ({
+            uuid: crypto.randomUUID(),
+            user_uuid: useSupabaseUser().value?.id!,
+            production_uuid: productionUuid,
+            persona_uuid: uuid,
+            inserted_at: now,
+          }))
+          upsertPromises.push(
+            client
+              .from('production_personas')
+              .upsert(personaRelations, {
+                onConflict: 'production_uuid,persona_uuid',
+                ignoreDuplicates: true
+              })
+              .select()
+          )
+
+          // Optimistic update for personas
+          productionPersonas.value.push(...personaRelations)
+        }
+
+        if (options.relationUuids?.length) {
+          const relationRelations = options.relationUuids.map(uuid => ({
+            uuid: crypto.randomUUID(),
+            user_uuid: useSupabaseUser().value?.id!,
+            production_uuid: productionUuid,
+            relation_uuid: uuid,
+            inserted_at: now,
+          }))
+          upsertPromises.push(
+            client
+              .from('production_relations')
+              .upsert(relationRelations, {
+                onConflict: 'production_uuid,relation_uuid',
+                ignoreDuplicates: true
+              })
+              .select()
+          )
+
+          // Optimistic update for relations
+          productionRelations.value.push(...relationRelations)
+        }
+
+        const upsertResults = await Promise.all(upsertPromises)
+
+        upsertResults.forEach(({ error }) => {
           if (error) {
             throw new ApiError(
-              'Failed to delete existing production relations',
+              'Failed to insert production relations',
               error
             )
           }
         })
 
-        // Optimistically clear relations in state
-        productionAssistants.value = productionAssistants.value.filter(pa => pa.production_uuid !== productionUuid)
-        productionPersonas.value = productionPersonas.value.filter(pp => pp.production_uuid !== productionUuid)
-        productionRelations.value = productionRelations.value.filter(pr => pr.production_uuid !== productionUuid)
-      }
-
-      // 3. Insert new relations
-      const now = new Date().toISOString()
-      const insertPromises = []
-
-      if (options.assistantUuids?.length) {
-        const assistantRelations = options.assistantUuids.map(uuid => ({
-          uuid: crypto.randomUUID(),
-          user_uuid: useSupabaseUser().value?.id!,
-          production_uuid: productionUuid,
-          assistant_uuid: uuid,
-          inserted_at: now,
-        }))
-        upsertPromises.push(
-          client
-            .from('production_assistants')
-            .upsert(assistantRelations, {
-              onConflict: 'production_uuid,assistant_uuid',
-              ignoreDuplicates: true
-            })
-            .select()
-        )
-
-        // Optimistic update for assistants
-        productionAssistants.value.push(...assistantRelations)
-      }
-
-      if (options.personaUuids?.length) {
-        const personaRelations = options.personaUuids.map(uuid => ({
-          uuid: crypto.randomUUID(),
-          user_uuid: useSupabaseUser().value?.id!,
-          production_uuid: productionUuid,
-          persona_uuid: uuid,
-          inserted_at: now,
-        }))
-        upsertPromises.push(
-          client
-            .from('production_personas')
-            .upsert(personaRelations, {
-              onConflict: 'production_uuid,persona_uuid',
-              ignoreDuplicates: true
-            })
-            .select()
-        )
-
-        // Optimistic update for personas
-        productionPersonas.value.push(...personaRelations)
-      }
-
-      if (options.relationUuids?.length) {
-        const relationRelations = options.relationUuids.map(uuid => ({
-          uuid: crypto.randomUUID(),
-          user_uuid: useSupabaseUser().value?.id!,
-          production_uuid: productionUuid,
-          relation_uuid: uuid,
-          inserted_at: now,
-        }))
-        upsertPromises.push(
-          client
-            .from('production_relations')
-            .upsert(relationRelations, {
-              onConflict: 'production_uuid,relation_uuid',
-              ignoreDuplicates: true
-            })
-            .select()
-        )
-
-        // Optimistic update for relations
-        productionRelations.value.push(...relationRelations)
-      }
-
-      const insertResults = await Promise.all(insertPromises)
-
-      insertResults.forEach(({ error }) => {
-        if (error) {
-          throw new ApiError(
-            'Failed to insert production relations',
-            error
-          )
+        // Update production in state with actual data from server
+        if (isUpdate) {
+          const index = productions.value.findIndex(p => p.uuid === productionUuid)
+          if (index !== -1) {
+            productions.value[index] = upsertedProduction
+          }
         }
-      })
-
-      // Update production in state with actual data from server
-      if (isUpdate) {
-        const index = productions.value.findIndex(p => p.uuid === productionUuid)
-        if (index !== -1) {
-          productions.value[index] = upsertedProduction
+        else if (tempId) {
+          const tempIndex = productions.value.findIndex(p => p.uuid === tempId)
+          if (tempIndex !== -1) {
+            productions.value[tempIndex] = upsertedProduction
+          }
         }
-      }
-      else if (tempId) {
-        const tempIndex = productions.value.findIndex(p => p.uuid === tempId)
-        if (tempIndex !== -1) {
-          productions.value[tempIndex] = upsertedProduction
-        }
-      }
 
-      return productionUuid
-    }
+        return productionUuid
+      }
     catch (e) {
-      // Rollback all original state
-      productions.value = original.productions
-      productionAssistants.value = original.productionAssistants
-      productionPersonas.value = original.productionPersonas
-      productionRelations.value = original.productionRelations
-      error.value = e as LMiXError
-      if (import.meta.dev) console.error('Production upsert failed:', e)
-      throw e
+        // Rollback all original state
+        productions.value = original.productions
+        productionAssistants.value = original.productionAssistants
+        productionPersonas.value = original.productionPersonas
+        productionRelations.value = original.productionRelations
+        error.value = e as LMiXError
+        if (import.meta.dev) console.error('Production upsert failed:', e)
+        throw e
+      }
+      finally {
+        loading.value = false
+      }
     }
-    finally {
-      loading.value = false
-    }
-  }
 
   /**
    * Deletes a production and all its relations from the database
@@ -555,59 +546,59 @@ export const useProductionStore = defineStore('production', () => {
    * @throws {LMiXError} If the API request fails
    */
   async function deleteProduction(uuid: string): Promise<void> {
-    loading.value = true
-    error.value = null
-    const original = [...productions.value]
-    productions.value = productions.value.filter(p => p.uuid !== uuid)
+      loading.value = true
+      error.value = null
+      const original = [...productions.value]
+      productions.value = productions.value.filter(p => p.uuid !== uuid)
 
-    try {
-      const client = useSupabaseClient<Database>()
+      try {
+        const client = useSupabaseClient<Database>()
 
-      const { error: deleteError } = await client
-        .from('productions')
-        .delete()
-        .eq('uuid', uuid)
+        const { error: deleteError } = await client
+          .from('productions')
+          .delete()
+          .eq('uuid', uuid)
 
-      if (deleteError) throw new LMiXError(
-        deleteError.message,
-        'API_ERROR',
-        deleteError,
-      )
+        if (deleteError) throw new LMiXError(
+          deleteError.message,
+          'API_ERROR',
+          deleteError,
+        )
+      }
+      catch (e) {
+        productions.value = original
+        error.value = e as LMiXError
+        if (import.meta.dev) console.error('Production deletion failed:', e)
+        throw e
+      }
+      finally {
+        loading.value = false
+      }
     }
-    catch (e) {
-      productions.value = original
-      error.value = e as LMiXError
-      if (import.meta.dev) console.error('Production deletion failed:', e)
-      throw e
-    }
-    finally {
-      loading.value = false
-    }
-  }
 
-  return {
-    // State
-    productions,
-    productionAssistants,
-    productionPersonas,
-    productionRelations,
-    loading,
-    error,
-    // Getters
-    getProduction,
-    getProductionLabel,
-    getProductionNavigation,
-    getProductionCount,
-    getProductionAssistantUuids,
-    getProductionPersonaUuids,
-    getProductionRelationUuids,
-    // Actions
-    selectProductions,
-    selectProduction,
-    upsertProduction,
-    deleteProduction,
-  }
-})
+    return {
+      // State
+      productions,
+      productionAssistants,
+      productionPersonas,
+      productionRelations,
+      loading,
+      error,
+      // Getters
+      getProduction,
+      getProductionLabel,
+      getProductionNavigation,
+      getProductionCount,
+      getProductionAssistantUuids,
+      getProductionPersonaUuids,
+      getProductionRelationUuids,
+      // Actions
+      selectProductions,
+      selectProduction,
+      upsertProduction,
+      deleteProduction,
+    }
+  })
 
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useProductionStore, import.meta.hot))

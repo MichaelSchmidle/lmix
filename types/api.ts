@@ -233,6 +233,7 @@ export type Database = {
           inserted_at: string
           name: string | null
           scenario_uuid: string | null
+          show_directives: boolean
           user_uuid: string
           uuid: string
           world_uuid: string | null
@@ -241,6 +242,7 @@ export type Database = {
           inserted_at?: string
           name?: string | null
           scenario_uuid?: string | null
+          show_directives?: boolean
           user_uuid?: string
           uuid?: string
           world_uuid?: string | null
@@ -249,6 +251,7 @@ export type Database = {
           inserted_at?: string
           name?: string | null
           scenario_uuid?: string | null
+          show_directives?: boolean
           user_uuid?: string
           uuid?: string
           world_uuid?: string | null
@@ -368,6 +371,7 @@ export type Database = {
           assistant_uuid: string | null
           created_at: string
           inserted_at: string
+          is_directive: boolean | null
           message: Json
           parent_turn_uuid: string | null
           production_uuid: string
@@ -378,6 +382,7 @@ export type Database = {
           assistant_uuid?: string | null
           created_at: string
           inserted_at?: string
+          is_directive?: boolean | null
           message: Json
           parent_turn_uuid?: string | null
           production_uuid: string
@@ -388,6 +393,7 @@ export type Database = {
           assistant_uuid?: string | null
           created_at?: string
           inserted_at?: string
+          is_directive?: boolean | null
           message?: Json
           parent_turn_uuid?: string | null
           production_uuid?: string

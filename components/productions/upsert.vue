@@ -39,15 +39,23 @@ const formInitialValue = computed(() => {
 
 const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNode) => {
   try {
+    // Separate relational fields from core production data
+    const {
+      production_assistant_uuids,
+      production_persona_uuids,
+      production_relation_uuids,
+      ...productionData
+    } = form
+
     const uuid = await productionStore.upsertProduction(
       {
-        ...form,
+        ...productionData,
         uuid: props.production?.uuid,
-      } as ProductionWithRelationsInsert,
+      },
       {
-        assistantUuids: form.production_assistant_uuids || [],
-        personaUuids: form.production_persona_uuids || [],
-        relationUuids: form.production_relation_uuids || [],
+        assistantUuids: production_assistant_uuids || [],
+        personaUuids: production_persona_uuids || [],
+        relationUuids: production_relation_uuids || [],
       }
     )
 
@@ -70,7 +78,7 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
   <UiSection icon="i-ph-popcorn-thin" :title="t(production ? 'titleUpdate' : 'titleInsert')"
     :description="t(production ? 'descriptionUpdate' : 'descriptionInsert')">
     <div class="flex justify-end max-w-prose px-4">
-      <UCheckbox v-model="isExtended" :label="t('isExtended.label')" />
+      <UCheckbox color="cyan" :label="t('isExtended.label')" v-model="isExtended" />
     </div>
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="formInitialValue">

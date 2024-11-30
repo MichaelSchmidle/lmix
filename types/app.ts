@@ -141,6 +141,7 @@ export type UserTurnMessage = {
   performance?: string
   sending_persona_uuid?: string
   receiving_assistant_uuid: string
+  is_directive?: boolean
 }
 
 export type Message = {

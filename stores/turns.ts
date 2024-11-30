@@ -287,7 +287,8 @@ export const useTurnStore = defineStore('turn', () => {
       inserted_at: new Date().toISOString(),
       user_uuid: useSupabaseUser().value?.id!,
       parent_turn_uuid: turn.parent_turn_uuid || null,
-      assistant_uuid: turn.assistant_uuid || null
+      assistant_uuid: turn.assistant_uuid || null,
+      is_directive: turn.is_directive ?? false,
     }
 
     turns.value.push(stateTurn)
@@ -403,17 +404,23 @@ export const useTurnStore = defineStore('turn', () => {
 
     // Persist user turn only if it has performance content
     if (message.performance) {
+      // Strip the / character and trim whitespace if this is a directive message
+      const performance = message.is_directive
+        ? message.performance.trimStart().substring(1).trim()
+        : message.performance
+
       const userTurn: TurnInsert = {
         production_uuid: message.production_uuid,
+        is_directive: message.is_directive ?? false,
         message: {
           role: 'user',
           content: {
-            performance: message.performance,
-            persona_name: message.sending_persona_uuid
+            performance,
+            persona_name: message.sending_persona_uuid && !message.is_directive
               ? usePersonaStore().getPersona(message.sending_persona_uuid)?.name || 'User'
               : 'User',
           },
-          metadata: message.sending_persona_uuid
+          metadata: message.sending_persona_uuid && !message.is_directive
             ? { persona_uuid: message.sending_persona_uuid }
             : undefined
         },
@@ -636,6 +643,11 @@ export const useTurnStore = defineStore('turn', () => {
       // Get the turns in chronological order and filter to only include those in the branch
       const branchTurns = getProductionTurns.value(productionUuid)
         .filter(turn => turnUuidsInBranch.includes(turn.uuid))
+        // Filter out directive messages unless they're the last message
+        .filter((turn, index, array) => {
+          if (!turn.is_directive) return true
+          return index === array.length - 1
+        })
 
       for (const turn of branchTurns) {
         messages.push({

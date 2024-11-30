@@ -87,6 +87,8 @@ const handleSubmit = async (turn: TurnUpdate, node: FormKitNode) => {
 <i18n lang="yaml">
 en:
   title: Edit Turn
+  assistant:
+    label: Assistant
   performance:
     label: Performance
     help: Core dialogue or action that advances the scene. Write naturally, in-character, and with dramatic purpose.

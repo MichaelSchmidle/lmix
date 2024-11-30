@@ -12,6 +12,13 @@ import type { ApiConfiguration, ApiModel, ApiModelOption, Model, ModelInsert, As
 import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
 
 export const useModelStore = defineStore('model', () => {
+  // Reset state
+  function $reset() {
+    models.value = []
+    loading.value = false
+    error.value = null
+  }
+
   // State
   const models = ref<Model[]>([])
   const loading = ref(false)
@@ -294,6 +301,7 @@ export const useModelStore = defineStore('model', () => {
   }
 
   return {
+    $reset,
     // State
     models,
     loading,

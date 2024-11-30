@@ -11,9 +11,15 @@ import type { Database } from '~/types/api'
 import type { Assistant, AssistantInsert, AssistantWithRelations, Persona } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 
-
-
 export const useAssistantStore = defineStore('assistant', () => {
+  // Reset state
+  function $reset() {
+    assistants.value = []
+    loading.value = false
+    error.value = null
+    fullyLoaded.value = false
+  }
+
   // State
   const assistants = ref<Assistant[]>([])
   const loading = ref(false)
@@ -287,6 +293,7 @@ export const useAssistantStore = defineStore('assistant', () => {
   }
 
   return {
+    $reset,
     // State
     assistants,
     loading,

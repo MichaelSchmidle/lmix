@@ -5,6 +5,21 @@ const supabase = useSupabaseClient()
 const toast = useToast()
 const productionStore = useProductionStore()
 const { getProductionNavigation } = storeToRefs(productionStore)
+const { $reset: resetProductionStore } = productionStore
+const assistantStore = useAssistantStore()
+const { $reset: resetAssistantStore } = assistantStore
+const modelStore = useModelStore()
+const { $reset: resetModelStore } = modelStore
+const personaStore = usePersonaStore()
+const { $reset: resetPersonaStore } = personaStore
+const relationStore = useRelationStore()
+const { $reset: resetRelationStore } = relationStore
+const scenarioStore = useScenarioStore()
+const { $reset: resetScenarioStore } = scenarioStore
+const turnStore = useTurnStore()
+const { $reset: resetTurnStore } = turnStore
+const worldStore = useWorldStore()
+const { $reset: resetWorldStore } = worldStore
 
 const props = defineProps({
   isSlideover: {

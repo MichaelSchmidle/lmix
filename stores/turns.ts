@@ -19,6 +19,14 @@ import type {
 import { LMiXError, ApiError } from '~/types/errors'
 import { JSONParser } from '@streamparser/json'
 
+interface StreamingState {
+  isStreaming: boolean
+  error: string | null
+  assistantUuid: string | null
+  turnUuid: string | null
+  streamingProperties: Set<keyof Content>
+}
+
 /**
  * Type guards for content properties
  */
@@ -914,6 +922,7 @@ export const useTurnStore = defineStore('turn', () => {
   }
 
   return {
+    $reset,
     // State
     turns,
     activeTurns,

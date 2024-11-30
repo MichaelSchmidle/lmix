@@ -17,6 +17,17 @@ import type { Assistant, Persona, Production, ProductionAssistant, ProductionIns
 import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
 
 export const useProductionStore = defineStore('production', () => {
+  // Reset state
+  function $reset() {
+    productions.value = []
+    productionAssistants.value = []
+    productionPersonas.value = []
+    productionRelations.value = []
+    fullyLoaded.value = false
+    loading.value = false
+    error.value = null
+  }
+
   // State
   const productions = ref<Production[]>([])
   const productionAssistants = ref<ProductionAssistant[]>([])
@@ -577,6 +588,7 @@ export const useProductionStore = defineStore('production', () => {
     }
 
     return {
+      $reset,
       // State
       productions,
       productionAssistants,

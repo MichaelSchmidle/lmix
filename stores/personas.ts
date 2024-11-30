@@ -12,6 +12,14 @@ import type { Persona, PersonaInsert } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 
 export const usePersonaStore = defineStore('persona', () => {
+  // Reset state
+  function $reset() {
+    personas.value = []
+    fullyLoaded.value = false
+    loading.value = false
+    error.value = null
+  }
+
   // State
   const personas = ref<Persona[]>([])
   const fullyLoaded = ref(false)
@@ -354,6 +362,7 @@ export const usePersonaStore = defineStore('persona', () => {
   }
 
   return {
+    $reset,
     // State
     personas,
     loading,

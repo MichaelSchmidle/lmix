@@ -20,6 +20,7 @@ const turnStore = useTurnStore()
 const { $reset: resetTurnStore } = turnStore
 const worldStore = useWorldStore()
 const { $reset: resetWorldStore } = worldStore
+const { exportData } = useExport()
 
 const props = defineProps({
   isSlideover: {

@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { twMerge } from 'tailwind-merge'
-
-const { t } = useI18n({ useScope: 'local' })
 </script>
 
 <template>
@@ -13,7 +11,3 @@ const { t } = useI18n({ useScope: 'local' })
     <slot name="mainToggle" />
   </div>
 </template>
-
-<i18n lang="yaml">
-  en:
-</i18n>

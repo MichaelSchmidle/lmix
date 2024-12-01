@@ -44,7 +44,8 @@ const handleRemoveFromRelation = async (relationUuid: string) => {
       <template #actions-data="{ row }">
         <div class="flex gap-2">
           <UTooltip :text="t('removeFromRelation')">
-            <UButton color="gray" icon="i-ph-trash-duotone" size="xs" variant="ghost" @click="handleRemoveFromRelation(row.uuid)" />
+            <UButton color="gray" icon="i-ph-trash-duotone" size="xs" variant="ghost"
+              @click="handleRemoveFromRelation(row.uuid)" />
           </UTooltip>
           <UTooltip :text="t('editRelation')">
             <UButton color="gray" icon="i-ph-pencil-duotone" size="xs" :to="`/relations/${row.uuid}`" variant="ghost" />

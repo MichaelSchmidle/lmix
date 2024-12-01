@@ -113,7 +113,7 @@ const handleAvatarDelete = async () => {
           <UiFormActions>
             <PersonasDeleteModal v-if="persona" :persona="persona" @success="handleNavigation('/personas/add')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
-              :label="t(isUpdate ? 'updatePersona' : 'createPersona')" :loading="disabled as boolean" type="submit" />
+              :label="t(isUpdate ? 'updatePersona' : 'createPersona')" :loading="(disabled as boolean)" type="submit" />
           </UiFormActions>
         </template>
       </FormKit>
@@ -125,10 +125,11 @@ const handleAvatarDelete = async () => {
 en:
   titleInsert: Create
   titleUpdate: Update
-  descriptionInsert: Create a new persona with their own perceptions and knowledge states.
-  descriptionUpdate: Configure this persona’s perceptions and knowledge states.
+  descriptionInsert: 'Personas act through three layers of truth: universal, internal, and external. By leaving universal and external empty, personas can act as invisible, inexplicable forces that shape a production without being perceived by other personas – perfect for creating hidden forces or practical helpers.'
+  descriptionUpdate: Configure this persona’s avatar, name, and layers of truth.
   name:
     label: Name
+    help: A persona’s name is visible to all assistants in a production. For personas that should be “inexplicable”, consider using neutral names (e.g. ‘Presence’ or ‘Force’) to maintain mystery. Descriptive names might reveal too much about their nature.
     required: Name is required.
     notUser: ‘User’ is a reserved name, please choose a different name.
   selfPerception:

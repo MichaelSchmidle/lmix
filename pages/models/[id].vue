@@ -47,12 +47,12 @@ useHead({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Model {name}
-    modelNotFound: Model not found
-    manageModel:
-      title: Manage Model
-      description: View the configuration of this model or remove it from LMiX.
-    modelId: Model ID
-    modelApiEndpoint: API Endpoint
+en:
+  title: Model {name}
+  modelNotFound: Model not found
+  manageModel:
+    title: Manage Model
+    description: View the configuration of this model or remove it from LMiX.
+  modelId: Model ID
+  modelApiEndpoint: API Endpoint
 </i18n>

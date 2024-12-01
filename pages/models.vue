@@ -25,6 +25,6 @@ useHead({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Models
+en:
+  title: Models
 </i18n>

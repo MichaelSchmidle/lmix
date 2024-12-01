@@ -27,7 +27,7 @@ useHead({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Production {label}
-    productionNotFound: Production not found
+en:
+  title: Production {label}
+  productionNotFound: Production not found
 </i18n>

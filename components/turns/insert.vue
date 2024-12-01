@@ -53,6 +53,14 @@ const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => 
       type="textarea" @keydown.enter.exact.prevent="node.submit()">
       <template #help="context">
         <i18n-t :class="context.classes.help" keypath="performance.help" tag="div">
+          <template #slash>
+            <UChip color="cyan" position="top-left" :show="isDirective">
+              <UKbd>/</UKbd>
+            </UChip>
+          </template>
+          <template #directive>
+            <UiBadgesDirective :color="isDirective ? undefined : 'gray'" />
+          </template>
           <template #enter>
             <UKbd>Enter</UKbd>
           </template>

@@ -41,7 +41,7 @@ definePageMeta({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Assistant {name}
-    assistantNotFound: Assistant not found
+en:
+  title: Assistant {name}
+  assistantNotFound: Assistant not found
 </i18n>

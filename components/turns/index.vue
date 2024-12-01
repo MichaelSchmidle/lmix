@@ -112,13 +112,17 @@ const handleDeleteTurn = async () => {
           <UAvatar class="prose" :alt="name" size="md" :src="persona?.avatar_url || undefined" />
         </UTooltip>
       </template>
-        <div class="prose dark:prose-invert prose-a:text-primary prose-headings:font-serif"
-          v-html="m(turn.message.content.performance, true)" />
+      <div
+        :class="['prose dark:prose-invert prose-a:text-primary prose-headings:font-serif', turn.is_directive ? 'prose-sm' : undefined]"
+        v-html="m(turn.message.content.performance, true)" />
     </UiMediaObject>
     <div class="grid sm:grid-cols-2 gap-4">
-      <div>
-        <div v-if="getStreamingState.isStreaming && getStreamingState.turnUuid === turn.uuid" class="animate-pulse flex gap-2" :ui="{ rounded: 'rounded-full' }">
-          <UBadge v-for="property in getStreamingState.streamingProperties" :key="property" color="gray" size="xs" variant="soft">
+      <div class="flex gap-2">
+        <UiBadgesDirective v-if="turn.is_directive" />
+        <div v-if="getStreamingState.isStreaming && getStreamingState.turnUuid === turn.uuid"
+          class="animate-pulse flex gap-2" :ui="{ rounded: 'rounded-full' }">
+          <UBadge v-for="property in getStreamingState.streamingProperties" :key="property" color="gray" size="xs"
+            variant="soft" :ui="{ rounded: 'rounded-full' }">
             {{ t(`streaming.${property}`) }}
           </UBadge>
         </div>
@@ -127,7 +131,8 @@ const handleDeleteTurn = async () => {
         <div v-if="siblingTurnUuids.length > 1">
           <UTooltip :popper="{ placement: 'top' }" :text="t('navigation.back')">
             <UButton color="gray" icon="i-ph-arrow-u-up-left" size="2xs" variant="ghost"
-              :disabled="currentSiblingIndex <= 0 || getStreamingState.isStreaming" @click="navigateToSibling('back')" />
+              :disabled="currentSiblingIndex <= 0 || getStreamingState.isStreaming"
+              @click="navigateToSibling('back')" />
           </UTooltip>
           <UTooltip :popper="{ placement: 'top' }" :text="t('navigation.forward')">
             <UButton color="gray" icon="i-ph-arrow-u-up-right" size="2xs" variant="ghost"
@@ -147,7 +152,8 @@ const handleDeleteTurn = async () => {
         </UTooltip>
         <UTooltip :popper="{ placement: 'top' }" :text="t('edit.label')">
           <TurnsUpdate :turn="turn" #default="{ openModal }">
-            <UButton color="gray" :disabled="getStreamingState.isStreaming" icon="i-ph-eye" size="2xs" variant="ghost" @click="openModal" />
+            <UButton color="gray" :disabled="getStreamingState.isStreaming" icon="i-ph-eye" size="2xs" variant="ghost"
+              @click="openModal" />
           </TurnsUpdate>
         </UTooltip>
         <UTooltip :popper="{ placement: 'top' }" :text="t('delete.label')">
@@ -182,5 +188,5 @@ en:
     performance: Performing
     vectors: Vectorizing
     meta: Commenting
-    note_to_future_self: Noting
+    note_to_self: Noting
 </i18n>

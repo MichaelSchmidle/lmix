@@ -63,7 +63,8 @@ const handleSubmit = async (form: RelationInsert, node: FormKitNode) => {
           <UiFormActions>
             <RelationsDeleteModal v-if="relation" :relation="relation" @success="navigateTo('/relations/add')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
-              :label="t(isUpdate ? 'updateRelation' : 'createRelation')" :loading="disabled as boolean" type="submit" />
+              :label="t(isUpdate ? 'updateRelation' : 'createRelation')" :loading="(disabled as boolean)"
+              type="submit" />
           </UiFormActions>
         </template>
       </FormKit>

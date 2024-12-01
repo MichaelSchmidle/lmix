@@ -45,10 +45,10 @@ export const usePersonaStore = defineStore('persona', () => {
       return personaList
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((persona): VerticalNavigationLink => ({
-          avatar: {
+          avatar: persona.avatar_url ? {
             alt: persona.name,
-            src: persona.avatar_url || undefined,
-          },
+            src: persona.avatar_url,
+          } : undefined,
           label: persona.name,
           to: `/personas/${persona.uuid}`,
           ...(icon && { icon }),

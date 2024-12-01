@@ -58,7 +58,7 @@ const handleSubmit = async (form: AssistantInsert, node: FormKitNode) => {
           <UiFormActions>
             <AssistantsDeleteModal v-if="assistant" :assistant="assistant" @success="navigateTo('/assistants/add')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
-              :label="t(isUpdate ? 'updateAssistant' : 'createAssistant')" :loading="disabled as boolean"
+              :label="t(isUpdate ? 'updateAssistant' : 'createAssistant')" :loading="(disabled as boolean)"
               type="submit" />
           </UiFormActions>
         </template>
@@ -68,26 +68,26 @@ const handleSubmit = async (form: AssistantInsert, node: FormKitNode) => {
 </template>
 
 <i18n lang="yaml">
-  en:
-    titleInsert: Create
-    titleUpdate: Update
-    descriptionInsert: Create a new assistant to enact a persona powered by a model.
-    descriptionUpdate: Configure this assistant’s model and persona.
-    name:
-      label: Name
-      placeholder: Enter assistant name…
-      required: Name is required.
-    persona:
-      label: Persona
-      help: Select the persona that this assistant will embody.
-      required: Persona is required.
-    model:
-      label: Model
-      help: Select the model that will power this assistant.
-      required: Model is required.
-    createAssistant: Create
-    updateAssistant: Update
-    assistantCreated: Assistant created.
-    assistantUpdated: Assistant updated.
-    saveFailed: Failed to save assistant.
+en:
+  titleInsert: Create
+  titleUpdate: Update
+  descriptionInsert: Create a new assistant to enact a persona powered by a model.
+  descriptionUpdate: Configure this assistant’s model and persona.
+  name:
+    label: Name
+    placeholder: Enter assistant name…
+    required: Name is required.
+  persona:
+    label: Persona
+    help: Select the persona that this assistant will embody.
+    required: Persona is required.
+  model:
+    label: Model
+    help: Select the model that will power this assistant.
+    required: Model is required.
+  createAssistant: Create
+  updateAssistant: Update
+  assistantCreated: Assistant created.
+  assistantUpdated: Assistant updated.
+  saveFailed: Failed to save assistant.
 </i18n>

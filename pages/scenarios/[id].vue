@@ -35,7 +35,7 @@ useHead({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Scenario {name}
-    scenarioNotFound: Scenario not found
+en:
+  title: Scenario {name}
+  scenarioNotFound: Scenario not found
 </i18n>

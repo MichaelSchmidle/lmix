@@ -40,5 +40,5 @@ const props = defineProps({
 </template>
 
 <i18n lang="yaml">
-  en:
+en:
 </i18n>

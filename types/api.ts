@@ -153,54 +153,6 @@ export type Database = {
           },
         ]
       }
-      production_persona_evolutions: {
-        Row: {
-          inserted_at: string
-          note_to_self: string | null
-          persona_uuid: string
-          private_knowledge: string | null
-          production_uuid: string
-          self_perception: string | null
-          user_uuid: string
-          uuid: string
-        }
-        Insert: {
-          inserted_at?: string
-          note_to_self?: string | null
-          persona_uuid: string
-          private_knowledge?: string | null
-          production_uuid: string
-          self_perception?: string | null
-          user_uuid?: string
-          uuid?: string
-        }
-        Update: {
-          inserted_at?: string
-          note_to_self?: string | null
-          persona_uuid?: string
-          private_knowledge?: string | null
-          production_uuid?: string
-          self_perception?: string | null
-          user_uuid?: string
-          uuid?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "production_persona_evolutions_persona_uuid_fkey"
-            columns: ["persona_uuid"]
-            isOneToOne: false
-            referencedRelation: "personas"
-            referencedColumns: ["uuid"]
-          },
-          {
-            foreignKeyName: "production_persona_evolutions_prouction_uuid_fkey"
-            columns: ["production_uuid"]
-            isOneToOne: false
-            referencedRelation: "productions"
-            referencedColumns: ["uuid"]
-          },
-        ]
-      }
       production_personas: {
         Row: {
           inserted_at: string

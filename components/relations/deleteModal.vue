@@ -48,7 +48,8 @@ async function handleDelete() {
 
 <template>
   <div>
-    <UButton color="gray" icon="i-ph-trash-duotone" :label="t('deleteRelation.outside')" variant="ghost" @click="isOpen = true" />
+    <UButton color="gray" icon="i-ph-trash-duotone" :label="t('deleteRelation.outside')" variant="ghost"
+      @click="isOpen = true" />
     <UModal v-model="isOpen">
       <UCard :ui="{ body: { base: 'space-y-4' } }">
         <template #header>
@@ -61,7 +62,8 @@ async function handleDelete() {
         </i18n-t>
         <UiFormActions>
           <UButton color="gray" variant="ghost" :label="t('cancel')" @click="isOpen = false" />
-          <UButton color="rose" icon="i-ph-trash-duotone" :label="t('deleteRelation.inside')" :loading="isDeleting" @click="handleDelete" />
+          <UButton color="rose" icon="i-ph-trash-duotone" :label="t('deleteRelation.inside')" :loading="isDeleting"
+            @click="handleDelete" />
         </UiFormActions>
       </UCard>
     </UModal>
@@ -69,13 +71,13 @@ async function handleDelete() {
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Remove Relation
-    deleteRelation:
-      outside: Remove…
-      inside: Remove
-    deleteRelationConfirmation: Are you sure you want to remove the relation between {label}? This action cannot be undone.
-    cancel: Cancel
-    success: Relation removed.
-    error: Failed to remove relation.
+en:
+  title: Remove Relation
+  deleteRelation:
+    outside: Remove…
+    inside: Remove
+  deleteRelationConfirmation: Are you sure you want to remove the relation between {label}? This action cannot be undone.
+  cancel: Cancel
+  success: Relation removed.
+  error: Failed to remove relation.
 </i18n>

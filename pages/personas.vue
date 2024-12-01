@@ -31,6 +31,6 @@ definePageMeta({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Personas
+en:
+  title: Personas
 </i18n>

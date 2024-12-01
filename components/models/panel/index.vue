@@ -20,7 +20,8 @@ const props = defineProps({
   </UiPanelHeader>
   <UiPanelContent v-auto-animate>
     <UButton block icon="i-ph-circuitry-duotone" :label="t('newModel')" to="/models/add" />
-    <UAccordion color="gray" default-open :items="getModelNavigation('i-ph-hard-drive-duotone')" variant="ghost" :ui="{ default: { class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold' } }">
+    <UAccordion color="gray" default-open :items="getModelNavigation('i-ph-hard-drive-duotone')" variant="ghost"
+      :ui="{ default: { class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold' } }">
       <template #item="{ item }">
         <UVerticalNavigation :links="item.content" />
       </template>
@@ -30,8 +31,8 @@ const props = defineProps({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Models
-    newModel: New Model
-    noModels: No models yet
+en:
+  title: Models
+  newModel: New Model
+  noModels: No models yet
 </i18n>

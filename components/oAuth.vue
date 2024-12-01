@@ -15,19 +15,19 @@ const providers: OAuthProvider[] = [
     id: 'discord',
     icon: 'simple-icons:discord',
     label: t('providers.discord'),
-    enabled: false
+    enabled: true,
   },
   {
     id: 'github',
     icon: 'simple-icons:github',
     label: t('providers.github'),
-    enabled: true
+    enabled: true,
   },
   {
     id: 'google',
     icon: 'simple-icons:google',
     label: t('providers.google'),
-    enabled: false
+    enabled: false,
   },
 ]
 
@@ -62,11 +62,10 @@ async function signInWithOAuth(provider: OAuthProvider) {
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Continue With
-    providers:
-      discord: Discord
-      github: GitHub
-      google: Google
-      reddit: Reddit
+en:
+  title: Continue With
+  providers:
+    discord: Discord
+    github: GitHub
+    google: Google
 </i18n>

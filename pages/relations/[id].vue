@@ -42,7 +42,7 @@ definePageMeta({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Relation {name}
-    relationNotFound: Relation not found
+en:
+  title: Relation {name}
+  relationNotFound: Relation not found
 </i18n>

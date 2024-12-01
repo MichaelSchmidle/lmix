@@ -14,10 +14,12 @@ const setMode = (mode: 'dark' | 'light') => {
 <template>
   <div class="flex gap-[1ex]">
     <UTooltip :text="t('light')">
-      <UButton color="gray" icon="i-ph-sun-fill" size="xs" :variant="isActive('light') ? 'solid' : 'ghost'" @click="setMode('light')" />
+      <UButton color="gray" icon="i-ph-sun-fill" size="xs" :variant="isActive('light') ? 'solid' : 'ghost'"
+        @click="setMode('light')" />
     </UTooltip>
     <UTooltip :text="t('dark')">
-      <UButton color="gray" icon="i-ph-moon-fill" size="xs" :variant="isActive('dark') ? 'solid' : 'ghost'" @click="setMode('dark')" />
+      <UButton color="gray" icon="i-ph-moon-fill" size="xs" :variant="isActive('dark') ? 'solid' : 'ghost'"
+        @click="setMode('dark')" />
     </UTooltip>
   </div>
 </template>

@@ -87,6 +87,13 @@ const worldNavigation = computed(() => {
       </template>
     </UAccordion>
   </UiPanelContent>
+  <UiPanelFooter class="min-h-16">
+    <UCheckbox color="cyan" @change="handleDirectiveChange" v-model="showDirectives">
+      <template #label>
+        <UiBadgesDirective />
+      </template>
+    </UCheckbox>
+  </UiPanelFooter>
 </template>
 
 <i18n lang="yaml">

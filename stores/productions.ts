@@ -352,6 +352,7 @@ export const useProductionStore = defineStore('production', () => {
 
     let tempId: string | null = null
 
+    // Optimistic update for production
     if (isUpdate) {
       const index = productions.value.findIndex(p => p.uuid === production.uuid)
       if (index !== -1) {
@@ -370,7 +371,7 @@ export const useProductionStore = defineStore('production', () => {
     try {
       const client = useSupabaseClient<Database>()
 
-      // 1. Upsert core production data only
+      // 1. Upsert core production data
       const { data: upsertedProduction, error: upsertError } = await client
         .from('productions')
         .upsert({
@@ -410,7 +411,7 @@ export const useProductionStore = defineStore('production', () => {
 
       const productionUuid = upsertedProduction.uuid
 
-      // 2. If updating, remove existing relations
+      // 2. Always clear existing relations when updating
       if (isUpdate) {
         const deletePromises = [
           client.from('production_assistants').delete().eq('production_uuid', productionUuid),
@@ -428,6 +429,11 @@ export const useProductionStore = defineStore('production', () => {
             )
           }
         })
+
+        // Optimistically clear relations in state
+        productionAssistants.value = productionAssistants.value.filter(pa => pa.production_uuid !== productionUuid)
+        productionPersonas.value = productionPersonas.value.filter(pp => pp.production_uuid !== productionUuid)
+        productionRelations.value = productionRelations.value.filter(pr => pr.production_uuid !== productionUuid)
       }
 
       // 3. Insert new relations
@@ -436,35 +442,68 @@ export const useProductionStore = defineStore('production', () => {
 
       if (options.assistantUuids?.length) {
         const assistantRelations = options.assistantUuids.map(uuid => ({
+          uuid: crypto.randomUUID(),
+          user_uuid: useSupabaseUser().value?.id!,
           production_uuid: productionUuid,
           assistant_uuid: uuid,
-          inserted_at: now
+          inserted_at: now,
         }))
-        insertPromises.push(
-          client.from('production_assistants').insert(assistantRelations).select()
+        upsertPromises.push(
+          client
+            .from('production_assistants')
+            .upsert(assistantRelations, {
+              onConflict: 'production_uuid,assistant_uuid',
+              ignoreDuplicates: true
+            })
+            .select()
         )
+
+        // Optimistic update for assistants
+        productionAssistants.value.push(...assistantRelations)
       }
 
       if (options.personaUuids?.length) {
         const personaRelations = options.personaUuids.map(uuid => ({
+          uuid: crypto.randomUUID(),
+          user_uuid: useSupabaseUser().value?.id!,
           production_uuid: productionUuid,
           persona_uuid: uuid,
-          inserted_at: now
+          inserted_at: now,
         }))
-        insertPromises.push(
-          client.from('production_personas').insert(personaRelations).select()
+        upsertPromises.push(
+          client
+            .from('production_personas')
+            .upsert(personaRelations, {
+              onConflict: 'production_uuid,persona_uuid',
+              ignoreDuplicates: true
+            })
+            .select()
         )
+
+        // Optimistic update for personas
+        productionPersonas.value.push(...personaRelations)
       }
 
       if (options.relationUuids?.length) {
         const relationRelations = options.relationUuids.map(uuid => ({
+          uuid: crypto.randomUUID(),
+          user_uuid: useSupabaseUser().value?.id!,
           production_uuid: productionUuid,
           relation_uuid: uuid,
-          inserted_at: now
+          inserted_at: now,
         }))
-        insertPromises.push(
-          client.from('production_relations').insert(relationRelations).select()
+        upsertPromises.push(
+          client
+            .from('production_relations')
+            .upsert(relationRelations, {
+              onConflict: 'production_uuid,relation_uuid',
+              ignoreDuplicates: true
+            })
+            .select()
         )
+
+        // Optimistic update for relations
+        productionRelations.value.push(...relationRelations)
       }
 
       const insertResults = await Promise.all(insertPromises)
@@ -478,7 +517,7 @@ export const useProductionStore = defineStore('production', () => {
         }
       })
 
-      // 4. Update store state
+      // Update production in state with actual data from server
       if (isUpdate) {
         const index = productions.value.findIndex(p => p.uuid === productionUuid)
         if (index !== -1) {
@@ -492,28 +531,6 @@ export const useProductionStore = defineStore('production', () => {
         }
       }
 
-      // Update junction table states
-      productionAssistants.value = productionAssistants.value.filter(pa => pa.production_uuid !== productionUuid)
-      productionPersonas.value = productionPersonas.value.filter(pp => pp.production_uuid !== productionUuid)
-      productionRelations.value = productionRelations.value.filter(pr => pr.production_uuid !== productionUuid)
-
-      insertResults.forEach(({ data }) => {
-        if (!data?.length) return
-
-        // Check first item to determine the type of relation
-        const firstItem = data[0]
-
-        if ('assistant_uuid' in firstItem) {
-          productionAssistants.value.push(...(data as ProductionAssistant[]))
-        }
-        else if ('persona_uuid' in firstItem) {
-          productionPersonas.value.push(...(data as ProductionPersona[]))
-        }
-        else if ('relation_uuid' in firstItem) {
-          productionRelations.value.push(...(data as ProductionRelation[]))
-        }
-      })
-
       return productionUuid
     }
     catch (e) {
@@ -522,16 +539,8 @@ export const useProductionStore = defineStore('production', () => {
       productionAssistants.value = original.productionAssistants
       productionPersonas.value = original.productionPersonas
       productionRelations.value = original.productionRelations
-
-      // Set error state for UI feedback
       error.value = e as LMiXError
-
-      // Log in development only
-      if (import.meta.dev) {
-        console.error('Production upsert failed:', e)
-      }
-
-      // Re-throw for UI handling
+      if (import.meta.dev) console.error('Production upsert failed:', e)
       throw e
     }
     finally {

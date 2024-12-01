@@ -74,7 +74,7 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
     </div>
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="formInitialValue">
-        <FormKit type="text" name="name" :label="t('name.label')" />
+        <FormKit v-if="isExtended" type="text" name="name" :label="t('name.label')" />
         <FormKit type="taglist" name="production_assistant_uuids" :label="t('assistants.label')"
           :options="getAssistantOptions()" :placeholder="t('assistants.placeholder')" validation="required"
           :validation-messages="{ required: t('assistants.required') }" />
@@ -93,7 +93,7 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
           <UiFormActions>
             <ProductionsDeleteModal v-if="production" :production="production" @success="navigateTo('/')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
-              :label="t(isUpdate ? 'updateProduction' : 'createProduction')" :loading="disabled as boolean"
+              :label="t(isUpdate ? 'updateProduction' : 'createProduction')" :loading="(disabled as boolean)"
               type="submit" />
           </UiFormActions>
         </template>
@@ -103,35 +103,35 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
 </template>
 
 <i18n lang="yaml">
-  en:
-    titleInsert: Create
-    titleUpdate: Update
-    descriptionInsert: Bring personas, scenarios and worlds to life with a new production.
-    descriptionUpdate: Configure this production’s ensemble.
-    name:
-      label: Name
-    assistants:
-      label: Assistants
-      placeholder: Select assistants…
-      required: At least one assistant is required.
-    scenario:
-      label: Scenario
-      placeholder: Select a scenario…
-    personas:
-      label: Personas
-      help: Add the personas that you as user will represent in this production.
-      placeholder: Select personas…
-    relations:
-      label: Relations
-      placeholder: Select relations…
-    world:
-      label: World
-      placeholder: Select a world…
-    isExtended:
-      label: Show extended settings
-    createProduction: Create
-    updateProduction: Update
-    productionCreated: Production created.
-    productionUpdated: Production updated.
-    saveFailed: Failed to save production.
+en:
+  titleInsert: Create
+  titleUpdate: Update
+  descriptionInsert: Bring personas, scenarios and worlds to life with a new production.
+  descriptionUpdate: Configure this production’s ensemble.
+  name:
+    label: Name
+  assistants:
+    label: Assistants
+    placeholder: Select assistants…
+    required: At least one assistant is required.
+  scenario:
+    label: Scenario
+    placeholder: Select a scenario…
+  personas:
+    label: Personas
+    help: Add the personas that you as user will represent in this production.
+    placeholder: Select personas…
+  relations:
+    label: Relations
+    placeholder: Select relations…
+  world:
+    label: World
+    placeholder: Select a world…
+  isExtended:
+    label: Show extended settings
+  createProduction: Create
+  updateProduction: Update
+  productionCreated: Production created.
+  productionUpdated: Production updated.
+  saveFailed: Failed to save production.
 </i18n>

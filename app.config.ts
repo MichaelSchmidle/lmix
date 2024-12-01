@@ -26,6 +26,14 @@ export default defineAppConfig({
         padding: '',
       },
     },
+    badge: {
+      variant: {
+        soft: 'text-{color}-500 dark:text-{color}-400 bg-{color}-100 dark:bg-{color}-800 dark:bg-opacity-100',
+      },
+      cyan: {
+        soft: 'text-cyan-500 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-800 dark:bg-opacity-100',
+      },
+    },
     button: {
       color: {
         gray: {

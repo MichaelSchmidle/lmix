@@ -50,7 +50,7 @@ const handleSubmit = async (form: Partial<WorldInsert>, node: FormKitNode) => {
           <UiFormActions>
             <WorldsDeleteModal v-if="world" :world="world" @success="navigateTo('/worlds/add')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
-              :label="t(isUpdate ? 'updateWorld' : 'createWorld')" :loading="disabled as boolean" type="submit" />
+              :label="t(isUpdate ? 'updateWorld' : 'createWorld')" :loading="(disabled as boolean)" type="submit" />
           </UiFormActions>
         </template>
       </FormKit>
@@ -59,21 +59,21 @@ const handleSubmit = async (form: Partial<WorldInsert>, node: FormKitNode) => {
 </template>
 
 <i18n lang="yaml">
-  en:
-    titleCreate: Create World
-    titleUpdate: Update
-    descriptionCreate: Create a new world to define the stage for your interactions.
-    descriptionUpdate: Update this world’s configuration.
-    name:
-      label: Name
-      required: Name is required
-    description:
-      label: Description
-      help: Define what makes this world unique. Describe the laws and conditions that should be immutable within a production.
-      required: Description is required
-    createWorld: Create World
-    updateWorld: Update
-    worldCreated: World created.
-    worldUpdated: World updated.
-    saveFailed: Failed to save world.
+en:
+  titleCreate: Create World
+  titleUpdate: Update
+  descriptionCreate: Create a new world to define the stage for your interactions.
+  descriptionUpdate: Update this world’s configuration.
+  name:
+    label: Name
+    required: Name is required
+  description:
+    label: Description
+    help: Define what makes this world unique. Describe the laws and conditions that should be immutable within a production.
+    required: Description is required
+  createWorld: Create World
+  updateWorld: Update
+  worldCreated: World created.
+  worldUpdated: World updated.
+  saveFailed: Failed to save world.
 </i18n>

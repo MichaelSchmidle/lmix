@@ -121,7 +121,7 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
                   {{ t('configureApi') }}
                 </UButton>
                 <UButton type="submit" color="cyan" icon="i-ph-plus" :label="t('addModels')"
-                  :loading="disabled as boolean" />
+                  :loading="(disabled as boolean)" />
               </UiFormActions>
             </template>
           </FormKit>
@@ -132,27 +132,27 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Add Models
-    description: Language models provide the intelligence to power your productions. At least one model is required to get started.
-    configureApi: Configure API
-    apiEndpoint:
-      label: API Endpoint
-      help: OpenAI-compatible API endpoint (without version, i.e. https://api.openai.com)
-      required: API endpoint is required.
-      url: Invalid API endpoint.
-    apiKey:
-      label: API Key
-      help: Optional API key for authentication
-    discoverModels: Discover Models
-    connectionFailed: Connection to the API failed.
-    noModelsFound: No models found.
-    selectModels: Select Models
-    availableModels:
-      label: Available Models
-      required: At least one model is required.
-    alreadyConfigured: This model is already configured.
-    addModels: Add
-    modelAdded: 1 model added. | {count} models added.
-    addModelsFailed: Failed to add models.
+en:
+  title: Add Models
+  description: Language models provide the intelligence to power your productions. At least one model is required to get started.
+  configureApi: Configure API
+  apiEndpoint:
+    label: API Endpoint
+    help: OpenAI-compatible API endpoint (without version, i.e. https://api.openai.com)
+    required: API endpoint is required.
+    url: Invalid API endpoint.
+  apiKey:
+    label: API Key
+    help: Optional API key for authentication
+  discoverModels: Discover Models
+  connectionFailed: Connection to the API failed.
+  noModelsFound: No models found.
+  selectModels: Select Models
+  availableModels:
+    label: Available Models
+    required: At least one model is required.
+  alreadyConfigured: This model is already configured.
+  addModels: Add
+  modelAdded: 1 model added. | {count} models added.
+  addModelsFailed: Failed to add models.
 </i18n>

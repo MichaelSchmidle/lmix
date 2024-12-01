@@ -262,6 +262,13 @@ s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
 
+[auth.external.discord]
+enabled = true
+client_id = "env(DISCORD_CLIENT_ID)"
+secret = "env(DISCORD_OAUTH_SECRET)"
+# Callback URLs registered with Discord
+redirect_uri = "env(OAUTH_REDIRECT_URI)"
+
 [auth.external.github]
 enabled = true
 client_id = "env(GITHUB_CLIENT_ID)"

@@ -31,6 +31,6 @@ definePageMeta({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Assistants
+en:
+  title: Assistants
 </i18n>

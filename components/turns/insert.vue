@@ -20,22 +20,24 @@ const props = defineProps({
   },
 })
 
+const performance = ref<string>('')
+const isDirective = computed(() => performance.value.trimStart().startsWith('/'))
 const personaOptions = computed(() => getPersonaOptions.value(getProductionPersonaUuids.value(props.production.uuid)))
 const assistantOptions = computed(() => getAssistantOptions.value(getProductionAssistantUuids.value(props.production.uuid)))
 
 const defaultPersona = computed(() => personaOptions.value.length === 1 ? personaOptions.value[0].value : undefined)
 const defaultAssistant = computed(() => assistantOptions.value.length === 1 ? assistantOptions.value[0].value : undefined)
 
-const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => {
+const handleSubmit = async (message: UserTurnMessage, node: FormKitNode) => {
   try {
     if (getStreamingState.value.isStreaming) return
 
-    await insertUserTurn(userMessage)
+    await insertUserTurn(message)
 
     // Reset form after successful submission, keeping the user's selection
     node.reset({
-      sending_persona_uuid: userMessage.sending_persona_uuid,
-      receiving_assistant_uuid: userMessage.receiving_assistant_uuid,
+      sending_persona_uuid: message.sending_persona_uuid,
+      receiving_assistant_uuid: message.receiving_assistant_uuid,
     })
   }
   catch (e) {
@@ -49,10 +51,19 @@ const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => 
   <FormKit type="form" :actions="false" :incomplete-message="false" name="message" #default="{ disabled, node }"
     @submit="handleSubmit">
     <FormKit type="meta" name="production_uuid" :value="production.uuid" />
+    <FormKit type="meta" name="is_directive" v-model="isDirective" />
     <FormKit auto-height :max-auto-height="256" name="performance" :placeholder="t('performance.placeholder')"
-      type="textarea" @keydown.enter.exact.prevent="node.submit()">
+      type="textarea" @keydown.enter.exact.prevent="node.submit()" v-model="performance">
       <template #help="context">
         <i18n-t :class="context.classes.help" keypath="performance.help" tag="div">
+          <template #slash>
+            <UChip color="cyan" position="top-left" :show="isDirective">
+              <UKbd>/</UKbd>
+            </UChip>
+          </template>
+          <template #directive>
+            <UiBadgesDirective :color="isDirective ? undefined : 'gray'" />
+          </template>
           <template #enter>
             <UKbd>Enter</UKbd>
           </template>
@@ -84,7 +95,10 @@ const handleSubmit = async (userMessage: UserTurnMessage, node: FormKitNode) => 
 en:
   performance:
     placeholder: Your turn…
-    help: Press {enter} to send, {shiftEnter} for new lines.
+    help: Begin with {slash} to tag this turn as {directive}. Press {enter} to send, {shiftEnter} for new lines.
+  directive:
+    label: directive
+    tooltip: Instructions for the immediately following turn.
   persona:
     placeholder: Persona…
     help: Select the persona you represent in your turn.

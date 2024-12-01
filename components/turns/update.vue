@@ -1,6 +1,16 @@
 <script setup lang="ts">
-import type { Turn } from '~/types/app'
+import type { FormKitNode } from '@formkit/core'
+import type { Turn, TurnUpdate } from '~/types/app'
+import { LMiXError } from '~/types/errors'
+
 const { t } = useI18n({ useScope: 'local' })
+const toast = useToast()
+const turnStore = useTurnStore()
+const { updateTurn } = turnStore
+const productionStore = useProductionStore()
+const { getProductionAssistantUuids } = storeToRefs(productionStore)
+const assistantStore = useAssistantStore()
+const { getAssistantOptions } = storeToRefs(assistantStore)
 
 const props = defineProps({
   turn: {
@@ -13,6 +23,24 @@ const isModalOpen = ref(false)
 const openModal = () => {
   isModalOpen.value = true
 }
+
+const handleSubmit = async (turn: TurnUpdate, node: FormKitNode) => {
+  try {
+    await updateTurn(turn)
+
+    toast.add({
+      color: 'lime',
+      icon: 'i-ph-check-circle',
+      title: t('success'),
+    })
+
+    isModalOpen.value = false
+  }
+  catch (error) {
+    console.error(error)
+    node.setErrors([error instanceof LMiXError ? t(error.message) : t('saveFailed')])
+  }
+}
 </script>
 
 <template>
@@ -22,20 +50,33 @@ const openModal = () => {
       <template #header>
         {{ t('title') }}
       </template>
-      <FormKit :incomplete-message="false" type="form" :value="turn?.message.content">
-        <FormKit type="textarea" auto-height name="performance" :label="t('performance.label')" :help="t('performance.help')" />
-        <FormKit type="group" name="vectors">
-          <FormKit type="textarea" auto-height name="position" :label="t('vectors.position.label')" />
-          <FormKit type="textarea" auto-height name="posture" :label="t('vectors.posture.label')" />
-          <FormKit type="textarea" auto-height name="direction" :label="t('vectors.direction.label')" />
-          <FormKit type="textarea" auto-height name="momentum" :label="t('vectors.momentum.label')" />
+      <FormKit :incomplete-message="false" type="form" :value="turn" @submit="handleSubmit">
+        <FormKit v-if="turn.message.role === 'assistant'" type="dropdown" name="assistant_uuid"
+          :label="t('assistant.label')"
+          :options="getAssistantOptions(getProductionAssistantUuids(turn.production_uuid))" />
+        <FormKit type="group" name="message">
+          <FormKit type="group" name="content">
+            <FormKit type="textarea" auto-height name="performance" :label="t('performance.label')"
+              :help="t('performance.help')" />
+            <template v-if="turn.message.role === 'assistant'">
+              <FormKit type="group" name="vectors">
+                <FormKit type="textarea" auto-height name="position" :label="t('vectors.position.label')" />
+                <FormKit type="textarea" auto-height name="posture" :label="t('vectors.posture.label')" />
+                <FormKit type="textarea" auto-height name="direction" :label="t('vectors.direction.label')" />
+                <FormKit type="textarea" auto-height name="momentum" :label="t('vectors.momentum.label')" />
+              </FormKit>
+              <FormKit type="textarea" auto-height name="meta" :label="t('meta.label')" />
+              <FormKit type="textarea" auto-height name="note_to_self" :label="t('noteToFutureSelf.label')" />
+            </template>
+          </FormKit>
         </FormKit>
-        <FormKit type="textarea" auto-height name="meta" :label="t('meta.label')" />
-        <FormKit type="textarea" auto-height name="note_to_future_self" :label="t('noteToFutureSelf.label')" />
+        <FormKit v-if="turn.message.role === 'user'" type="checkbox" name="is_directive" :label="t('directive.label')"
+          :help="t('directive.help')" />
         <template #actions="{ disabled }">
           <UiFormActions>
             <UButton color="gray" variant="ghost" :label="t('cancel')" @click="isModalOpen = false" />
-            <UButton color="cyan" icon="i-ph-check" :label="t('submit')" :loading="(disabled as boolean)" type="submit" />
+            <UButton color="cyan" icon="i-ph-check" :label="t('submit')" :loading="(disabled as boolean)"
+              type="submit" />
           </UiFormActions>
         </template>
       </FormKit>
@@ -46,6 +87,8 @@ const openModal = () => {
 <i18n lang="yaml">
 en:
   title: Edit Turn
+  assistant:
+    label: Assistant
   performance:
     label: Performance
     help: Core dialogue or action that advances the scene. Write naturally, in-character, and with dramatic purpose.
@@ -68,6 +111,11 @@ en:
   noteToFutureSelf:
     label: Note to Future Self
     help: Context bridge to next turn to help maintain modified state
-  submit: Update
+  directive:
+    label: Directive
+    help: Provides instructions for the immediately following turn. Can be hidden in the production history.
   cancel: Cancel
+  submit: Update
+  success: Turn updated.
+  saveFailed: Failed to save turn.
 </i18n>

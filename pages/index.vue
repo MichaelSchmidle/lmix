@@ -60,14 +60,14 @@ const { getAssistantCount } = assistantStore
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: New Production
-    meta:
-      title: Dynamic Multi-Agent Productions
-    hero:
-      title:
-        anonymous: Welcome to your {lmix}
-        authenticated: Hey, {name}
-      lmix: LMiX
-      description: Create dynamic multi-agent productions where AI assistants can be anything from characters to cosmic forces.
+en:
+  title: New Production
+  meta:
+    title: Dynamic Multi-Agent Productions
+  hero:
+    title:
+      anonymous: Welcome to your {lmix}
+      authenticated: Hey, {name}
+    lmix: LMiX
+    description: Create dynamic multi-agent productions where AI assistants can be anything from characters to cosmic forces.
 </i18n>

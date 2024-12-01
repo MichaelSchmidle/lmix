@@ -136,5 +136,5 @@ en:
   game: Game
   discovery: Discovery
   exploration: Exploration
-  description: Take the first turn to start your production – or simply trigger an assistant to get it started for you.
+  description: 'Take the first turn to start your production – or simply trigger an assistant to get it started for you:'
 </i18n>

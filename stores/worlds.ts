@@ -12,6 +12,14 @@ import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/typ
 import type { VerticalNavigationLink } from '#ui/types'
 
 export const useWorldStore = defineStore('world', () => {
+  // Reset state
+  function $reset() {
+    worlds.value = []
+    fullyLoaded.value = false
+    loading.value = false
+    error.value = null
+  }
+
   // State
   const worlds = ref<World[]>([])
   const fullyLoaded = ref(false)
@@ -261,6 +269,7 @@ export const useWorldStore = defineStore('world', () => {
   }
 
   return {
+    $reset,
     // State
     worlds,
     loading,

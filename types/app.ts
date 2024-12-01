@@ -72,10 +72,6 @@ export type ProductionPersona = Database['public']['Tables']['production_persona
 export type ProductionPersonaInsert = Database['public']['Tables']['production_personas']['Insert']
 export type ProductionPersonaUpdate = Database['public']['Tables']['production_personas']['Update']
 
-export type ProductionPersonaEvolution = Database['public']['Tables']['production_persona_evolutions']['Row']
-export type ProductionPersonaEvolutionInsert = Database['public']['Tables']['production_persona_evolutions']['Insert']
-export type ProductionPersonaEvolutionUpdate = Database['public']['Tables']['production_persona_evolutions']['Update']
-
 export type ProductionRelation = Database['public']['Tables']['production_relations']['Row']
 export type ProductionRelationInsert = Database['public']['Tables']['production_relations']['Insert']
 export type ProductionRelationUpdate = Database['public']['Tables']['production_relations']['Update']
@@ -135,12 +131,8 @@ export type Content = {
     direction?: string
     momentum?: string
   }
-  evolution?: {
-    self_perception?: string
-    private_knowledge?: string
-    note_to_future_self?: string
-  }
   meta?: string
+  note_to_self?: string
 }
 
 // Turn user message
@@ -149,6 +141,7 @@ export type UserTurnMessage = {
   performance?: string
   sending_persona_uuid?: string
   receiving_assistant_uuid: string
+  is_directive?: boolean
 }
 
 export type Message = {

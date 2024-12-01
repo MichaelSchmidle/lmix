@@ -24,6 +24,6 @@ useHead({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: New Persona
+en:
+  title: New Persona
 </i18n>

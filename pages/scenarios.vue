@@ -30,6 +30,6 @@ definePageMeta({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Scenarios
+en:
+  title: Scenarios
 </i18n>

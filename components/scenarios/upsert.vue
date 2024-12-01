@@ -50,7 +50,8 @@ const handleSubmit = async (form: Partial<ScenarioInsert>, node: FormKitNode) =>
           <UiFormActions>
             <ScenariosDeleteModal v-if="scenario" :scenario="scenario" @success="navigateTo('/scenarios/add')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
-              :label="t(isUpdate ? 'updateScenario' : 'createScenario')" :loading="disabled as boolean" type="submit" />
+              :label="t(isUpdate ? 'updateScenario' : 'createScenario')" :loading="(disabled as boolean)"
+              type="submit" />
           </UiFormActions>
         </template>
       </FormKit>
@@ -59,21 +60,21 @@ const handleSubmit = async (form: Partial<ScenarioInsert>, node: FormKitNode) =>
 </template>
 
 <i18n lang="yaml">
-  en:
-    titleInsert: Create
-    titleUpdate: Update
-    descriptionInsert: Create a new scenario to set the stage for your productions.
-    descriptionUpdate: Configure this scenario’s name and description.
-    name:
-      label: Name
-      required: Name is required
-    description:
-      label: Description
-      help: Provide context about the setting as starting point for your production from which it can evolve. Define instructions shared by all assistants in this scenario.
-      required: Description is required
-    createScenario: Create Scenario
-    updateScenario: Update
-    scenarioCreated: Scenario created.
-    scenarioUpdated: Scenario updated.
-    saveFailed: Failed to save scenario.
+en:
+  titleInsert: Create
+  titleUpdate: Update
+  descriptionInsert: Create a new scenario to set the stage for your productions.
+  descriptionUpdate: Configure this scenario’s name and description.
+  name:
+    label: Name
+    required: Name is required
+  description:
+    label: Description
+    help: Provide context about the setting as starting point for your production from which it can evolve. Define instructions shared by all assistants in this scenario.
+    required: Description is required
+  createScenario: Create Scenario
+  updateScenario: Update
+  scenarioCreated: Scenario created.
+  scenarioUpdated: Scenario updated.
+  saveFailed: Failed to save scenario.
 </i18n>

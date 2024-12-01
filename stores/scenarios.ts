@@ -12,6 +12,14 @@ import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/typ
 import type { VerticalNavigationLink } from '#ui/types'
 
 export const useScenarioStore = defineStore('scenario', () => {
+  // Reset state
+  function $reset() {
+    scenarios.value = []
+    fullyLoaded.value = false
+    loading.value = false
+    error.value = null
+  }
+
   // State
   const scenarios = ref<Scenario[]>([])
   const fullyLoaded = ref(false)
@@ -261,6 +269,7 @@ export const useScenarioStore = defineStore('scenario', () => {
   }
 
   return {
+    $reset,
     // State
     scenarios,
     loading,

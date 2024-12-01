@@ -16,7 +16,7 @@ export const modelResponseSchema = z.object({
     .describe('Physical presence details for spatial continuity'),
   meta: z.string().optional()
     .describe('In-character commentary on scene dynamics and review of own performance, written in first person from the persona’s perspective, breaking the fourth wall'),
-  note_to_future_self: z.string().optional()
+  note_to_self: z.string().optional()
     .describe('Context bridge to next turn to help maintain modified state'),
 })
   .describe('Response schema for LMiX personas. Each field shapes dramatic progression and maintains character consistency.')

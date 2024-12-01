@@ -12,6 +12,14 @@ import type { Persona, PersonaInsert } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 
 export const usePersonaStore = defineStore('persona', () => {
+  // Reset state
+  function $reset() {
+    personas.value = []
+    fullyLoaded.value = false
+    loading.value = false
+    error.value = null
+  }
+
   // State
   const personas = ref<Persona[]>([])
   const fullyLoaded = ref(false)
@@ -45,10 +53,10 @@ export const usePersonaStore = defineStore('persona', () => {
       return personaList
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((persona): VerticalNavigationLink => ({
-          avatar: {
+          avatar: persona.avatar_url ? {
             alt: persona.name,
-            src: persona.avatar_url || undefined,
-          },
+            src: persona.avatar_url,
+          } : undefined,
           label: persona.name,
           to: `/personas/${persona.uuid}`,
           ...(icon && { icon }),
@@ -354,6 +362,7 @@ export const usePersonaStore = defineStore('persona', () => {
   }
 
   return {
+    $reset,
     // State
     personas,
     loading,

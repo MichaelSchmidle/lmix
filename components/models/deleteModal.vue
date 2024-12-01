@@ -80,35 +80,37 @@ async function handleDelete() {
 
 <template>
   <div>
-    <UButton color="gray" icon="i-ph-trash-duotone" :label="t('deleteModel.outside')" variant="ghost" @click="isOpen = true" />
+    <UButton color="gray" icon="i-ph-trash-duotone" :label="t('deleteModel.outside')" variant="ghost"
+      @click="isOpen = true" />
     <UModal v-model="isOpen">
       <UCard :ui="{ body: { base: 'space-y-4' } }">
         <template #header>
           {{ t('title') }}
         </template>
         <div class="prose dark:prose-invert">
-        <i18n-t v-if="!isInUse" keypath="deleteModelConfirmation" tag="p">
-          <template #id>
-            <code>{{ model.id }}</code>
-          </template>
-        </i18n-t>
-        <template v-else>
-          <i18n-t keypath="modelInUse.warning" tag="p" class="prose dark:prose-invert">
+          <i18n-t v-if="!isInUse" keypath="deleteModelConfirmation" tag="p">
             <template #id>
               <code>{{ model.id }}</code>
             </template>
           </i18n-t>
-          <ul>
-            <li v-for="assistant in assistantsUsingModel" :key="assistant.uuid">
-              <UButton :label="assistant.name" size="md" :to="`/assistants/${assistant.uuid}`" variant="link" />
-            </li>
-          </ul>
-          <p class="mt-4">{{ t('modelInUse.hint') }}</p>
-        </template>
-      </div>
+          <template v-else>
+            <i18n-t keypath="modelInUse.warning" tag="p" class="prose dark:prose-invert">
+              <template #id>
+                <code>{{ model.id }}</code>
+              </template>
+            </i18n-t>
+            <ul>
+              <li v-for="assistant in assistantsUsingModel" :key="assistant.uuid">
+                <UButton :label="assistant.name" size="md" :to="`/assistants/${assistant.uuid}`" variant="link" />
+              </li>
+            </ul>
+            <p class="mt-4">{{ t('modelInUse.hint') }}</p>
+          </template>
+        </div>
         <UiFormActions>
           <UButton color="gray" variant="ghost" :label="t('cancel')" @click="isOpen = false" />
-          <UButton v-if="!isInUse" color="rose" icon="i-ph-trash-duotone" :label="t('deleteModel.inside')" :loading="isDeleting" @click="handleDelete" />
+          <UButton v-if="!isInUse" color="rose" icon="i-ph-trash-duotone" :label="t('deleteModel.inside')"
+            :loading="isDeleting" @click="handleDelete" />
         </UiFormActions>
       </UCard>
     </UModal>
@@ -116,17 +118,17 @@ async function handleDelete() {
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Remove Model
-    deleteModel:
-      outside: Remove…
-      inside: Remove
-    deleteModelConfirmation: Are you sure you want to remove {id}? This action cannot be undone.
-    modelInUse:
-      warning: 'Cannot remove {id} because it’s currently being used by these assistants:'
-      hint: Please remove or reconfigure all assistants using this model first.
-    modelInUseError: Cannot delete model because it is in use by one or more assistants.
-    cancel: Cancel
-    success: Model removed.
-    error: Failed to remove model.
+en:
+  title: Remove Model
+  deleteModel:
+    outside: Remove…
+    inside: Remove
+  deleteModelConfirmation: Are you sure you want to remove {id}? This action cannot be undone.
+  modelInUse:
+    warning: 'Cannot remove {id} because it’s currently being used by these assistants:'
+    hint: Please remove or reconfigure all assistants using this model first.
+  modelInUseError: Cannot delete model because it is in use by one or more assistants.
+  cancel: Cancel
+  success: Model removed.
+  error: Failed to remove model.
 </i18n>

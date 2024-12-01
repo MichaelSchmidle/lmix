@@ -26,8 +26,8 @@ const props = defineProps({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Personas
-    newPersona: New Persona
-    noPersonas: No personas yet
+en:
+  title: Personas
+  newPersona: New Persona
+  noPersonas: No personas yet
 </i18n>

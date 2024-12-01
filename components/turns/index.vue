@@ -3,6 +3,7 @@ import type { DropdownItem } from '#ui/types'
 import type { Turn } from '~/types/app'
 
 const { t } = useI18n({ useScope: 'local' })
+const user = useSupabaseUser()
 const { m } = useMarkdown()
 const toast = useToast()
 const personaStore = usePersonaStore()
@@ -11,7 +12,7 @@ const turnStore = useTurnStore()
 const { getActiveTurnUuid, getAncestorTurnUuid, getChildTurnUuids, getLatestDescendantTurn, getStreamingState, getTurn } = storeToRefs(turnStore)
 const { insertAssistantTurn, deleteTurn, setActiveTurn } = turnStore
 const productionStore = useProductionStore()
-const { getProductionAssistantUuids } = storeToRefs(productionStore)
+const { getProduction, getProductionAssistantUuids } = storeToRefs(productionStore)
 const assistantStore = useAssistantStore()
 const { getAssistant } = storeToRefs(assistantStore)
 
@@ -22,9 +23,11 @@ const props = defineProps({
   }
 })
 
+const production = computed(() => getProduction.value(props.turn.production_uuid))
 const turn = computed(() => getTurn.value(props.turn.uuid))
 const persona = computed(() => turn.value?.message.metadata?.persona_uuid ? getPersona.value(turn.value?.message.metadata?.persona_uuid) : undefined)
-const name = computed(() => persona.value?.name || t('user'))
+const name = computed(() => persona.value?.name || (turn.value?.message.role === 'assistant' ? turn.value?.message.content.persona_name : user.value?.user_metadata.name || t('user')))
+const avatarUrl = computed(() => persona.value?.avatar_url || (turn.value?.message.role === 'user' ? user.value?.user_metadata.avatar_url : undefined))
 const siblingTurnUuids = computed(() => getChildTurnUuids.value(props.turn.production_uuid, props.turn.parent_turn_uuid))
 const childTurnUuids = computed(() => getChildTurnUuids.value(props.turn.production_uuid, props.turn.uuid))
 const activeTurnUuid = computed(() => getActiveTurnUuid.value(props.turn.production_uuid))
@@ -66,6 +69,10 @@ const items = computed(() => {
   })
 })
 
+const showTurn = computed(() => {
+  return props.turn.is_directive ? production.value?.show_directives : true
+})
+
 const handleRegenerateTurn = async (assistantUuid: string) => {
   try {
     await insertAssistantTurn(
@@ -105,20 +112,22 @@ const handleDeleteTurn = async () => {
 </script>
 
 <template>
-  <div v-if="turn" class="space-y-4" v-auto-animate>
+  <div v-if="turn && showTurn" class="space-y-4" v-auto-animate>
     <UiMediaObject class="xl:gap-0" :key="turn.created_at">
       <template #media>
         <UTooltip class="xl:-ms-16" :text="name">
-          <UAvatar class="prose" :alt="name" size="md" :src="persona?.avatar_url || undefined" />
+          <UChip position="top-left" :show="turn.message.role === 'user'">
+            <UAvatar class="prose" :alt="name" size="md" :src="avatarUrl" />
+          </UChip>
         </UTooltip>
       </template>
-        <div class="prose dark:prose-invert prose-a:text-primary prose-headings:font-serif"
-          v-html="m(turn.message.content.performance, true)" />
+      <div :class="['prose dark:prose-invert prose-a:text-primary prose-headings:font-serif', turn.is_directive ? 'prose-sm' : undefined]" v-html="m(turn.message.content.performance, true)" />
     </UiMediaObject>
     <div class="grid sm:grid-cols-2 gap-4">
-      <div>
+      <div class="flex gap-2">
+        <UiBadgesDirective v-if="turn.is_directive" />
         <div v-if="getStreamingState.isStreaming && getStreamingState.turnUuid === turn.uuid" class="animate-pulse flex gap-2" :ui="{ rounded: 'rounded-full' }">
-          <UBadge v-for="property in getStreamingState.streamingProperties" :key="property" color="gray" size="xs" variant="soft">
+          <UBadge v-for="property in getStreamingState.streamingProperties" :key="property" color="gray" size="xs" variant="soft" :ui="{ rounded: 'rounded-full' }">
             {{ t(`streaming.${property}`) }}
           </UBadge>
         </div>
@@ -126,23 +135,18 @@ const handleDeleteTurn = async () => {
       <UiFormActions class="gap-2" v-auto-animate>
         <div v-if="siblingTurnUuids.length > 1">
           <UTooltip :popper="{ placement: 'top' }" :text="t('navigation.back')">
-            <UButton color="gray" icon="i-ph-arrow-u-up-left" size="2xs" variant="ghost"
-              :disabled="currentSiblingIndex <= 0 || getStreamingState.isStreaming" @click="navigateToSibling('back')" />
+            <UButton color="gray" icon="i-ph-arrow-u-up-left" size="2xs" variant="ghost" :disabled="currentSiblingIndex <= 0 || getStreamingState.isStreaming" @click="navigateToSibling('back')" />
           </UTooltip>
           <UTooltip :popper="{ placement: 'top' }" :text="t('navigation.forward')">
-            <UButton color="gray" icon="i-ph-arrow-u-up-right" size="2xs" variant="ghost"
-              :disabled="currentSiblingIndex === -1 || currentSiblingIndex >= siblingTurnUuids.length - 1 || getStreamingState.isStreaming"
-              @click="navigateToSibling('forward')" />
+            <UButton color="gray" icon="i-ph-arrow-u-up-right" size="2xs" variant="ghost" :disabled="currentSiblingIndex === -1 || currentSiblingIndex >= siblingTurnUuids.length - 1 || getStreamingState.isStreaming" @click="navigateToSibling('forward')" />
           </UTooltip>
         </div>
         <UTooltip v-if="turn.assistant_uuid" :popper="{ placement: 'top' }" :text="t('regenerate.label')">
-          <UButton color="gray" :disabled="getStreamingState.isStreaming" icon="i-ph-arrow-clockwise" size="2xs"
-            variant="ghost" @click="handleRegenerateTurn(turn.assistant_uuid)" />
+          <UButton color="gray" :disabled="getStreamingState.isStreaming" icon="i-ph-arrow-clockwise" size="2xs" variant="ghost" @click="handleRegenerateTurn(turn.assistant_uuid)" />
         </UTooltip>
         <UTooltip v-if="turn.assistant_uuid" :popper="{ placement: 'top' }" :text="t('switch.label')">
           <UDropdown :items="items">
-            <UButton color="gray" :disabled="getStreamingState.isStreaming" icon="i-ph-user-switch" size="2xs"
-              variant="ghost" />
+            <UButton color="gray" :disabled="getStreamingState.isStreaming" icon="i-ph-user-switch" size="2xs" variant="ghost" />
           </UDropdown>
         </UTooltip>
         <UTooltip :popper="{ placement: 'top' }" :text="t('edit.label')">
@@ -151,8 +155,7 @@ const handleDeleteTurn = async () => {
           </TurnsUpdate>
         </UTooltip>
         <UTooltip :popper="{ placement: 'top' }" :text="t('delete.label')">
-          <UButton color="gray" :disabled="getStreamingState.isStreaming" icon="i-ph-trash" size="2xs" variant="ghost"
-            @click="handleDeleteTurn" />
+          <UButton color="gray" :disabled="getStreamingState.isStreaming" icon="i-ph-trash" size="2xs" variant="ghost" @click="handleDeleteTurn" />
         </UTooltip>
       </UiFormActions>
     </div>
@@ -182,5 +185,5 @@ en:
     performance: Performing
     vectors: Vectorizing
     meta: Commenting
-    note_to_future_self: Noting
+    note_to_self: Noting
 </i18n>

@@ -24,7 +24,7 @@ useHead({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: New Scenario
-    scenarios: Scenario Navigation
+en:
+  title: New Scenario
+  scenarios: Scenario Navigation
 </i18n>

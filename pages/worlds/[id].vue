@@ -35,7 +35,7 @@ useHead({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: World {name}
-    worldNotFound: World not found
+en:
+  title: World {name}
+  worldNotFound: World not found
 </i18n>

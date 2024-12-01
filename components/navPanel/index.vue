@@ -2,8 +2,25 @@
 const { t } = useI18n({ useScope: 'local' })
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
+const toast = useToast()
 const productionStore = useProductionStore()
 const { getProductionNavigation } = storeToRefs(productionStore)
+const { $reset: resetProductionStore } = productionStore
+const assistantStore = useAssistantStore()
+const { $reset: resetAssistantStore } = assistantStore
+const modelStore = useModelStore()
+const { $reset: resetModelStore } = modelStore
+const personaStore = usePersonaStore()
+const { $reset: resetPersonaStore } = personaStore
+const relationStore = useRelationStore()
+const { $reset: resetRelationStore } = relationStore
+const scenarioStore = useScenarioStore()
+const { $reset: resetScenarioStore } = scenarioStore
+const turnStore = useTurnStore()
+const { $reset: resetTurnStore } = turnStore
+const worldStore = useWorldStore()
+const { $reset: resetWorldStore } = worldStore
+const { exportData } = useExport()
 
 const props = defineProps({
   isSlideover: {
@@ -57,6 +74,11 @@ const userItems = computed(() => {
       ...baseItems,
       [
         {
+          click: handleExport,
+          icon: 'i-ph-download-simple',
+          label: t('export'),
+        },
+        {
           click: handleSignOut,
           icon: 'i-ph-sign-out',
           label: t('signOut'),
@@ -73,13 +95,37 @@ const isSigningOut = ref(false)
 async function handleSignOut() {
   isSigningOut.value = true
 
+  // Reset all stores
+  resetProductionStore()
+  resetAssistantStore()
+  resetModelStore()
+  resetPersonaStore()
+  resetRelationStore()
+  resetScenarioStore()
+  resetTurnStore()
+  resetWorldStore()
+
+  navigateTo('/')
+
   const signOutPromise = supabase.auth.signOut()
   const delayPromise = new Promise(resolve => setTimeout(resolve, 2000))
 
   await Promise.all([signOutPromise, delayPromise])
   isSigningOut.value = false
+}
 
-  navigateTo('/')
+const handleExport = () => {
+  try {
+    exportData()
+  }
+  catch (error) {
+    console.error(error)
+    toast.add({
+      color: 'rose',
+      icon: 'i-ph-x-circle',
+      title: t('export.error'),
+    })
+  }
 }
 </script>
 
@@ -93,20 +139,22 @@ async function handleSignOut() {
     </template>
   </UiPanelHeader>
   <UiPanelContent>
-    <UAccordion color="gray" default-open :items="repertoireItems" variant="ghost" :ui="{ default: { class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold' } }">
+    <UAccordion color="gray" default-open :items="repertoireItems" variant="ghost"
+      :ui="{ default: { class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold' } }">
       <template #repertoire>
         <UVerticalNavigation :links="links" />
       </template>
     </UAccordion>
     <UButton block icon="i-ph-popcorn-duotone" :label="t('newProduction')" to="/" />
-    <UAccordion color="gray" default-open :items="productionItems" variant="ghost" :ui="{ default: { class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold' } }">
+    <UAccordion color="gray" default-open :items="productionItems" variant="ghost"
+      :ui="{ default: { class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold' } }">
       <template #productions>
         <UVerticalNavigation v-if="getProductionNavigation.length" :links="getProductionNavigation" />
         <NoData v-else :message="t('noProductions')" />
       </template>
     </UAccordion>
   </UiPanelContent>
-  <UiPanelFooter>
+  <UiPanelFooter class="min-h-16">
     <UDropdown :items="userItems">
       <UAvatar v-if="user?.user_metadata.avatar_url" :src="user.user_metadata.avatar_url" />
       <UAvatar v-else icon="i-ph-user" :ui="{ background: 'bg-gray-200' }" />
@@ -136,20 +184,22 @@ async function handleSignOut() {
 </template>
 
 <i18n lang="yaml">
-  en:
-    repertoire: Repertoire
-    models: Models
-    personas: Personas
-    assistants: Assistants
-    relations: Relations
-    scenarios: Scenarios
-    worlds: Worlds
-    newProduction: New Production
-    productions: Productions
-    noProductions: No productions yet
-    account: Signed in as {email}
-    colorMode: Color Mode
-    colorTheme: Color Theme
-    signOut: Sign Out
-    signingOut: We are signing you out. Please wait.
+en:
+  repertoire: Repertoire
+  models: Models
+  personas: Personas
+  assistants: Assistants
+  relations: Relations
+  scenarios: Scenarios
+  worlds: Worlds
+  newProduction: New Production
+  productions: Productions
+  noProductions: No productions yet
+  account: Signed in as {email}
+  colorMode: Color Mode
+  colorTheme: Color Theme
+  export: Export Repertoire
+  exportError: Failed to export data
+  signOut: Sign Out
+  signingOut: We are signing you out. Please wait.
 </i18n>

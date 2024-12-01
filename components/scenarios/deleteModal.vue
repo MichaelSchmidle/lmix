@@ -46,7 +46,8 @@ async function handleDelete() {
 
 <template>
   <div>
-    <UButton color="gray" icon="i-ph-trash-duotone" :label="t('deleteScenario.outside')" variant="ghost" @click="isOpen = true" />
+    <UButton color="gray" icon="i-ph-trash-duotone" :label="t('deleteScenario.outside')" variant="ghost"
+      @click="isOpen = true" />
     <UModal v-model="isOpen">
       <UCard :ui="{ body: { base: 'space-y-4' } }">
         <template #header>
@@ -59,7 +60,8 @@ async function handleDelete() {
         </i18n-t>
         <UiFormActions>
           <UButton color="gray" variant="ghost" :label="t('cancel')" @click="isOpen = false" />
-          <UButton color="rose" icon="i-ph-trash-duotone" :label="t('deleteScenario.inside')" :loading="isDeleting" @click="handleDelete" />
+          <UButton color="rose" icon="i-ph-trash-duotone" :label="t('deleteScenario.inside')" :loading="isDeleting"
+            @click="handleDelete" />
         </UiFormActions>
       </UCard>
     </UModal>
@@ -67,13 +69,13 @@ async function handleDelete() {
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Remove Scenario
-    deleteScenario:
-      outside: Remove…
-      inside: Remove
-    deleteScenarioConfirmation: Are you sure you want to remove {name}? This action cannot be undone.
-    cancel: Cancel
-    success: Scenario removed.
-    error: Failed to remove scenario.
+en:
+  title: Remove Scenario
+  deleteScenario:
+    outside: Remove…
+    inside: Remove
+  deleteScenarioConfirmation: Are you sure you want to remove {name}? This action cannot be undone.
+  cancel: Cancel
+  success: Scenario removed.
+  error: Failed to remove scenario.
 </i18n>

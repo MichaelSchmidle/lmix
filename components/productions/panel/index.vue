@@ -5,6 +5,7 @@ import type { Production } from '~/types/app'
 const { t } = useI18n({ useScope: 'local' })
 const productionStore = useProductionStore()
 const { getProductionAssistantUuids, getProductionPersonaUuids, getProductionRelationUuids } = storeToRefs(productionStore)
+const { upsertProduction } = productionStore
 const personaStore = usePersonaStore()
 const { getPersonaNavigation } = storeToRefs(personaStore)
 const assistantStore = useAssistantStore()
@@ -43,7 +44,7 @@ const navigationItems = ref([
   },
 ])
 
-const accordionItems = ref([
+const accordionNavigations = ref([
   {
     label: t('ensemble'),
     slot: 'ensemble',
@@ -65,6 +66,19 @@ const worldNavigation = computed(() => {
   if (!props.production.world_uuid) return []
   return getWorldNavigation.value([props.production.world_uuid], 'i-ph-planet')
 })
+
+const showDirectives = ref<boolean>(false)
+showDirectives.value = props.production.show_directives
+
+const handleDirectiveChange = async () => {
+  try {
+    await upsertProduction({
+      uuid: props.production.uuid,
+      show_directives: showDirectives.value,
+    })
+  }
+  catch (error) { }
+}
 </script>
 
 <template>
@@ -76,7 +90,7 @@ const worldNavigation = computed(() => {
   </UiPanelHeader>
   <UiPanelContent>
     <UVerticalNavigation :links="navigationItems" />
-    <UAccordion color="gray" default-open :items="accordionItems" variant="ghost"
+    <UAccordion color="gray" :items="accordionNavigations" variant="ghost"
       :ui="{ default: { class: 'hover:bg-gray-200 dark:hover:bg-gray-800 font-semibold' } }">
       <template #ensemble>
         <UVerticalNavigation :links="personaNavigation" />
@@ -86,13 +100,25 @@ const worldNavigation = computed(() => {
         <UVerticalNavigation :links="worldNavigation" />
       </template>
     </UAccordion>
+    <UCheckbox @change="handleDirectiveChange" v-model="showDirectives">
+      <template #label>
+        <UiBadgesDirective />
+      </template>
+    </UCheckbox>
   </UiPanelContent>
+  <UiPanelFooter class="min-h-16">
+    <UCheckbox color="cyan" @change="handleDirectiveChange" v-model="showDirectives">
+      <template #label>
+        <UiBadgesDirective />
+      </template>
+    </UCheckbox>
+  </UiPanelFooter>
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Production
-    produce: Stage
-    upsert: Backstage
-    ensemble: Ensemble
+en:
+  title: Production
+  produce: Stage
+  upsert: Backstage
+  ensemble: Ensemble
 </i18n>

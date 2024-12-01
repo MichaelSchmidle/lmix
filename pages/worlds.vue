@@ -30,6 +30,6 @@ definePageMeta({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: Worlds
+en:
+  title: Worlds
 </i18n>

@@ -15,6 +15,15 @@ export const useRelationStore = defineStore('relations', () => {
   const personaStore = usePersonaStore()
   const { getPersona } = storeToRefs(personaStore)
 
+  // Reset state
+  function $reset() {
+    relations.value = []
+    relationPersonas.value = []
+    fullyLoaded.value = false
+    loading.value = false
+    error.value = null
+  }
+
   // State
   const relations = ref<Relation[]>([])
   const relationPersonas = ref<RelationPersona[]>([])
@@ -266,7 +275,10 @@ export const useRelationStore = defineStore('relations', () => {
           )
         }
 
-        relationPersonas.value = insertedRelationPersonas
+        relationPersonas.value = [
+          ...relationPersonas.value.filter(rp => rp.relation_uuid !== relationUuid),
+          ...insertedRelationPersonas
+        ]
       }
 
       if (isUpdate) {
@@ -436,6 +448,7 @@ export const useRelationStore = defineStore('relations', () => {
   }
 
   return {
+    $reset,
     // State
     relations,
     relationPersonas,

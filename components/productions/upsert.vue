@@ -39,15 +39,23 @@ const formInitialValue = computed(() => {
 
 const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNode) => {
   try {
+    // Separate relational fields from core production data
+    const {
+      production_assistant_uuids,
+      production_persona_uuids,
+      production_relation_uuids,
+      ...productionData
+    } = form
+
     const uuid = await productionStore.upsertProduction(
       {
-        ...form,
+        ...productionData,
         uuid: props.production?.uuid,
-      } as ProductionWithRelationsInsert,
+      },
       {
-        assistantUuids: form.production_assistant_uuids || [],
-        personaUuids: form.production_persona_uuids || [],
-        relationUuids: form.production_relation_uuids || [],
+        assistantUuids: production_assistant_uuids || [],
+        personaUuids: production_persona_uuids || [],
+        relationUuids: production_relation_uuids || [],
       }
     )
 
@@ -70,11 +78,11 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
   <UiSection icon="i-ph-popcorn-thin" :title="t(production ? 'titleUpdate' : 'titleInsert')"
     :description="t(production ? 'descriptionUpdate' : 'descriptionInsert')">
     <div class="flex justify-end max-w-prose px-4">
-      <UCheckbox v-model="isExtended" :label="t('isExtended.label')" />
+      <UCheckbox color="cyan" :label="t('isExtended.label')" v-model="isExtended" />
     </div>
     <UCard>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="formInitialValue">
-        <FormKit type="text" name="name" :label="t('name.label')" />
+        <FormKit v-if="isExtended" type="text" name="name" :label="t('name.label')" />
         <FormKit type="taglist" name="production_assistant_uuids" :label="t('assistants.label')"
           :options="getAssistantOptions()" :placeholder="t('assistants.placeholder')" validation="required"
           :validation-messages="{ required: t('assistants.required') }" />
@@ -93,7 +101,7 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
           <UiFormActions>
             <ProductionsDeleteModal v-if="production" :production="production" @success="navigateTo('/')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
-              :label="t(isUpdate ? 'updateProduction' : 'createProduction')" :loading="disabled as boolean"
+              :label="t(isUpdate ? 'updateProduction' : 'createProduction')" :loading="(disabled as boolean)"
               type="submit" />
           </UiFormActions>
         </template>
@@ -103,35 +111,35 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
 </template>
 
 <i18n lang="yaml">
-  en:
-    titleInsert: Create
-    titleUpdate: Update
-    descriptionInsert: Bring personas, scenarios and worlds to life with a new production.
-    descriptionUpdate: Configure this production’s ensemble.
-    name:
-      label: Name
-    assistants:
-      label: Assistants
-      placeholder: Select assistants…
-      required: At least one assistant is required.
-    scenario:
-      label: Scenario
-      placeholder: Select a scenario…
-    personas:
-      label: Personas
-      help: Add the personas that you as user will represent in this production.
-      placeholder: Select personas…
-    relations:
-      label: Relations
-      placeholder: Select relations…
-    world:
-      label: World
-      placeholder: Select a world…
-    isExtended:
-      label: Show extended settings
-    createProduction: Create
-    updateProduction: Update
-    productionCreated: Production created.
-    productionUpdated: Production updated.
-    saveFailed: Failed to save production.
+en:
+  titleInsert: Create
+  titleUpdate: Update
+  descriptionInsert: Bring personas, scenarios and worlds to life with a new production.
+  descriptionUpdate: Configure this production’s ensemble.
+  name:
+    label: Name
+  assistants:
+    label: Assistants
+    placeholder: Select assistants…
+    required: At least one assistant is required.
+  scenario:
+    label: Scenario
+    placeholder: Select a scenario…
+  personas:
+    label: Personas
+    help: Add the personas that you as user will represent in this production.
+    placeholder: Select personas…
+  relations:
+    label: Relations
+    placeholder: Select relations…
+  world:
+    label: World
+    placeholder: Select a world…
+  isExtended:
+    label: Show extended settings
+  createProduction: Create
+  updateProduction: Update
+  productionCreated: Production created.
+  productionUpdated: Production updated.
+  saveFailed: Failed to save production.
 </i18n>

@@ -81,34 +81,31 @@ export type Database = {
       personas: {
         Row: {
           avatar_url: string | null
+          external: string | null
           inserted_at: string
+          internal: string | null
           name: string
-          private_knowledge: string | null
-          public_knowledge: string | null
-          public_perception: string | null
-          self_perception: string | null
+          universal: string | null
           user_uuid: string
           uuid: string
         }
         Insert: {
           avatar_url?: string | null
+          external?: string | null
           inserted_at?: string
+          internal?: string | null
           name: string
-          private_knowledge?: string | null
-          public_knowledge?: string | null
-          public_perception?: string | null
-          self_perception?: string | null
+          universal?: string | null
           user_uuid?: string
           uuid?: string
         }
         Update: {
           avatar_url?: string | null
+          external?: string | null
           inserted_at?: string
+          internal?: string | null
           name?: string
-          private_knowledge?: string | null
-          public_knowledge?: string | null
-          public_perception?: string | null
-          self_perception?: string | null
+          universal?: string | null
           user_uuid?: string
           uuid?: string
         }
@@ -146,54 +143,6 @@ export type Database = {
           },
           {
             foreignKeyName: "production_assistants_production_uuid_fkey"
-            columns: ["production_uuid"]
-            isOneToOne: false
-            referencedRelation: "productions"
-            referencedColumns: ["uuid"]
-          },
-        ]
-      }
-      production_persona_evolutions: {
-        Row: {
-          inserted_at: string
-          note_to_self: string | null
-          persona_uuid: string
-          private_knowledge: string | null
-          production_uuid: string
-          self_perception: string | null
-          user_uuid: string
-          uuid: string
-        }
-        Insert: {
-          inserted_at?: string
-          note_to_self?: string | null
-          persona_uuid: string
-          private_knowledge?: string | null
-          production_uuid: string
-          self_perception?: string | null
-          user_uuid?: string
-          uuid?: string
-        }
-        Update: {
-          inserted_at?: string
-          note_to_self?: string | null
-          persona_uuid?: string
-          private_knowledge?: string | null
-          production_uuid?: string
-          self_perception?: string | null
-          user_uuid?: string
-          uuid?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "production_persona_evolutions_persona_uuid_fkey"
-            columns: ["persona_uuid"]
-            isOneToOne: false
-            referencedRelation: "personas"
-            referencedColumns: ["uuid"]
-          },
-          {
-            foreignKeyName: "production_persona_evolutions_prouction_uuid_fkey"
             columns: ["production_uuid"]
             isOneToOne: false
             referencedRelation: "productions"
@@ -284,6 +233,7 @@ export type Database = {
           inserted_at: string
           name: string | null
           scenario_uuid: string | null
+          show_directives: boolean
           user_uuid: string
           uuid: string
           world_uuid: string | null
@@ -292,6 +242,7 @@ export type Database = {
           inserted_at?: string
           name?: string | null
           scenario_uuid?: string | null
+          show_directives?: boolean
           user_uuid?: string
           uuid?: string
           world_uuid?: string | null
@@ -300,6 +251,7 @@ export type Database = {
           inserted_at?: string
           name?: string | null
           scenario_uuid?: string | null
+          show_directives?: boolean
           user_uuid?: string
           uuid?: string
           world_uuid?: string | null
@@ -362,26 +314,29 @@ export type Database = {
       }
       relations: {
         Row: {
+          external: string | null
           inserted_at: string
+          internal: string | null
           name: string | null
-          private_description: string | null
-          public_description: string | null
+          universal: string | null
           user_uuid: string
           uuid: string
         }
         Insert: {
+          external?: string | null
           inserted_at?: string
+          internal?: string | null
           name?: string | null
-          private_description?: string | null
-          public_description?: string | null
+          universal?: string | null
           user_uuid?: string
           uuid?: string
         }
         Update: {
+          external?: string | null
           inserted_at?: string
+          internal?: string | null
           name?: string | null
-          private_description?: string | null
-          public_description?: string | null
+          universal?: string | null
           user_uuid?: string
           uuid?: string
         }
@@ -416,6 +371,7 @@ export type Database = {
           assistant_uuid: string | null
           created_at: string
           inserted_at: string
+          is_directive: boolean | null
           message: Json
           parent_turn_uuid: string | null
           production_uuid: string
@@ -426,6 +382,7 @@ export type Database = {
           assistant_uuid?: string | null
           created_at: string
           inserted_at?: string
+          is_directive?: boolean | null
           message: Json
           parent_turn_uuid?: string | null
           production_uuid: string
@@ -436,6 +393,7 @@ export type Database = {
           assistant_uuid?: string | null
           created_at?: string
           inserted_at?: string
+          is_directive?: boolean | null
           message?: Json
           parent_turn_uuid?: string | null
           production_uuid?: string

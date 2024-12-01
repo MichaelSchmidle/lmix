@@ -24,7 +24,7 @@ useHead({
 </template>
 
 <i18n lang="yaml">
-  en:
-    title: New World
-    worlds: World Navigation
+en:
+  title: New World
+  worlds: World Navigation
 </i18n>

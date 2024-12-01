@@ -20,6 +20,6 @@ defineProps({
 </template>
 
 <i18n lang="yaml">
-  en:
-    noData: No data
+en:
+  noData: No data
 </i18n>

@@ -99,21 +99,17 @@ const handleAvatarDelete = async () => {
         </div>
       </div>
       <FormKit :incomplete-message="false" type="form" @submit="handleSubmit" :value="persona">
-        <FormKit type="text" name="name" :label="t('name.label')" validation="required|not:User"
+        <FormKit type="text" name="name" :label="t('name.label')" :help="t('name.help')" validation="required|not:User"
           :validation-messages="{ required: t('name.required'), not: t('name.notUser') }" />
-        <FormKit type="textarea" auto-height name="public_knowledge" :label="t('publicKnowledge.label')"
-          :help="t('publicKnowledge.help')" />
-        <FormKit type="textarea" auto-height name="private_knowledge" :label="t('privateKnowledge.label')"
-          :help="t('privateKnowledge.help')" />
-        <FormKit type="textarea" auto-height name="public_perception" :label="t('publicPerception.label')"
-          :help="t('publicPerception.help')" />
-        <FormKit type="textarea" auto-height name="self_perception" :label="t('selfPerception.label')"
-          :help="t('selfPerception.help')" />
+        <FormKit type="textarea" auto-height name="universal" :label="t('universal.label')"
+          :help="t('universal.help')" />
+        <FormKit type="textarea" auto-height name="internal" :label="t('internal.label')" :help="t('internal.help')" />
+        <FormKit type="textarea" auto-height name="external" :label="t('external.label')" :help="t('external.help')" />
         <template #actions="{ disabled }">
           <UiFormActions>
             <PersonasDeleteModal v-if="persona" :persona="persona" @success="handleNavigation('/personas/add')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
-              :label="t(isUpdate ? 'updatePersona' : 'createPersona')" :loading="disabled as boolean" type="submit" />
+              :label="t(isUpdate ? 'updatePersona' : 'createPersona')" :loading="(disabled as boolean)" type="submit" />
           </UiFormActions>
         </template>
       </FormKit>
@@ -125,24 +121,22 @@ const handleAvatarDelete = async () => {
 en:
   titleInsert: Create
   titleUpdate: Update
-  descriptionInsert: Create a new persona with their own perceptions and knowledge states.
-  descriptionUpdate: Configure this persona’s perceptions and knowledge states.
+  descriptionInsert: 'Personas act through three layers of truth: universal, internal, and external. By leaving universal and external empty, personas can act as invisible, inexplicable forces that shape a production without being perceived by other personas – perfect for creating hidden forces or practical helpers.'
+  descriptionUpdate: Configure this persona’s avatar, name, and layers of truth.
   name:
     label: Name
+    help: A persona’s name is visible to all assistants in a production. For personas that should be “inexplicable”, consider using neutral names (e.g. ‘Presence’ or ‘Force’) to maintain mystery. Descriptive names might reveal too much about their nature.
     required: Name is required.
     notUser: ‘User’ is a reserved name, please choose a different name.
-  selfPerception:
-    label: Self Perception
-    help: How the persona views themselves
-  publicPerception:
-    label: Public Perception
-    help: How others perceive the persona
-  privateKnowledge:
-    label: Private Knowledge
-    help: What only the persona knows
-  publicKnowledge:
-    label: Public Knowledge
-    help: What others know for a fact about the persona
+  universal:
+    label: Universal
+    help: What’s true for all personas about this persona – this persona included.
+  internal:
+    label: Internal
+    help: What’s true only for this persona. Instructions for the assistant enacting this persona should be included here.
+  external:
+    label: External
+    help: What’s true only for other personas about this persona.
   createPersona: Create
   updatePersona: Update
   personaCreated: Persona created.

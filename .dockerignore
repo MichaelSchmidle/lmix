@@ -1,0 +1,28 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+.nuxt
+.output
+dist
+
+# Development files
+.vscode
+.idea
+*.log
+.env*
+!.env.example
+
+# Supabase local dev
+**/supabase/.branches
+**/supabase/.temp
+**/supabase/.env
+
+# Testing
+coverage

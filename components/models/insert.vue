@@ -99,8 +99,8 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
             :disabled="apiModelOptions.length > 0" />
           <template v-if="!apiModelOptions.length" #actions="{ disabled }">
             <UiFormActions>
-              <UButton color="cyan" icon="i-ph-list-magnifying-glass" :label="t('discoverModels')"
-                :loading="disabled as boolean" :disabled="apiModelOptions.length > 0" type="submit" />
+              <UButton color="cyan" :disabled="apiModelOptions.length > 0" icon="i-ph-list-magnifying-glass"
+                :label="t('discoverModels')" size="lg" :loading="disabled as boolean" type="submit" />
             </UiFormActions>
           </template>
         </FormKit>
@@ -117,11 +117,12 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
               :validation-messages="{ required: t('availableModels.required') }" />
             <template #actions="{ disabled }">
               <UiFormActions>
-                <UButton type="button" color="gray" icon="i-ph-skip-back" variant="ghost" @click="apiModelOptions = []">
+                <UButton type="button" color="gray" icon="i-ph-skip-back" size="lg" variant="ghost"
+                  @click="apiModelOptions = []">
                   {{ t('configureApi') }}
                 </UButton>
                 <UButton type="submit" color="cyan" icon="i-ph-plus" :label="t('addModels')"
-                  :loading="(disabled as boolean)" />
+                  :loading="(disabled as boolean)" size="lg" />
               </UiFormActions>
             </template>
           </FormKit>

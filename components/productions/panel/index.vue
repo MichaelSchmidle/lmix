@@ -100,11 +100,6 @@ const handleDirectiveChange = async () => {
         <UVerticalNavigation :links="worldNavigation" />
       </template>
     </UAccordion>
-    <UCheckbox @change="handleDirectiveChange" v-model="showDirectives">
-      <template #label>
-        <UiBadgesDirective />
-      </template>
-    </UCheckbox>
   </UiPanelContent>
   <UiPanelFooter class="min-h-16">
     <UCheckbox color="cyan" @change="handleDirectiveChange" v-model="showDirectives">

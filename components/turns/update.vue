@@ -50,7 +50,7 @@ const handleSubmit = async (turn: TurnUpdate, node: FormKitNode) => {
       <template #header>
         {{ t('title') }}
       </template>
-      <FormKit :incomplete-message="false" type="form" :value="turn" @submit="handleSubmit">
+      <FormKit v-if="turn" :incomplete-message="false" type="form" :value="turn" @submit="handleSubmit">
         <FormKit v-if="turn.message.role === 'assistant'" type="dropdown" name="assistant_uuid"
           :label="t('assistant.label')"
           :options="getAssistantOptions(getProductionAssistantUuids(turn.production_uuid))" />
@@ -74,8 +74,8 @@ const handleSubmit = async (turn: TurnUpdate, node: FormKitNode) => {
           :help="t('directive.help')" />
         <template #actions="{ disabled }">
           <UiFormActions>
-            <UButton color="gray" variant="ghost" :label="t('cancel')" @click="isModalOpen = false" />
-            <UButton color="cyan" icon="i-ph-check" :label="t('submit')" :loading="(disabled as boolean)"
+            <UButton color="gray" variant="ghost" :label="t('cancel')" size="lg" @click="isModalOpen = false" />
+            <UButton color="cyan" icon="i-ph-check" :label="t('submit')" :loading="(disabled as boolean)" size="lg"
               type="submit" />
           </UiFormActions>
         </template>
@@ -109,7 +109,7 @@ en:
     label: Meta Commentary
     help: In-character commentary on scene dynamics, written in first person from the persona’s perspective, breaking the fourth wall
   noteToFutureSelf:
-    label: Note to Future Self
+    label: Note to Self
     help: Context bridge to next turn to help maintain modified state
   directive:
     label: Directive

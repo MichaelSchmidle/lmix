@@ -50,7 +50,7 @@ const handleSubmit = async (form: Partial<ScenarioInsert>, node: FormKitNode) =>
           <UiFormActions>
             <ScenariosDeleteModal v-if="scenario" :scenario="scenario" @success="navigateTo('/scenarios/add')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
-              :label="t(isUpdate ? 'updateScenario' : 'createScenario')" :loading="(disabled as boolean)"
+              :label="t(isUpdate ? 'updateScenario' : 'createScenario')" :loading="(disabled as boolean)" size="lg"
               type="submit" />
           </UiFormActions>
         </template>

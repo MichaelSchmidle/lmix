@@ -58,7 +58,7 @@ const handleSubmit = async (form: AssistantInsert, node: FormKitNode) => {
           <UiFormActions>
             <AssistantsDeleteModal v-if="assistant" :assistant="assistant" @success="navigateTo('/assistants/add')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
-              :label="t(isUpdate ? 'updateAssistant' : 'createAssistant')" :loading="(disabled as boolean)"
+              :label="t(isUpdate ? 'updateAssistant' : 'createAssistant')" :loading="(disabled as boolean)" size="lg"
               type="submit" />
           </UiFormActions>
         </template>

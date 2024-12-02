@@ -6,16 +6,7 @@
  * Turns represent the back-and-forth communication between users and AI assistants.
  */
 import { defineStore } from 'pinia'
-import type { Database } from '~/types/api'
-import type {
-  ActiveTurn,
-  Content,
-  Message,
-  Turn,
-  TurnInsert,
-  UserTurnMessage,
-  TurnUpdate,
-} from '~/types/app'
+import type { ActiveTurn, Content, Message, Turn, TurnInsert, UserTurnMessage, TurnUpdate } from '~/types/app'
 import { LMiXError, ApiError } from '~/types/errors'
 import { JSONParser } from '@streamparser/json'
 
@@ -224,7 +215,7 @@ export const useTurnStore = defineStore('turn', () => {
     error.value = null
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       // Fetch turns
       const { data: selectedTurns, error: selectError } = await client
@@ -305,7 +296,7 @@ export const useTurnStore = defineStore('turn', () => {
     if (inStateOnly) return stateTurn.uuid
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       // Insert new turn
       const { data: insertedTurn, error: insertError } = await client
@@ -373,7 +364,7 @@ export const useTurnStore = defineStore('turn', () => {
       'Turn not found',
       'TURN_NOT_FOUND',
     )
-    const client = useSupabaseClient<Database>()
+    const client = useSupabaseClient()
 
     const { data: insertedTurn, error: insertError } = await client
       .from('turns')
@@ -831,7 +822,7 @@ export const useTurnStore = defineStore('turn', () => {
     })
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { error: updateError } = await client
         .from('turns')
@@ -895,7 +886,7 @@ export const useTurnStore = defineStore('turn', () => {
     turns.value = turns.value.filter(t => t.uuid !== uuid && !childTurnUuids.includes(t.uuid))
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       // Supabase will handle cascade deletion of child turns
       const { error: deleteError } = await client

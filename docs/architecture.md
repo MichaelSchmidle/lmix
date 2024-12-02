@@ -55,6 +55,7 @@ type Production = {
   world: World
   assistants: Assistant[]
   personas: Persona[]     // User personas
+  relations: Relation[]
   turns: Turn[]
 }
 

@@ -61,7 +61,7 @@ export default defineAppConfig({
     },
     container: {
       base: 'space-y-8 lg:space-y-12',
-      constrained: 'md:max-w-prose',
+      constrained: 'max-w-prose',
       padding: '',
     },
     divider: {
@@ -104,7 +104,7 @@ export default defineAppConfig({
       },
     },
     verticalNavigation: {
-      active: 'before:bg-primary-100 dark:before:bg-primary-900 font-semibold text-primary-900 dark:text-primary-100',
+      active: 'before:bg-primary-200 dark:before:bg-primary-800 font-semibold text-primary-800 dark:text-primary-200',
       inactive: 'hover:before:bg-gray-200 dark:hover:before:bg-gray-800',
     },
   },

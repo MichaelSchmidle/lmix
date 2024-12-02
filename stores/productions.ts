@@ -12,9 +12,8 @@
  */
 import { defineStore } from 'pinia'
 import type { VerticalNavigationLink } from '#ui/types'
-import type { Database } from '~/types/api'
 import type { Assistant, Persona, Production, ProductionAssistant, ProductionInsert, ProductionPersona, ProductionRelation, ProductionWithRelations, Relation } from '~/types/app'
-import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
+import { LMiXError, ApiError } from '~/types/errors'
 
 export const useProductionStore = defineStore('production', () => {
   // Reset state
@@ -130,7 +129,7 @@ export const useProductionStore = defineStore('production', () => {
     error.value = null
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
       const { data: selectedProductions, error: selectError } = await client
         .from('productions')
         .select('*')
@@ -170,7 +169,7 @@ export const useProductionStore = defineStore('production', () => {
     error.value = null
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
       const { data: selectedProduction, error: selectError } = await client
         .from('productions')
         .select(`
@@ -380,7 +379,7 @@ export const useProductionStore = defineStore('production', () => {
     }
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       // 1. Upsert core production data
       const { data: upsertedProduction, error: upsertError } = await client
@@ -532,23 +531,24 @@ export const useProductionStore = defineStore('production', () => {
             productions.value[tempIndex] = upsertedProduction
           }
         }
+      }
 
-        return productionUuid
-      }
-    catch (e) {
-        // Rollback all original state
-        productions.value = original.productions
-        productionAssistants.value = original.productionAssistants
-        productionPersonas.value = original.productionPersonas
-        productionRelations.value = original.productionRelations
-        error.value = e as LMiXError
-        if (import.meta.dev) console.error('Production upsert failed:', e)
-        throw e
-      }
-      finally {
-        loading.value = false
-      }
+      return productionUuid
     }
+    catch (e) {
+      // Rollback all original state
+      productions.value = original.productions
+      productionAssistants.value = original.productionAssistants
+      productionPersonas.value = original.productionPersonas
+      productionRelations.value = original.productionRelations
+      error.value = e as LMiXError
+      if (import.meta.dev) console.error('Production upsert failed:', e)
+      throw e
+    }
+    finally {
+      loading.value = false
+    }
+  }
 
   /**
    * Deletes a production and all its relations from the database
@@ -557,60 +557,60 @@ export const useProductionStore = defineStore('production', () => {
    * @throws {LMiXError} If the API request fails
    */
   async function deleteProduction(uuid: string): Promise<void> {
-      loading.value = true
-      error.value = null
-      const original = [...productions.value]
-      productions.value = productions.value.filter(p => p.uuid !== uuid)
+    loading.value = true
+    error.value = null
+    const original = [...productions.value]
+    productions.value = productions.value.filter(p => p.uuid !== uuid)
 
-      try {
-        const client = useSupabaseClient<Database>()
+    try {
+      const client = useSupabaseClient()
 
-        const { error: deleteError } = await client
-          .from('productions')
-          .delete()
-          .eq('uuid', uuid)
+      const { error: deleteError } = await client
+        .from('productions')
+        .delete()
+        .eq('uuid', uuid)
 
-        if (deleteError) throw new LMiXError(
-          deleteError.message,
-          'API_ERROR',
-          deleteError,
-        )
-      }
-      catch (e) {
-        productions.value = original
-        error.value = e as LMiXError
-        if (import.meta.dev) console.error('Production deletion failed:', e)
-        throw e
-      }
-      finally {
-        loading.value = false
-      }
+      if (deleteError) throw new LMiXError(
+        deleteError.message,
+        'API_ERROR',
+        deleteError,
+      )
     }
-
-    return {
-      $reset,
-      // State
-      productions,
-      productionAssistants,
-      productionPersonas,
-      productionRelations,
-      loading,
-      error,
-      // Getters
-      getProduction,
-      getProductionLabel,
-      getProductionNavigation,
-      getProductionCount,
-      getProductionAssistantUuids,
-      getProductionPersonaUuids,
-      getProductionRelationUuids,
-      // Actions
-      selectProductions,
-      selectProduction,
-      upsertProduction,
-      deleteProduction,
+    catch (e) {
+      productions.value = original
+      error.value = e as LMiXError
+      if (import.meta.dev) console.error('Production deletion failed:', e)
+      throw e
     }
-  })
+    finally {
+      loading.value = false
+    }
+  }
+
+  return {
+    $reset,
+    // State
+    productions,
+    productionAssistants,
+    productionPersonas,
+    productionRelations,
+    loading,
+    error,
+    // Getters
+    getProduction,
+    getProductionLabel,
+    getProductionNavigation,
+    getProductionCount,
+    getProductionAssistantUuids,
+    getProductionPersonaUuids,
+    getProductionRelationUuids,
+    // Actions
+    selectProductions,
+    selectProduction,
+    upsertProduction,
+    deleteProduction,
+  }
+})
 
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useProductionStore, import.meta.hot))

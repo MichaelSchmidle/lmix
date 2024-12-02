@@ -27,7 +27,7 @@ const providers: OAuthProvider[] = [
     id: 'google',
     icon: 'simple-icons:google',
     label: t('providers.google'),
-    enabled: false,
+    enabled: true,
   },
 ]
 

@@ -26,7 +26,7 @@ const props = defineProps({
 const production = computed(() => getProduction.value(props.turn.production_uuid))
 const turn = computed(() => getTurn.value(props.turn.uuid))
 const persona = computed(() => turn.value?.message.metadata?.persona_uuid ? getPersona.value(turn.value?.message.metadata?.persona_uuid) : undefined)
-const name = computed(() => persona.value?.name || (turn.value?.message.role === 'assistant' ? turn.value?.message.content.persona_name : user.value?.user_metadata.name || t('user')))
+const name = computed(() => persona.value?.name || (turn.value?.message.role === 'assistant' ? turn.value?.message.content.persona_name : user.value?.user_metadata.full_name || t('user')))
 const avatarUrl = computed(() => persona.value?.avatar_url || (turn.value?.message.role === 'user' ? user.value?.user_metadata.avatar_url : undefined))
 const siblingTurnUuids = computed(() => getChildTurnUuids.value(props.turn.production_uuid, props.turn.parent_turn_uuid))
 const childTurnUuids = computed(() => getChildTurnUuids.value(props.turn.production_uuid, props.turn.uuid))

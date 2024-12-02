@@ -1,10 +1,9 @@
 import { serverSupabaseClient } from '#supabase/server'
-import type { Database } from '~/types/api'
 import { format } from '@formkit/tempo'
 
 export default defineEventHandler(async (event) => {
   try {
-    const client = await serverSupabaseClient<Database>(event)
+    const client = await serverSupabaseClient(event)
 
     // Fetch all data in parallel
     const [

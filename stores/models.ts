@@ -7,9 +7,8 @@
  */
 import { defineStore } from 'pinia'
 import type { AccordionItem, VerticalNavigationLink } from '#ui/types'
-import type { Database } from '~/types/api'
-import type { ApiConfiguration, ApiModel, ApiModelOption, Model, ModelInsert, Assistant } from '~/types/app'
-import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
+import type { ApiConfiguration, ApiModel, ApiModelOption, Model, ModelInsert } from '~/types/app'
+import { LMiXError, ApiError } from '~/types/errors'
 
 export const useModelStore = defineStore('model', () => {
   // Reset state
@@ -123,7 +122,7 @@ export const useModelStore = defineStore('model', () => {
     error.value = null
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { data, error: selectError } = await client
         .from('models')
@@ -172,7 +171,7 @@ export const useModelStore = defineStore('model', () => {
     models.value.unshift(...optimisticModels)
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { data: insertedModels, error: insertError } = await client
         .from('models')
@@ -180,19 +179,6 @@ export const useModelStore = defineStore('model', () => {
         .select()
 
       if (insertError) {
-        // Convert Supabase errors to appropriate LMiX error types
-        if (insertError.code === '42501') {
-          throw new AuthenticationError(
-            'Not authorized to insert models',
-            insertError
-          )
-        }
-        if (insertError.code === '23502') {
-          throw new ValidationError(
-            'Missing required fields for models',
-            insertError
-          )
-        }
         throw new ApiError(
           insertError.message,
           insertError
@@ -253,7 +239,7 @@ export const useModelStore = defineStore('model', () => {
         )
       }
 
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
       const { error: deleteError } = await client
         .from('models')
         .delete()

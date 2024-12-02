@@ -41,7 +41,7 @@ const { getAssistantCount } = assistantStore
           <template #title>
             <i18n-t v-if="user" class="font-serif" keypath="hero.title.authenticated" tag="h1">
               <template #name>
-                <span class="text-primary">{{ user.user_metadata.name }}</span>
+                <span class="text-primary">{{ user.user_metadata.full_name }}</span>
               </template>
             </i18n-t>
             <i18n-t v-else class="font-serif" keypath="hero.title.anonymous" tag="h1">

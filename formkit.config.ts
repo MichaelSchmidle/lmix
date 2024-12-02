@@ -1,4 +1,3 @@
-// formkit.config.{ts|js}
 import { defineFormKitConfig } from '@formkit/vue'
 import { genesisIcons } from '@formkit/icons'
 import { createAutoAnimatePlugin, createAutoHeightTextareaPlugin } from '@formkit/addons'

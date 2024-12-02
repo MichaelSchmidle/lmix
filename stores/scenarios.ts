@@ -6,9 +6,8 @@
  * Scenarios represent the settings and rules for a production.
  */
 import { defineStore } from 'pinia'
-import type { Database } from '~/types/api'
 import type { Scenario, ScenarioInsert } from '~/types/app'
-import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
+import { LMiXError, ApiError } from '~/types/errors'
 import type { VerticalNavigationLink } from '#ui/types'
 
 export const useScenarioStore = defineStore('scenario', () => {
@@ -91,7 +90,7 @@ export const useScenarioStore = defineStore('scenario', () => {
     error.value = null
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { data, error: selectError } = await client
         .from('scenarios')
@@ -147,7 +146,7 @@ export const useScenarioStore = defineStore('scenario', () => {
     }
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { data: selectedScenario, error: selectError } = await client
         .from('scenarios')
@@ -156,19 +155,6 @@ export const useScenarioStore = defineStore('scenario', () => {
         .single()
 
       if (selectError) {
-        // Convert Supabase errors to appropriate LMiX error types
-        if (selectError.code === '42501') {
-          throw new AuthenticationError(
-            'Not authorized to upsert scenario',
-            selectError
-          )
-        }
-        if (selectError.code === '23502') {
-          throw new ValidationError(
-            'Missing required fields for scenario',
-            selectError
-          )
-        }
         throw new ApiError(
           selectError.message,
           selectError
@@ -230,7 +216,7 @@ export const useScenarioStore = defineStore('scenario', () => {
     scenarios.value = scenarios.value.filter(s => s.uuid !== uuid)
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { error: deleteError } = await client
         .from('scenarios')

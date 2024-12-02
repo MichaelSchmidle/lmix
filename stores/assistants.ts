@@ -7,7 +7,6 @@
  */
 import { defineStore } from 'pinia'
 import type { VerticalNavigationLink } from '#ui/types'
-import type { Database } from '~/types/api'
 import type { Assistant, AssistantInsert, AssistantWithRelations, Persona } from '~/types/app'
 import { LMiXError } from '~/types/errors'
 
@@ -116,7 +115,7 @@ export const useAssistantStore = defineStore('assistant', () => {
     error.value = null
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { data: selectedAssistants, error: selectError } = await client
         .from('assistants')
@@ -176,7 +175,7 @@ export const useAssistantStore = defineStore('assistant', () => {
     }
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { data: upsertedAssistant, error: upsertError } = await client
         .from('assistants')
@@ -236,7 +235,7 @@ export const useAssistantStore = defineStore('assistant', () => {
     assistants.value = assistants.value.filter(a => a.uuid !== uuid)
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { error: deleteError } = await client
         .from('assistants')

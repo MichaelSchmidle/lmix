@@ -1,4 +1,4 @@
-# LMiX 🎭
+# LMiX 
 
 > Create dynamic multi-agent productions where AI assistants can be anything from characters to cosmic forces.
 
@@ -12,46 +12,38 @@ LMiX is not just another AI chat interface - it's a platform for orchestrating r
 
 ### Worlds
 Define the stage for your productions:
-- Settings and rules
-- Physical laws
-- Universal truths
-- Environmental conditions
+- Unique settings and rules
+- Physical laws, environmental conditions, and social norms
 
 ### Personas
-Create assistants with:
-- Self-perception (how they view themselves)
-- Public perception (how others view them)
-- Hidden capabilities and knowledge
-- Ability to evolve through productions
+Create assistants with three layers of truth:
+- Universal (what's universally true about a given persona)
+- Internal (what's true only for a given persona)
+- External (what's true only for other personas about a given persona)
 
 ### Scenarios
 Bring it all together with natural language descriptions of:
-- Current situation
-- Relations and tensions
-- Hidden agendas
-- Stakes and motivations
+- Current situation and starting point
+- Instructions shared by all assistants
 
 ## Unique Features 🚀
 
 ### Beyond Characters
 Assistants can play diverse roles:
 - Visible traditional character personas
-- Invisible destiny masters orchestrating future events
-- Meta-commentators providing analysis
+- Invisible destiny masters orchestrating future events or inexplicable forces shaping the world
+- Production helpers setting a scene or summarizing episodes
 
 ### Dynamic Interactions
 - Natural conversation flow with multiple participants
-- Fourth wall breaks and meta-commentary
+- Fourth wall breaks with meta-commentaries
 - Temporal perspective shifts
-- Hidden state tracking and evolution
 - Branching conversations and alternative takes
 
 ### Director Controls
-- Mention (@) assistants to select speakers
-- Choose between story and meta modes
-- Review past events from new perspectives
+- Select assistants to take turns
 - Branch into alternative conversation paths
-- Set up destiny points for inevitable outcomes
+- Regenerate turns using different assistants
 
 ## Use Cases 🎬
 
@@ -83,21 +75,6 @@ The LMiX application container is automatically built and published to GitHub Co
    - Waits for database availability
    - Applies pending migrations
    - Starts the application
-
-### Manual Build
-
-To build the container locally:
-
-```bash
-# Build the container
-docker build -t lmix .
-
-# Run with required environment variables
-docker run -p 3000:3000 \
-  -e SUPABASE_DB_HOST=localhost \
-  -e SUPABASE_DB_PASSWORD=your-password \
-  lmix
-```
 
 ## Database Migrations 🗃️
 
@@ -162,6 +139,36 @@ We follow a trunk-based development workflow:
 5. After approval, merge to main
 6. Tag release
 7. Deploy to production
+
+## Local Development 🚧
+
+### Prerequisites
+- Docker Desktop
+- Node.js 18+
+- Running local Supabase instance
+
+### Building and Testing Locally
+
+1. Create a `.env.development` file with your local Supabase configuration:
+```env
+SUPABASE_DB_HOST=localhost
+SUPABASE_DB_USER=postgres
+SUPABASE_DB_PASSWORD=your-local-password
+SUPABASE_DB_NAME=postgres
+```
+
+2. Build and test the container:
+```bash
+# On Unix-like systems
+./scripts/build-local.sh
+
+# On Windows
+.\scripts\build-local.ps1
+```
+
+This will:
+- Build the container with development settings
+- Run the test suite against your local Supabase instance
 
 ## Contributing 🤝
 

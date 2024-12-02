@@ -275,3 +275,10 @@ client_id = "env(GITHUB_CLIENT_ID)"
 secret = "env(GITHUB_OAUTH_SECRET)"
 # Callback URLs registered with GitHub
 redirect_uri = "env(OAUTH_REDIRECT_URI)"
+
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_OAUTH_SECRET)"
+# Callback URLs registered with GitHub
+redirect_uri = "env(OAUTH_REDIRECT_URI)"

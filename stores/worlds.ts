@@ -6,9 +6,8 @@
  * Worlds represent the global conditions in the application.
  */
 import { defineStore } from 'pinia'
-import type { Database } from '~/types/api'
 import type { World, WorldInsert } from '~/types/app'
-import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
+import { LMiXError, ApiError } from '~/types/errors'
 import type { VerticalNavigationLink } from '#ui/types'
 
 export const useWorldStore = defineStore('world', () => {
@@ -92,7 +91,7 @@ export const useWorldStore = defineStore('world', () => {
     error.value = null
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { data: selectedWorlds, error: selectError } = await client
         .from('worlds')
@@ -148,7 +147,7 @@ export const useWorldStore = defineStore('world', () => {
     }
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { data: upsertedWorld, error: upsertError } = await client
         .from('worlds')
@@ -157,19 +156,6 @@ export const useWorldStore = defineStore('world', () => {
         .single()
 
       if (upsertError) {
-        // Convert Supabase errors to appropriate LMiX error types
-        if (upsertError.code === '42501') {
-          throw new AuthenticationError(
-            'Not authorized to upsert world',
-            upsertError
-          )
-        }
-        if (upsertError.code === '23502') {
-          throw new ValidationError(
-            'Missing required fields for world',
-            upsertError
-          )
-        }
         throw new ApiError(
           upsertError.message,
           upsertError
@@ -231,7 +217,7 @@ export const useWorldStore = defineStore('world', () => {
     worlds.value = worlds.value.filter(w => w.uuid !== uuid)
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { error: deleteError } = await client
         .from('worlds')

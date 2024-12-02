@@ -156,7 +156,7 @@ const handleExport = () => {
   </UiPanelContent>
   <UiPanelFooter class="min-h-16">
     <UDropdown :items="userItems">
-      <UAvatar v-if="user?.user_metadata.avatar_url" :src="user.user_metadata.avatar_url" />
+      <UAvatar v-if="user?.user_metadata.avatar_url" :alt="user.user_metadata.full_name" :src="user.user_metadata.avatar_url" />
       <UAvatar v-else icon="i-ph-user" :ui="{ background: 'bg-gray-200' }" />
       <template v-if="user" #account>
         <i18n-t keypath="account" tag="span" @click.stop>

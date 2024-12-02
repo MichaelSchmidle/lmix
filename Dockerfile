@@ -1,51 +1,34 @@
 # Build stage
-FROM node:18-alpine AS builder
-
-# Install build dependencies
-RUN apk add --no-cache git
-
-# Set working directory
+FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy package files
+# Add build arguments
+ARG SUPABASE_URL
+ARG SUPABASE_KEY
+
+# Set environment variables for build
+ENV SUPABASE_URL=${SUPABASE_URL}
+ENV SUPABASE_KEY=${SUPABASE_KEY}
+
 COPY package*.json ./
-
-# Install dependencies
 RUN npm ci
-
-# Copy source files
 COPY . .
-
-# Build application
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine
-
-# Install Supabase CLI and runtime dependencies
-RUN apk add --no-cache \
-  curl \
-  postgresql-client \
-  && curl -fsSL https://raw.githubusercontent.com/supabase/cli/main/install.sh | sh
-
-# Set working directory
+FROM node:20-alpine
 WORKDIR /app
 
-# Copy built application
-COPY --from=builder /app/.output ./.output
-COPY --from=builder /app/supabase ./supabase
+# Install Supabase CLI
+RUN apk add --no-cache curl && \
+    curl -L https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz && \
+    mv supabase /usr/local/bin && \
+    apk del curl
 
-# Copy startup script
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Copy only necessary files
+COPY --from=builder /app/.output ./
+COPY supabase/migrations ./supabase/migrations
+COPY docker-entrypoint.sh /
+RUN chmod +x /docker-entrypoint.sh
 
-# Set environment
-ENV NODE_ENV=production
-ENV HOST=0.0.0.0
-ENV PORT=3000
-
-# Expose port
-EXPOSE 3000
-
-# Set entrypoint
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

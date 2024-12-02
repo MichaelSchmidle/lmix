@@ -53,6 +53,7 @@ export default defineNuxtConfig({
       exclude: [],
       cookieRedirect: false,
     },
+    types: './types/api.ts',
   },
   ui: {
     safelistColors: [

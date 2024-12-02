@@ -7,9 +7,8 @@
  */
 import { defineStore } from 'pinia'
 import type { VerticalNavigationLink } from '#ui/types'
-import type { Database } from '~/types/api'
 import type { Persona, Relation, RelationInsert, RelationPersona, RelationWithRelations } from '~/types/app'
-import { LMiXError, ApiError, ValidationError, AuthenticationError } from '~/types/errors'
+import { LMiXError, ApiError } from '~/types/errors'
 
 export const useRelationStore = defineStore('relations', () => {
   const personaStore = usePersonaStore()
@@ -140,7 +139,7 @@ export const useRelationStore = defineStore('relations', () => {
     error.value = null
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { data: selectedRelations, error: selectError } = await client
         .from('relations')
@@ -205,7 +204,7 @@ export const useRelationStore = defineStore('relations', () => {
     }
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       // First upsert the relation
       const { data: upsertedRelation, error: upsertError } = await client
@@ -215,19 +214,6 @@ export const useRelationStore = defineStore('relations', () => {
         .single()
 
       if (upsertError) {
-        // Convert Supabase errors to appropriate LMiX error types
-        if (upsertError.code === '42501') {
-          throw new AuthenticationError(
-            'Not authorized to upsert relation',
-            upsertError
-          )
-        }
-        if (upsertError.code === '23502') {
-          throw new ValidationError(
-            'Missing required fields for relation',
-            upsertError
-          )
-        }
         throw new ApiError(
           upsertError.message,
           upsertError
@@ -333,7 +319,7 @@ export const useRelationStore = defineStore('relations', () => {
     }
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { error: deleteError } = await client
         .from('relations')
@@ -375,7 +361,7 @@ export const useRelationStore = defineStore('relations', () => {
     const original = [...relationPersonas.value]
 
     try {
-      const client = useSupabaseClient<Database>()
+      const client = useSupabaseClient()
 
       const { error: deleteError } = await client
         .from('relation_personas')

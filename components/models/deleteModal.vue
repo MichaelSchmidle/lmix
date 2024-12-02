@@ -108,8 +108,8 @@ async function handleDelete() {
           </template>
         </div>
         <UiFormActions>
-          <UButton color="gray" variant="ghost" :label="t('cancel')" @click="isOpen = false" />
-          <UButton v-if="!isInUse" color="rose" icon="i-ph-trash-duotone" :label="t('deleteModel.inside')"
+          <UButton color="gray" variant="ghost" :label="t('cancel')" size="lg" @click="isOpen = false" />
+          <UButton v-if="!isInUse" color="rose" icon="i-ph-trash-duotone" :label="t('deleteModel.inside')" size="lg"
             :loading="isDeleting" @click="handleDelete" />
         </UiFormActions>
       </UCard>

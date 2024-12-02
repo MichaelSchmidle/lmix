@@ -74,8 +74,8 @@ const handleSubmit = async (turn: TurnUpdate, node: FormKitNode) => {
           :help="t('directive.help')" />
         <template #actions="{ disabled }">
           <UiFormActions>
-            <UButton color="gray" variant="ghost" :label="t('cancel')" @click="isModalOpen = false" />
-            <UButton color="cyan" icon="i-ph-check" :label="t('submit')" :loading="(disabled as boolean)"
+            <UButton color="gray" variant="ghost" :label="t('cancel')" size="lg" @click="isModalOpen = false" />
+            <UButton color="cyan" icon="i-ph-check" :label="t('submit')" :loading="(disabled as boolean)" size="lg"
               type="submit" />
           </UiFormActions>
         </template>

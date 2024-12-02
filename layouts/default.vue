@@ -1,11 +1,5 @@
 <script setup lang="ts">
 const { t } = useI18n({ useScope: 'local' })
-
-useHead({
-  bodyAttrs: {
-    class: 'bg-white dark:bg-black text-black dark:text-white'
-  },
-})
 </script>
 
 <template>

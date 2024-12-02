@@ -2,12 +2,6 @@
 const { t } = useI18n({ useScope: 'local' })
 const user = useSupabaseUser()
 
-useHead(
-  {
-    title: user.value ? t('title') : t('meta.title'),
-  }
-)
-
 const modelStore = useModelStore()
 const personaStore = usePersonaStore()
 const assistantStore = useAssistantStore()
@@ -39,20 +33,14 @@ const { getAssistantCount } = assistantStore
       <UContainer v-auto-animate>
         <UiHero icon="i-ph-hand-waving-thin" :description="t('hero.description')">
           <template #title>
-            <i18n-t v-if="user" class="font-serif" keypath="hero.title.authenticated" tag="h1">
+            <i18n-t class="font-serif" keypath="hero.title" tag="h1">
               <template #name>
-                <span class="text-primary">{{ user.user_metadata.full_name }}</span>
-              </template>
-            </i18n-t>
-            <i18n-t v-else class="font-serif" keypath="hero.title.anonymous" tag="h1">
-              <template #lmix>
-                <span class="text-primary">{{ t('hero.lmix') }}</span>
+                <span class="text-primary">{{ user?.user_metadata.full_name || user.email }}</span>
               </template>
             </i18n-t>
           </template>
         </UiHero>
-        <OAuth v-if="!user" />
-        <FirstSteps v-else-if="!getModelCount || !getPersonaCount || !getAssistantCount" />
+        <FirstSteps v-if="!getModelCount || !getPersonaCount || !getAssistantCount" />
         <ProductionsUpsert v-else orientation="vertical" />
       </UContainer>
     </UiPanelContent>
@@ -62,12 +50,7 @@ const { getAssistantCount } = assistantStore
 <i18n lang="yaml">
 en:
   title: New Production
-  meta:
-    title: Dynamic Multi-Agent Productions
   hero:
-    title:
-      anonymous: Welcome to your {lmix}
-      authenticated: Hey, {name}
-    lmix: LMiX
+    title: Hey, {name}
     description: Create dynamic multi-agent productions where AI assistants can be anything from characters to cosmic forces.
 </i18n>

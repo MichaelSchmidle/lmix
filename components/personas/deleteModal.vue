@@ -59,9 +59,9 @@ async function handleDelete() {
           </template>
         </i18n-t>
         <UiFormActions>
-          <UButton color="gray" variant="ghost" :label="t('cancel')" @click="isOpen = false" />
+          <UButton color="gray" variant="ghost" :label="t('cancel')" size="lg" @click="isOpen = false" />
           <UButton color="rose" icon="i-ph-trash-duotone" :label="t('deletePersona.inside')" :loading="isDeleting"
-            @click="handleDelete" />
+            size="lg" @click="handleDelete" />
         </UiFormActions>
       </UCard>
     </UModal>

@@ -6,7 +6,7 @@ import type { FormKitNode } from '@formkit/core'
   * edited unless you’d like to "eject" from the CLI’s ability to update it.
   *
   * @checksum - 1c927448b9a3dd8c9d9e25f7673d87dbc9ff848d44657187b09edfd35491f1c7
-  * @variables - radius=rounded,spacing=2,scale=base
+  * @variables - radius=rounded-md,spacing=2,scale=base
   * @theme - starter
   **/
 
@@ -101,7 +101,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "dark:placeholder:text-stone-500": true,
     "flex": true,
     "items-center": true,
-    "rounded": true,
+    "rounded-md": true,
     "px-7": true,
     "py-3": true,
     "outline-none": true,
@@ -300,7 +300,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "w-full": true,
     "py-2": true,
     "px-3": true,
-    "rounded": true,
+    "rounded-md": true,
     "border": true,
     "border-stone-200": true,
     "flex": true,
@@ -371,8 +371,8 @@ const classes: Record<string, Record<string, boolean>> = {
     "focus-within:ring-2": true,
     "focus-within:ring-cyan-500": true,
     "dark:focus-within:ring-cyan-400": true,
-    "rounded": true,
-    "group-data-[is-multiline]:!rounded": true,
+    "rounded-md": true,
+    "group-data-[is-multiline]:!rounded-md": true,
     "dark:border-stone-800": true
   },
   "family:dropdown__prefixIcon": {
@@ -470,7 +470,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "py-2": true,
     "h-[1.66em]": true,
     "bg-stone-900": true,
-    "rounded": true,
+    "rounded-md": true,
     "text-white": true,
     "dark:bg-stone-100": true,
     "dark:text-black": true
@@ -545,7 +545,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "data-[is-active]:bg-stone-100": true
   },
   "family:dropdown__dropdownWrapper": {
-    "rounded": true,
+    "rounded-md": true,
     "empty:hidden": true,
     "border": true,
     "border-stone-200": true,
@@ -555,7 +555,7 @@ const classes: Record<string, Record<string, boolean>> = {
   },
   "family:dropdown__listbox": {
     "bg-white": true,
-    "rounded": true,
+    "rounded-md": true,
     "overflow-clip": true,
     "empty:hidden": true,
     "dark:bg-stone-900": true,
@@ -600,16 +600,16 @@ const classes: Record<string, Record<string, boolean>> = {
     "data-[is-active]:before:ring-1": true,
     "data-[is-active]:before:ring-inset": true,
     "data-[is-active]:before:ring-stone-300": true,
-    "data-[is-active]:first:before:rounded": true,
-    "data-[is-active]:first:before:rounded-b-none": true,
-    "data-[is-active]:last:before:rounded": true,
-    "data-[is-active]:last:before:rounded-t-none": true,
-    "data-[is-active]:first:last:before:rounded": true,
+    "data-[is-active]:first:before:rounded-md": true,
+    "data-[is-active]:first:before:rounded-md-b-none": true,
+    "data-[is-active]:last:before:rounded-md": true,
+    "data-[is-active]:last:before:rounded-md-t-none": true,
+    "data-[is-active]:first:last:before:rounded-md": true,
     "dark:text-white": true,
     "dark:data-[is-active]:bg-stone-700": true,
     "dark:data-[is-active]:before:ring-stone-400": true,
-    "group-[]/optgroup:first:before:!rounded-none": true,
-    "group-[]/optgroup:last:before:!rounded-none": true
+    "group-[]/optgroup:first:before:!rounded-md-none": true,
+    "group-[]/optgroup:last:before:!rounded-md-none": true
   },
   "family:dropdown__selectedIcon": {
     "flex": true,
@@ -760,7 +760,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "": true
   },
   "checkbox__decorator": {
-    "rounded": true
+    "rounded-md": true
   },
   "checkbox__decoratorIcon": {
     "max-w-[66.66%]": true
@@ -836,7 +836,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "dark:[color-scheme:dark]": true,
     "placeholder:text-stone-400": true,
     "dark:placeholder:text-stone-500": true,
-    "rounded": true,
+    "rounded-md": true,
     "overflow-clip": true,
     "[&::-webkit-color-swatch-wrapper]:p-0": true,
     "[&::-webkit-color-swatch]:border-none": true,
@@ -1101,7 +1101,7 @@ const classes: Record<string, Record<string, boolean>> = {
   },
   "file__inner": {
     "relative": true,
-    "group-data-[multiple]:rounded": true
+    "group-data-[multiple]:rounded-md": true
   },
   "file__input": {
     "appearance-none": true,
@@ -1198,7 +1198,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "group/summary": true,
     "border": true,
     "border-stone-200": true,
-    "rounded": true,
+    "rounded-md": true,
     "py-2": true,
     "px-3": true,
     "dark:border-stone-800": true
@@ -1457,7 +1457,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "": true
   },
   "radio__decorator": {
-    "rounded-full": true
+    "rounded-md-full": true
   },
   "radio__decoratorIcon": {
     "max-w-[50%]": true
@@ -1539,17 +1539,17 @@ const classes: Record<string, Record<string, boolean>> = {
     "dark:placeholder:text-stone-500": true,
     "[&::-webkit-slider-runnable-track]:bg-stone-300": true,
     "[&::-webkit-slider-runnable-track]:h-1.5": true,
-    "[&::-webkit-slider-runnable-track]:rounded": true,
+    "[&::-webkit-slider-runnable-track]:rounded-md": true,
     "dark:[&::-webkit-slider-runnable-track]:bg-stone-700": true,
     "[&::-moz-range-track]:bg-stone-300": true,
     "[&::-moz-range-track]:h-1.5": true,
-    "[&::-moz-range-track]:rounded": true,
+    "[&::-moz-range-track]:rounded-md": true,
     "dark:[&::-moz-range-track]:bg-stone-700": true,
     "[&::-webkit-slider-thumb]:appearance-none": true,
     "[&::-webkit-slider-thumb]:w-3.5": true,
     "[&::-webkit-slider-thumb]:h-3.5": true,
     "[&::-webkit-slider-thumb]:bg-stone-600": true,
-    "[&::-webkit-slider-thumb]:rounded-full": true,
+    "[&::-webkit-slider-thumb]:rounded-md-full": true,
     "[&::-webkit-slider-thumb]:relative": true,
     "[&::-webkit-slider-thumb]:top-1/2": true,
     "[&::-webkit-slider-thumb]:-translate-y-1/2": true,
@@ -1560,7 +1560,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "[&::-moz-range-thumb]:w-3.5": true,
     "[&::-moz-range-thumb]:h-3.5": true,
     "[&::-moz-range-thumb]:bg-stone-600": true,
-    "[&::-moz-range-thumb]:rounded-full": true,
+    "[&::-moz-range-thumb]:rounded-md-full": true,
     "[&::-moz-range-thumb]:focus-visible:ring-2": true,
     "[&::-moz-range-thumb]:focus-visible:ring-cyan-500": true,
     "dark:[&::-moz-range-thumb]:focus-visible:ring-cyan-400": true,
@@ -1699,11 +1699,11 @@ const classes: Record<string, Record<string, boolean>> = {
     "items-center": true,
     "border": true,
     "border-stone-200": true,
-    "rounded": true,
+    "rounded-md": true,
     "focus-within:ring-2": true,
     "focus-within:ring-cyan-500": true,
     "dark:focus-within:ring-cyan-400": true,
-    "group-data-[multiple]:rounded": true,
+    "group-data-[multiple]:rounded-md": true,
     "dark:border-stone-800": true
   },
   "select__input": {
@@ -2027,7 +2027,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "mb-1.5": true,
     "border": true,
     "border-stone-200": true,
-    "rounded": true,
+    "rounded-md": true,
     "focus-within:ring-2": true,
     "focus-within:ring-cyan-500": true,
     "dark:focus-within:ring-cyan-400": true,
@@ -2333,7 +2333,7 @@ const classes: Record<string, Record<string, boolean>> = {
   },
   "autocomplete__selectionWrapper": {
     "bg-stone-100": true,
-    "rounded": true,
+    "rounded-md": true,
     "group-data-[multiple]:border": true,
     "group-data-[multiple]:border-stone-200": true,
     "group-data-[multiple]:mb-1.5": true,
@@ -2349,7 +2349,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "[&.formkit-longTouch]:opacity-50": true
   },
   "autocomplete__selection": {
-    "rounded": true,
+    "rounded-md": true,
     "pl-2": true,
     "[&>*]:ml-0": true
   },
@@ -2441,12 +2441,12 @@ const classes: Record<string, Record<string, boolean>> = {
     "group-data-[inline]:outline-none": true,
     "group-data-[inline]:!ring-0": true,
     "group-data-[inline]:!w-full": true,
-    "group-data-[inline]:rounded": true
+    "group-data-[inline]:rounded-md": true
   },
   "colorpicker__swatchPreview": {
     "flex": true,
     "items-center": true,
-    "rounded": true
+    "rounded-md": true
   },
   "colorpicker__canvasSwatchPreviewWrapper": {
     "mr-2": true,
@@ -2454,7 +2454,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "before:content-['']": true,
     "before:absolute": true,
     "before:inset-0": true,
-    "before:rounded": true,
+    "before:rounded-md": true,
     "before:shadow-[inset_0_0_0_1px_rgba(0,0,0,0.2)]": true,
     "before:z-[2]": true
   },
@@ -2464,7 +2464,7 @@ const classes: Record<string, Record<string, boolean>> = {
   },
   "colorpicker__canvasSwatchPreview": {
     "text-base": true,
-    "rounded": true,
+    "rounded-md": true,
     "aspect-[1/1]": true,
     "shrink-0": true,
     "grow": true,
@@ -2487,7 +2487,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "max-w-[18.5em]": true,
     "touch-manipulation": true,
     "flex-col": true,
-    "rounded": true,
+    "rounded-md": true,
     "border": true,
     "bg-white": true,
     "p-2": true,
@@ -2505,7 +2505,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "[@media(max-width:431px)_and_(hover:none)]:group-[&:not([data-inline])]:max-w-none": true,
     "[@media(max-width:431px)_and_(hover:none)]:group-[&:not([data-inline])]:bottom-0": true,
     "[@media(max-width:431px)_and_(hover:none)]:group-[&:not([data-inline])]:left-0": true,
-    "[@media(max-width:431px)_and_(hover:none)]:group-[&:not([data-inline])]:rounded-none": true
+    "[@media(max-width:431px)_and_(hover:none)]:group-[&:not([data-inline])]:rounded-md-none": true
   },
   "colorpicker__panelClose": {
     "flex": true,
@@ -2523,7 +2523,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "w-[1.75rem]": true,
     "aspect-[1/1]": true,
     "p-1": true,
-    "rounded": true,
+    "rounded-md": true,
     "border": true,
     "border-stone-200": true,
     "dark:border-stone-800": true,
@@ -2561,12 +2561,12 @@ const classes: Record<string, Record<string, boolean>> = {
   "colorpicker__canvasLS": {
     "aspect-[2/1]": true,
     "cursor-pointer": true,
-    "rounded-none": true
+    "rounded-md-none": true
   },
   "colorpicker__controlLS": {
     "w-[10px]": true,
     "h-[10px]": true,
-    "rounded-full": true
+    "rounded-md-full": true
   },
   "colorpicker__preview": {
     "[grid-area:b]": true,
@@ -2575,11 +2575,11 @@ const classes: Record<string, Record<string, boolean>> = {
     "w-[2em]": true,
     "aspect-[1/1]": true,
     "overflow-hidden": true,
-    "rounded": true,
+    "rounded-md": true,
     "after:content-['']": true,
     "after:absolute": true,
     "after:inset-0": true,
-    "after:rounded": true,
+    "after:rounded-md": true,
     "after:shadow-[inset_0_0_0_1px_rgba(0,0,0,0.2)]": true
   },
   "colorpicker__hue": {
@@ -2590,13 +2590,13 @@ const classes: Record<string, Record<string, boolean>> = {
     "ml-2": true
   },
   "colorpicker__canvasHue": {
-    "rounded-none": true
+    "rounded-md-none": true
   },
   "colorpicker__controlHue": {
     "w-[4px]": true,
     "top-1/2": true,
     "h-[calc(100%-2px)]": true,
-    "rounded": true
+    "rounded-md": true
   },
   "colorpicker__alpha": {
     "[grid-area:d]": true,
@@ -2606,13 +2606,13 @@ const classes: Record<string, Record<string, boolean>> = {
     "ml-2": true
   },
   "colorpicker__canvasAlpha": {
-    "rounded-none": true
+    "rounded-md-none": true
   },
   "colorpicker__controlAlpha": {
     "w-[4px]": true,
     "top-1/2": true,
     "h-[calc(100%-2px)]": true,
-    "rounded": true
+    "rounded-md": true
   },
   "colorpicker__eyeDropper": {
     "[grid-area:e]": true,
@@ -2626,7 +2626,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "items-center": true,
     "aspect-[1/1]": true,
     "cursor-pointer": true,
-    "rounded": true,
+    "rounded-md": true,
     "border": true,
     "border-stone-200": true,
     "text-black": true,
@@ -2665,7 +2665,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "[&>input]:w-full": true,
     "[&>input]:border": true,
     "[&>input]:border-stone-200": true,
-    "[&>input]:rounded": true,
+    "[&>input]:rounded-md": true,
     "[&>input]:text-center": true,
     "[&>input]:appearance-none": true,
     "[&>input::-webkit-outer-spin-button]:appearance-none": true,
@@ -2764,7 +2764,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "data-[active=true]:after:top-1/2": true,
     "data-[active=true]:after:left-1/2": true,
     "data-[active=true]:after:pointer-events-none": true,
-    "data-[active=true]:after:rounded-full": true,
+    "data-[active=true]:after:rounded-md-full": true,
     "data-[active=true]:after:-translate-x-1/2": true,
     "data-[active=true]:after:-translate-y-1/2": true,
     "data-[active=true]:after:bg-white": true,
@@ -2920,7 +2920,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "min-w-[20em]": true,
     "top-full": true,
     "left-0": true,
-    "rounded": true,
+    "rounded-md": true,
     "p-4": true,
     "bg-white": true,
     "border": true,
@@ -2933,7 +2933,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "[@media(max-width:431px)_and_(hover:none)]:group-[&:not([data-inline])]:max-w-none": true,
     "[@media(max-width:431px)_and_(hover:none)]:group-[&:not([data-inline])]:bottom-0": true,
     "[@media(max-width:431px)_and_(hover:none)]:group-[&:not([data-inline])]:left-0": true,
-    "[@media(max-width:431px)_and_(hover:none)]:group-[&:not([data-inline])]:rounded-none": true,
+    "[@media(max-width:431px)_and_(hover:none)]:group-[&:not([data-inline])]:rounded-md-none": true,
     "[@media(max-width:431px)_and_(hover:none)]:group-[&:not([data-inline])]:w-full": true
   },
   "datepicker__panelHeader": {
@@ -2954,7 +2954,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "aspect-[1/1]": true,
     "border": true,
     "border-stone-400": true,
-    "rounded": true,
+    "rounded-md": true,
     "flex": true,
     "items-center": true,
     "justify-center": true,
@@ -3139,7 +3139,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "dark:[color-scheme:dark]": true,
     "text-black": true,
     "border-stone-200": true,
-    "rounded": true,
+    "rounded-md": true,
     "py-2": true,
     "px-3": true,
     "my-2.5": true,
@@ -3615,16 +3615,16 @@ const classes: Record<string, Record<string, boolean>> = {
     "mb-2": true,
     "border": true,
     "border-stone-200": true,
-    "rounded": true,
+    "rounded-md": true,
     "dark:border-stone-800": true,
     "[&.formkit-dropZone]:opacity-30": true
   },
   "repeater__dragHandleWrapper": {
     "relative": true,
     "w-8": true,
-    "rounded": true,
-    "rounded-tr-none": true,
-    "rounded-br-none": true
+    "rounded-md": true,
+    "rounded-md-tr-none": true,
+    "rounded-md-br-none": true
   },
   "repeater__dragHandle": {
     "w-full": true,
@@ -3816,7 +3816,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "dark:data-[active=true]:bg-stone-100": true
   },
   "slider__trackWrapper": {
-    "rounded": true,
+    "rounded-md": true,
     "bg-stone-200": true,
     "px-1": true,
     "dark:bg-stone-700": true
@@ -3827,7 +3827,7 @@ const classes: Record<string, Record<string, boolean>> = {
   },
   "slider__fill": {
     "h-full": true,
-    "rounded": true,
+    "rounded-md": true,
     "absolute": true,
     "top-0": true,
     "-mx-1": true,
@@ -3844,7 +3844,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "top-1/2": true,
     "w-[3px]": true,
     "h-[3px]": true,
-    "rounded-full": true,
+    "rounded-md-full": true,
     "-translate-x-1/2": true,
     "-translate-y-1/2": true,
     "bg-stone-900": true,
@@ -3869,7 +3869,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "select-none": true,
     "w-4": true,
     "h-4": true,
-    "rounded-full": true,
+    "rounded-md-full": true,
     "bg-white": true,
     "absolute": true,
     "top-1/2": true,
@@ -3901,7 +3901,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "text-xs": true,
     "leading-none": true,
     "whitespace-nowrap": true,
-    "rounded": true,
+    "rounded-md": true,
     "opacity-0": true,
     "transition-opacity": true,
     "group-hover:opacity-100": true,
@@ -4133,7 +4133,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "min-w-[3em]": true,
     "p-0.5": true,
     "select-none": true,
-    "rounded-full": true,
+    "rounded-md-full": true,
     "transition-all": true,
     "bg-stone-400": true,
     "peer-focus-visible:ring-2": true,
@@ -4164,7 +4164,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "aspect-[1/1]": true,
     "p-0.5": true,
     "left-0": true,
-    "rounded-full": true,
+    "rounded-md-full": true,
     "transition-all": true,
     "bg-white": true,
     "text-black": true,
@@ -4227,19 +4227,19 @@ const classes: Record<string, Record<string, boolean>> = {
     "aria-[pressed=true]:text-white": true,
     "dark:aria-[pressed=true]:bg-stone-100": true,
     "dark:aria-[pressed=true]:text-black": true,
-    "group-[]/option:!rounded-none": true,
-    "group-data-[vertical=false]/options:group-first/option:!rounded": true,
-    "group-data-[vertical=true]/options:group-first/option:!rounded": true,
-    "group-data-[vertical=false]/options:group-first/option:!rounded-tr-none": true,
-    "group-data-[vertical=false]/options:group-first/option:!rounded-br-none": true,
-    "group-data-[vertical=true]/options:group-first/option:!rounded-bl-none": true,
-    "group-data-[vertical=true]/options:group-first/option:!rounded-br-none": true,
-    "group-data-[vertical=false]/options:group-last/option:!rounded": true,
-    "group-data-[vertical=true]/options:group-last/option:!rounded": true,
-    "group-data-[vertical=false]/options:group-last/option:!rounded-tl-none": true,
-    "group-data-[vertical=false]/options:group-last/option:!rounded-bl-none": true,
-    "group-data-[vertical=true]/options:group-last/option:!rounded-tl-none": true,
-    "group-data-[vertical=true]/options:group-last/option:!rounded-tr-none": true,
+    "group-[]/option:!rounded-md-none": true,
+    "group-data-[vertical=false]/options:group-first/option:!rounded-md": true,
+    "group-data-[vertical=true]/options:group-first/option:!rounded-md": true,
+    "group-data-[vertical=false]/options:group-first/option:!rounded-md-tr-none": true,
+    "group-data-[vertical=false]/options:group-first/option:!rounded-md-br-none": true,
+    "group-data-[vertical=true]/options:group-first/option:!rounded-md-bl-none": true,
+    "group-data-[vertical=true]/options:group-first/option:!rounded-md-br-none": true,
+    "group-data-[vertical=false]/options:group-last/option:!rounded-md": true,
+    "group-data-[vertical=true]/options:group-last/option:!rounded-md": true,
+    "group-data-[vertical=false]/options:group-last/option:!rounded-md-tl-none": true,
+    "group-data-[vertical=false]/options:group-last/option:!rounded-md-bl-none": true,
+    "group-data-[vertical=true]/options:group-last/option:!rounded-md-tl-none": true,
+    "group-data-[vertical=true]/options:group-last/option:!rounded-md-tr-none": true,
     "group-data-[vertical=false]/options:group-[]/option:!border-r-0": true,
     "group-data-[vertical=false]/options:group-last/option:!border-r": true,
     "group-data-[vertical=false]/options:group-[]/option:aria-[pressed=true]:border-x-stone-100": true,
@@ -4307,7 +4307,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "flex-col": true,
     "border": true,
     "border-stone-200": true,
-    "rounded": true,
+    "rounded-md": true,
     "select-none": true,
     "dark:border-stone-800": true
   },
@@ -4342,7 +4342,7 @@ const classes: Record<string, Record<string, boolean>> = {
   },
   "transferlist__transferlistSearch": {
     "border": true,
-    "rounded": true,
+    "rounded-md": true,
     "border-stone-200": true,
     "text-black": true,
     "px-2.5": true,
@@ -4509,7 +4509,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "shrink": true,
     "border": true,
     "border-stone-200": true,
-    "rounded": true,
+    "rounded-md": true,
     "overflow-clip": true,
     "my-2": true,
     "mx-auto": true,
@@ -4616,7 +4616,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "overflow-clip": true,
     "p-0": true,
     "bg-black": true,
-    "rounded": true,
+    "rounded-md": true,
     "w-[100%-2rem]": true,
     "max-w-[30rem]": true,
     "[&::backdrop]:bg-stone-800/50": true
@@ -4635,7 +4635,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "color-stone-700": true,
     "w-[1.5em]": true,
     "h-[1.5em]": true,
-    "rounded": true,
+    "rounded-md": true,
     "flex": true,
     "top-2": true,
     "right-2": true,
@@ -4654,7 +4654,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "aspect-[1/1]": true,
     "-translate-x-1/2": true,
     "-translate-y-1/2": true,
-    "rounded": true,
+    "rounded-md": true,
     "pointer-events-none": true,
     "shadow-[0_0_0_999em_rgba(0,0,0,0.5)]": true
   },
@@ -4667,49 +4667,49 @@ const classes: Record<string, Record<string, boolean>> = {
     "absolute": true,
     "w-[1.5rem]": true,
     "h-[1.5rem]": true,
-    "rounded": true,
+    "rounded-md": true,
     "top-0": true,
     "left-0": true,
     "border-l-4": true,
     "border-t-4": true,
-    "rounded-tr-none": true,
-    "rounded-bl-none": true
+    "rounded-md-tr-none": true,
+    "rounded-md-bl-none": true
   },
   "barcode__overlayDecoratorTopRight": {
     "absolute": true,
     "w-[1.5rem]": true,
     "h-[1.5rem]": true,
-    "rounded": true,
+    "rounded-md": true,
     "top-0": true,
     "right-0": true,
     "border-r-4": true,
     "border-t-4": true,
-    "rounded-tl-none": true,
-    "rounded-br-none": true
+    "rounded-md-tl-none": true,
+    "rounded-md-br-none": true
   },
   "barcode__overlayDecoratorBottomRight": {
     "absolute": true,
     "w-[1.5rem]": true,
     "h-[1.5rem]": true,
-    "rounded": true,
+    "rounded-md": true,
     "bottom-0": true,
     "right-0": true,
     "border-r-4": true,
     "border-b-4": true,
-    "rounded-tr-none": true,
-    "rounded-bl-none": true
+    "rounded-md-tr-none": true,
+    "rounded-md-bl-none": true
   },
   "barcode__overlayDecoratorBottomLeft": {
     "absolute": true,
     "w-[1.5rem]": true,
     "h-[1.5rem]": true,
-    "rounded": true,
+    "rounded-md": true,
     "bottom-0": true,
     "left-0": true,
     "border-l-4": true,
     "border-b-4": true,
-    "rounded-tl-none": true,
-    "rounded-br-none": true
+    "rounded-md-tl-none": true,
+    "rounded-md-br-none": true
   },
   "multi-step__outer": {
     "group": true,
@@ -4726,7 +4726,7 @@ const classes: Record<string, Record<string, boolean>> = {
   "multi-step__wrapper": {
     "mb-1.5": true,
     "group/wrapper": true,
-    "data-[tab-style=tab]:rounded": true
+    "data-[tab-style=tab]:rounded-md": true
   },
   "multi-step__tabs": {
     "flex": true,
@@ -4735,9 +4735,9 @@ const classes: Record<string, Record<string, boolean>> = {
     "group-data-[tab-style=tab]/wrapper:border": true,
     "group-data-[tab-style=tab]/wrapper:border-b-0": true,
     "group-data-[tab-style=tab]/wrapper:border-stone-200": true,
-    "group-data-[tab-style=tab]/wrapper:rounded": true,
-    "group-data-[tab-style=tab]/wrapper:rounded-bl-none": true,
-    "group-data-[tab-style=tab]/wrapper:rounded-br-none": true,
+    "group-data-[tab-style=tab]/wrapper:rounded-md": true,
+    "group-data-[tab-style=tab]/wrapper:rounded-md-bl-none": true,
+    "group-data-[tab-style=tab]/wrapper:rounded-md-br-none": true,
     "dark:group-data-[tab-style=tab]/wrapper:border-stone-800": true,
     "group-data-[tab-style=progress]/wrapper:my-6": true,
     "group-data-[tab-style=progress]/wrapper:justify-around": true,
@@ -4781,7 +4781,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "group-data-[tab-style=progress]/wrapper:before:h-[1.25rem]": true,
     "group-data-[tab-style=progress]/wrapper:before:border-4": true,
     "group-data-[tab-style=progress]/wrapper:before:border-stone-300": true,
-    "group-data-[tab-style=progress]/wrapper:before:rounded-full": true,
+    "group-data-[tab-style=progress]/wrapper:before:rounded-md-full": true,
     "group-data-[tab-style=progress]/wrapper:before:bg-white": true,
     "group-data-[tab-style=progress]/wrapper:before:z-10": true,
     "dark:group-data-[tab-style=progress]/wrapper:before:border-stone-700": true,
@@ -4818,7 +4818,7 @@ const classes: Record<string, Record<string, boolean>> = {
     "aspect-[1/1]": true,
     "[line-height:1.25rem]": true,
     "text-white": true,
-    "rounded-full": true,
+    "rounded-md-full": true,
     "dark:bg-stone-300": true,
     "dark:text-black": true,
     "group-data-[tab-style=tab]/wrapper:text-[0.66rem]": true,
@@ -4846,12 +4846,12 @@ const classes: Record<string, Record<string, boolean>> = {
     "bg-white": true,
     "border": true,
     "border-stone-200": true,
-    "rounded": true,
+    "rounded-md": true,
     "dark:bg-transparent": true,
     "dark:border-stone-800": true,
     "group-data-[tab-style=tab]/wrapper:border-t-0": true,
-    "group-data-[tab-style=tab]/wrapper:rounded-tl-none": true,
-    "group-data-[tab-style=tab]/wrapper:rounded-tr-none": true,
+    "group-data-[tab-style=tab]/wrapper:rounded-md-tl-none": true,
+    "group-data-[tab-style=tab]/wrapper:rounded-md-tr-none": true,
     "[&_[data-type]]:max-w-none": true
   },
   "step__stepActions": {

@@ -47,8 +47,8 @@ export default defineNuxtConfig({
   },
   supabase: {
     redirectOptions: {
-      login: '/',
-      callback: '/',
+      login: '/sign-in',
+      callback: '/sign-in',
       include: undefined,
       exclude: [],
       cookieRedirect: false,

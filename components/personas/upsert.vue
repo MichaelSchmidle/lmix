@@ -109,7 +109,8 @@ const handleAvatarDelete = async () => {
           <UiFormActions>
             <PersonasDeleteModal v-if="persona" :persona="persona" @success="handleNavigation('/personas/add')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
-              :label="t(isUpdate ? 'updatePersona' : 'createPersona')" :loading="(disabled as boolean)" type="submit" />
+              :label="t(isUpdate ? 'updatePersona' : 'createPersona')" :loading="(disabled as boolean)" size="lg"
+              type="submit" />
           </UiFormActions>
         </template>
       </FormKit>

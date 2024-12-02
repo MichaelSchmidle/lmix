@@ -101,7 +101,7 @@ const handleSubmit = async (form: ProductionWithRelationsInsert, node: FormKitNo
           <UiFormActions>
             <ProductionsDeleteModal v-if="production" :production="production" @success="navigateTo('/')" />
             <UButton color="cyan" :icon="isUpdate ? 'i-ph-check' : 'i-ph-plus'"
-              :label="t(isUpdate ? 'updateProduction' : 'createProduction')" :loading="(disabled as boolean)"
+              :label="t(isUpdate ? 'updateProduction' : 'createProduction')" :loading="(disabled as boolean)" size="lg"
               type="submit" />
           </UiFormActions>
         </template>

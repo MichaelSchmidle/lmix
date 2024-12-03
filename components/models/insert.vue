@@ -94,7 +94,15 @@ const handleAddModels = async (form: { models: string[] }, node: FormKitNode) =>
         <FormKit :actions="false" :incomplete-message="false" type="form" @submit="handleDiscoverModels">
           <FormKit type="url" name="api_endpoint" :label="t('apiEndpoint.label')" :help="t('apiEndpoint.help')"
             validation="required|url"
-            :validation-messages="{ required: t('apiEndpoint.required'), url: t('apiEndpoint.url') }" />
+            :validation-messages="{ required: t('apiEndpoint.required'), url: t('apiEndpoint.url') }">
+            <template #help="context">
+              <i18n-t :class="[context.classes.help, 'prose dark:prose-invert']" keypath="apiEndpoint.help" tag="span">
+                <template #example>
+                  <code>https://api.openai.com</code>
+                </template>
+              </i18n-t>
+            </template>
+          </FormKit>
           <FormKit type="text" name="api_key" :label="t('apiKey.label')" :help="t('apiKey.help')"
             :disabled="apiModelOptions.length > 0" />
           <template v-if="!apiModelOptions.length" #actions="{ disabled }">
@@ -139,7 +147,7 @@ en:
   configureApi: Configure API
   apiEndpoint:
     label: API Endpoint
-    help: OpenAI-compatible API endpoint (without version, i.e. https://api.openai.com)
+    help: API endpoint compatible with the OpenAI API v1 (without version, i.e., {example})
     required: API endpoint is required.
     url: Invalid API endpoint.
   apiKey:

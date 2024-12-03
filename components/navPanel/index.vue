@@ -2,7 +2,6 @@
 const { t } = useI18n({ useScope: 'local' })
 const productionStore = useProductionStore()
 const { getProductionNavigation } = storeToRefs(productionStore)
-const { exportData } = useExport()
 
 const props = defineProps({
   isSlideover: {

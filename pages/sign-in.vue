@@ -1,5 +1,23 @@
 <script setup lang="ts">
 const { t } = useI18n({ useScope: 'local' })
+const user = useSupabaseUser()
+const supabase = useSupabaseClient()
+const productionStore = useProductionStore()
+const { $reset: resetProductionStore } = productionStore
+const assistantStore = useAssistantStore()
+const { $reset: resetAssistantStore } = assistantStore
+const modelStore = useModelStore()
+const { $reset: resetModelStore } = modelStore
+const personaStore = usePersonaStore()
+const { $reset: resetPersonaStore } = personaStore
+const relationStore = useRelationStore()
+const { $reset: resetRelationStore } = relationStore
+const scenarioStore = useScenarioStore()
+const { $reset: resetScenarioStore } = scenarioStore
+const turnStore = useTurnStore()
+const { $reset: resetTurnStore } = turnStore
+const worldStore = useWorldStore()
+const { $reset: resetWorldStore } = worldStore
 
 definePageMeta({
   layout: false,
@@ -10,6 +28,53 @@ useHead(
     title: t('meta.title'),
   }
 )
+
+const delay = 3000
+const progress = ref(0)
+
+const animateProgress = () => {
+  progress.value = 0
+  const startTime = Date.now()
+  const duration = delay
+
+  const updateProgress = () => {
+    const elapsed = Date.now() - startTime
+    progress.value = Math.min((elapsed / duration) * 100, 100)
+
+    if (elapsed < duration) {
+      requestAnimationFrame(updateProgress)
+    }
+  }
+
+  updateProgress()
+}
+
+const isSigningOut = ref(false)
+
+watch(() => isSigningOut.value, (newValue) => {
+  if (newValue) {
+    animateProgress()
+  }
+})
+
+if (user.value) {
+  isSigningOut.value = true
+
+  // Reset all stores
+  resetProductionStore()
+  resetAssistantStore()
+  resetModelStore()
+  resetPersonaStore()
+  resetRelationStore()
+  resetScenarioStore()
+  resetTurnStore()
+  resetWorldStore()
+  supabase.auth.signOut()
+
+  setTimeout(() => {
+    isSigningOut.value = false
+  }, delay)
+}
 </script>
 
 <template>
@@ -39,6 +104,16 @@ useHead(
       </UiPanelContent>
       <UiPanelFooter class="min-h-16">
         <NavPanelUserMenu />
+        <UModal v-model="isSigningOut" prevent-close>
+          <UCard>
+            <div class="prose dark:prose-invert text-center">
+              <p>
+                <UProgress class="px-4 py-3" :value="progress" />
+              </p>
+              <p> {{ t('signingOut') }}</p>
+            </div>
+          </UCard>
+        </UModal>
       </UiPanelFooter>
     </UiPanel>
     <UiPanel
@@ -63,4 +138,5 @@ en:
   title: Sign Into Your {lmix}
   lmix: LMiX
   description: Create dynamic multi-agent productions where AI assistants can be anything from characters to cosmic forces.
+  signingOut: We are signing you out. Please wait.
 </i18n>

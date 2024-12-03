@@ -6,7 +6,6 @@ interface Line {
   y: number
   rotation: number
   opacity: number
-  color: 'primary' | 'cyan'
 }
 
 const lines = ref<Line[]>([])
@@ -15,6 +14,7 @@ const generateRandomLines = () => {
   const newLines: Line[] = []
   const numberOfLines = 24
   const angleIncrement = 360 / numberOfLines / 2
+  const initialRotation = Math.random() * 360 // Random starting angle between 0 and 360 degrees
 
   for (let i = 0; i < numberOfLines; i++) {
     // Generate random length (between 50 and 700 pixels)
@@ -23,8 +23,8 @@ const generateRandomLines = () => {
     const x1 = centerX - length / 2
     const x2 = centerX + length / 2
 
-    // Calculate evenly distributed rotation
-    const rotation = i * angleIncrement
+    // Calculate evenly distributed rotation with random starting point
+    const rotation = (initialRotation + i * angleIncrement) % 360
 
     // Generate random opacity (0.1-1.0)
     const opacity = (Math.random() * 0.9 + 0.1).toFixed(2)

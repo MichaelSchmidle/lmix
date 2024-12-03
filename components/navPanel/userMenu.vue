@@ -1,24 +1,8 @@
 <script setup lang="ts">
 const { t } = useI18n({ useScope: 'local' })
 const user = useSupabaseUser()
-const supabase = useSupabaseClient()
 const toast = useToast()
-const productionStore = useProductionStore()
-const { $reset: resetProductionStore } = productionStore
-const assistantStore = useAssistantStore()
-const { $reset: resetAssistantStore } = assistantStore
-const modelStore = useModelStore()
-const { $reset: resetModelStore } = modelStore
-const personaStore = usePersonaStore()
-const { $reset: resetPersonaStore } = personaStore
-const relationStore = useRelationStore()
-const { $reset: resetRelationStore } = relationStore
-const scenarioStore = useScenarioStore()
-const { $reset: resetScenarioStore } = scenarioStore
-const turnStore = useTurnStore()
-const { $reset: resetTurnStore } = turnStore
-const worldStore = useWorldStore()
-const { $reset: resetWorldStore } = worldStore
+const { exportData } = useExport()
 
 const userItems = computed(() => {
   const baseItems = [
@@ -59,28 +43,9 @@ const userItems = computed(() => {
   return baseItems
 })
 
-const isSigningOut = ref(false)
 
-async function handleSignOut() {
-  isSigningOut.value = true
-
-  // Reset all stores
-  resetProductionStore()
-  resetAssistantStore()
-  resetModelStore()
-  resetPersonaStore()
-  resetRelationStore()
-  resetScenarioStore()
-  resetTurnStore()
-  resetWorldStore()
-
+const handleSignOut = () => {
   navigateTo('/sign-in')
-
-  const signOutPromise = supabase.auth.signOut()
-  const delayPromise = new Promise(resolve => setTimeout(resolve, 2000))
-
-  await Promise.all([signOutPromise, delayPromise])
-  isSigningOut.value = false
 }
 
 const handleExport = () => {
@@ -115,16 +80,6 @@ const handleExport = () => {
       </div>
     </template>
   </UDropdown>
-  <UModal v-model="isSigningOut" prevent-close>
-    <UCard>
-      <div class="prose dark:prose-invert text-center">
-        <p>
-          <UIcon class="animate-spin h-12 w-12 text-primary" name="i-ph-circle-notch" />
-        </p>
-        <p> {{ t('signingOut') }}</p>
-      </div>
-    </UCard>
-  </UModal>
 </template>
 
 <i18n lang="yaml">
@@ -135,5 +90,4 @@ en:
   export: Export Repertoire
   exportError: Failed to export data
   signOut: Sign Out
-  signingOut: We are signing you out. Please wait.
 </i18n>

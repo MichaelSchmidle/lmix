@@ -2,13 +2,26 @@ services:
   app:
     build:
       context: .
-      args:
-        - SUPABASE_URL=http://${POSTGRES_HOST}:${SUPABASE_API_PORT}
-        - SUPABASE_KEY=${SUPABASE_KEY}
     environment:
-      - SUPABASE_DB_URL=postgresql://postgres:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      # LMiX configuration
+      - LMIX_VERSION=${LMIX_VERSION}
+      
+      # Supabase configuration
+      - NUXT_PUBLIC_SUPABASE_URL=http://${POSTGRES_HOST}:${KONG_HTTP_PORT}
+      - NUXT_PUBLIC_SUPABASE_KEY=${NUXT_PUBLIC_SUPABASE_KEY}
+      
+      # PostgreSQL connection variables
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      
+      # Node environment
       - NODE_ENV=production
     ports:
       - "${LMIX_PORT:-5649}:3000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    external_links:
+      - supabase_db_lmix

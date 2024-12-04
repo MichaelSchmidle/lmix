@@ -5,9 +5,9 @@ set -e
 echo "Waiting for database to be available..."
 timeout=30
 counter=0
-until PGPASSWORD=$POSTGRES_PASSWORD psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\q' 2>/dev/null; do
+until PGPASSWORD=$POSTGRES_PASSWORD psql -v ON_ERROR_STOP=1 -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\q' 2>&1; do
   counter=$((counter + 1))
-  if [ $counter -ge $timeout ]; then
+  if [ $counter -ge $((timeout + 1)) ]; then
     echo "Error: Timed out waiting for database after ${timeout} seconds"
     exit 1
   fi
@@ -15,6 +15,9 @@ until PGPASSWORD=$POSTGRES_PASSWORD psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER"
   sleep 1
 done
 echo "Database is available"
+
+# Construct database URL for Supabase CLI
+export SUPABASE_DB_URL="postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
 
 # Run migrations
 echo "Running Supabase migrations..."

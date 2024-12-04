@@ -45,4 +45,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            APP_VERSION=${{ steps.get_version.outputs.VERSION }}
+            LMIX_VERSION=${{ steps.get_version.outputs.VERSION }}

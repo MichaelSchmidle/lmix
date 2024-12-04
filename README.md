@@ -164,6 +164,21 @@ We follow a trunk-based development workflow:
 6. Access LMiX:
    Create a test user in [Supabase Studio](http://localhost:5643/project/default/auth/users). Then, open the [LMiX web interface](http://localhost:5649) and finally: happy developing!
 
+### Update Dependencies
+
+#### Supabase Docker Configuration
+The deployment setup uses Supabase's Docker configuration. To update it to a specific version:
+
+1. Check available versions at [Supabase Releases](https://github.com/supabase/supabase/releases)
+2. Run the update script with the desired version tag:
+   ```bash
+   npm run dev:update-deploy-supabase v1.24.09
+   ```
+3. The script will:
+   - Download only the necessary Docker configuration files
+   - Update the version tracking in `deploy/SUPABASE_VERSION`
+   - Keep your deployment setup in sync with Supabase's official release
+
 ### Building and Testing Locally
 
 1. Run tests against the development environment:

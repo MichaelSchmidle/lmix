@@ -39,7 +39,7 @@ export default defineNuxtConfig({
   ],
   runtimeConfig: {
     public: {
-      openaiVersion: process.env.OPENAI_API_VERSION || '1',
+      openaiVersion: '1',
       lmixVersion: process.env.LMIX_VERSION || 'unspecified',
     }
   },

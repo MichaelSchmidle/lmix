@@ -3,6 +3,10 @@ import type { Config } from 'tailwindcss'
 export default {
   content: [
     './formkit.theme.ts',
+    './components/**/*.vue',
+    './layouts/**/*.vue',
+    './pages/**/*.vue',
+    './app.vue',
   ],
   theme: {
     extend: {
@@ -147,4 +151,4 @@ export default {
   plugins: [
     require('@tailwindcss/typography'),
   ],
-} satisfies Config 
+} satisfies Config

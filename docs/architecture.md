@@ -244,7 +244,7 @@ interface Production {
 const config = {
   name: 'LMiX',
   version: '1.0.0',
-  features: ['chat', 'scenarios'],
+  features: ['productions', 'scenarios'],
 }
 
 const items = [

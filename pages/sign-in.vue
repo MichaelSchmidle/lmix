@@ -57,6 +57,7 @@ watch(() => isSigningOut.value, (newValue) => {
   }
 })
 
+// Only show sign out animation if we're actually signing out an authenticated user
 if (user.value) {
   isSigningOut.value = true
 
@@ -78,8 +79,8 @@ if (user.value) {
 </script>
 
 <template>
-  <UiPanelLayout>
-    <UiPanel class="md:w-1/2">
+  <UiPanelLayout class="md:grid md:grid-cols-2">
+    <UiPanel>
       <UiPanelHeader>
         <NavPanelBrand />
         <template #mainToggle>
@@ -108,7 +109,7 @@ if (user.value) {
       </UiPanelFooter>
     </UiPanel>
     <UiPanel
-      class="bg-gradient-to-tr from-cyan-200 to-primary-100 dark:from-cyan-900 dark:to-primary-800 divide-white dark:divide-black hidden md:flex md:w-1/2">
+      class="bg-gradient-to-tr from-cyan-200 to-primary-100 dark:from-cyan-900 dark:to-primary-800 divide-white dark:divide-black hidden md:flex">
       <UiPanelHeader>
         <template #mainToggle>
           <UTooltip text="GitHub">

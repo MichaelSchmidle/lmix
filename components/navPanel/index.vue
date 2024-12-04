@@ -58,6 +58,7 @@ const productionItems = [
   </UiPanelContent>
   <UiPanelFooter class="min-h-16">
     <NavPanelUserMenu />
+    <NavPanelVersion />
   </UiPanelFooter>
 </template>
 

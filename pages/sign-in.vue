@@ -84,7 +84,7 @@ if (user.value) {
         <NavPanelBrand />
         <template #mainToggle>
           <UTooltip class="md:hidden" text="GitHub">
-            <UButton icon="i-ph-github-logo" variant="link" to="https://github.com/michaelschmidle/lmix" />
+            <UButton icon="i-ph-github-logo" variant="link" to="https://github.com/MichaelSchmidle/lmix" />
           </UTooltip>
         </template>
       </UiPanelHeader>
@@ -104,16 +104,7 @@ if (user.value) {
       </UiPanelContent>
       <UiPanelFooter class="min-h-16">
         <NavPanelUserMenu />
-        <UModal v-model="isSigningOut" prevent-close>
-          <UCard>
-            <div class="prose dark:prose-invert text-center">
-              <p>
-                <UProgress class="px-4 py-3" :value="progress" />
-              </p>
-              <p> {{ t('signingOut') }}</p>
-            </div>
-          </UCard>
-        </UModal>
+        <NavPanelVersion class="md:hidden" />
       </UiPanelFooter>
     </UiPanel>
     <UiPanel
@@ -126,8 +117,20 @@ if (user.value) {
         </template>
       </UiPanelHeader>
       <SparkleSvg />
-      <UiPanelFooter class="min-h-16" />
+      <UiPanelFooter class="justify-end min-h-16">
+        <NavPanelVersion />
+      </UiPanelFooter>
     </UiPanel>
+    <UModal v-model="isSigningOut" prevent-close>
+      <UCard>
+        <div class="prose dark:prose-invert text-center">
+          <p>
+            <UProgress class="px-4 py-3" :value="progress" />
+          </p>
+          <p> {{ t('signingOut') }}</p>
+        </div>
+      </UCard>
+    </UModal>
   </UiPanelLayout>
 </template>
 

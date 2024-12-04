@@ -2,10 +2,7 @@ services:
   app:
     build:
       context: .
-    environment:
-      # LMiX configuration
-      - LMIX_VERSION=${LMIX_VERSION}
-      
+    environment:      
       # Supabase configuration
       - NUXT_PUBLIC_SUPABASE_URL=http://${POSTGRES_HOST}:${KONG_HTTP_PORT}
       - NUXT_PUBLIC_SUPABASE_KEY=${NUXT_PUBLIC_SUPABASE_KEY}

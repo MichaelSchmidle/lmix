@@ -45,4 +45,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            LMIX_VERSION=${{ steps.get_version.outputs.VERSION }}
+            NUXT_PUBLIC_LMIX_VERSION=${{ steps.get_version.outputs.VERSION }}

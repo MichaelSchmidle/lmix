@@ -3,10 +3,10 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Add build arguments
-ARG LMIX_VERSION=unspecified
+ARG NUXT_PUBLIC_LMIX_VERSION=dev
 
 # Set environment variables for build
-ENV LMIX_VERSION=${LMIX_VERSION}
+ENV NUXT_PUBLIC_LMIX_VERSION=${NUXT_PUBLIC_LMIX_VERSION}
 
 COPY package*.json ./
 RUN npm ci

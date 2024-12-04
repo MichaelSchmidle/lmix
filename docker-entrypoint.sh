@@ -1,11 +1,18 @@
 #!/bin/sh
 set -e
 
+# Force PostgreSQL to use TCP instead of Unix socket
+export PGHOST=$POSTGRES_HOST
+export PGPORT=$POSTGRES_PORT
+export PGUSER=$POSTGRES_USER
+export PGPASSWORD=$POSTGRES_PASSWORD
+export PGDATABASE=$POSTGRES_DB
+
 # Wait for database to be available (timeout after 30 seconds)
 echo "Waiting for database to be available..."
 timeout=30
 counter=0
-until PGPASSWORD=$POSTGRES_PASSWORD psql -v ON_ERROR_STOP=1 -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\q' 2>&1; do
+until psql -c '\q' 2>&1; do
   counter=$((counter + 1))
   if [ $counter -ge $((timeout + 1)) ]; then
     echo "Error: Timed out waiting for database after ${timeout} seconds"

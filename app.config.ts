@@ -37,7 +37,7 @@ export default defineAppConfig({
     button: {
       color: {
         gray: {
-          ghost: 'text-gray-500 dark:text-gray-400 hover:bg-gray-100',
+          ghost: 'text-gray-500 dark:text-gray-400 hover:bg-gray-200',
         },
       },
       default: {

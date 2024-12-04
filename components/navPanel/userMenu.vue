@@ -65,9 +65,7 @@ const handleExport = () => {
 
 <template>
   <UDropdown :items="userItems">
-    <UAvatar v-if="user?.user_metadata.avatar_url" :alt="user.user_metadata.full_name"
-      :src="user.user_metadata.avatar_url" />
-    <UAvatar v-else icon="i-ph-user" :ui="{ background: 'bg-gray-200' }" />
+    <UButton color="gray" icon="i-ph-user" square variant="ghost" :ui="{ rounded: 'rounded-full' }" />
     <template v-if="user" #account>
       <i18n-t keypath="account" tag="span" @click.stop>
         <template #email><strong class="truncate">{{ user.email }}</strong></template>

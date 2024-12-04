@@ -60,17 +60,17 @@ The possibilities are endless:
 
 LMiX is a local-first web application built with Nuxt, using Supabase as backend and TypeScript as programming language. It follows a minimalist approach to data structures while leveraging natural language for flexibility. The application primarily runs in a localhost environment, designed to integrate with locally running LLMs, and can be deployed via Docker.
 
-Core dependencies include NuxtUI for the interface, Vercel's AI SDK for LLM integration, and Pinia for state management. Development emphasizes type safety, optimistic UI updates, and comprehensive testing with Vitest and Playwright. While supporting multiple users through Supabase's OAuth and Row Level Security, LMiX remains focused on single-user scenarios in local deployments.
+Core dependencies include NuxtUI and FormKit for the interface, the OpenAI library for LLM integration, and Pinia for state management. Development emphasizes type safety, optimistic UI updates, and comprehensive testing with Vitest and Playwright. While supporting multiple users through Supabase's Auth and Row Level Security features, LMiX remains focused on single-user scenarios in local deployments.
 
 More details are documented in the [LMiX Architecture](/docs/architecture.md).
 
 ## Container Build Process 🐳
 
-The LMiX application container is automatically built and published to GitHub Container Registry (GHCR) on every push to main and tag creation. The container includes:
+The LMiX application container is automatically built and published to GitHub Container Registry (GHCR) on every `v*` tag creation. The container includes:
 
 1. The built LMiX application
 2. Supabase CLI for database management
-3. Migration files from the supabase/ directory
+3. Supabase migration files
 4. Startup script that:
    - Waits for database availability
    - Applies pending migrations
@@ -83,12 +83,11 @@ Migrations are managed using Supabase CLI and stored in the `supabase/migrations
 1. Development:
    ```bash
    # Create a new migration
-   supabase migration new my_migration
+   npm run dev:migration
    
    # Apply migrations locally
    supabase db push
    ```
-
 2. Deployment:
    - Migrations are packaged in the LMiX container
    - Automatically applied on container startup
@@ -142,64 +141,48 @@ We follow a trunk-based development workflow:
 
 ## Local Development 🚧
 
-### Prerequisites
-- Docker Desktop
-- Node.js 18+
-- Running local Supabase instance
+1. Install the prerequisites:
+   - Node.js 20+ LTS
+   - Docker Desktop
+   - Supabase ([local instance](https://supabase.com/docs/guides/local-development))
+2. Clone the repository:
+   ```bash
+   git clone --recurse-submodules https://github.com/MichaelSchmidle/lmix
+   cd lmix
+   ```
+3. Configure your environment:
+   Copy the file `default.env` to a `.env.development`, then edit it where necessary to match your desired configuration.
+4. Install dependencies:
+   ```bash
+   npm i
+   ```
+5. Start the Supabase instance and Nuxt development server:
+   ```bash
+   npx supabase start
+   npm run dev
+   ```
+6. Access LMiX:
+   Create a test user in [Supabase Studio](http://localhost:5643/project/default/auth/users). Then, open the [LMiX web interface](http://localhost:5649) and finally: happy developing!
 
 ### Building and Testing Locally
 
-1. Create a `.env.development` file with your local Supabase configuration:
-```env
-SUPABASE_DB_HOST=localhost
-SUPABASE_DB_USER=postgres
-SUPABASE_DB_PASSWORD=your-local-password
-SUPABASE_DB_NAME=postgres
-```
-
-2. Build and test the container:
-```bash
-# On Unix-like systems
-./scripts/build-local.sh
-
-# On Windows
-.\scripts\build-local.ps1
-```
-
-This will:
-- Build the container with development settings
-- Run the test suite against your local Supabase instance
+1. Run tests against the development environment:
+   ```bash
+   npm test
+   ```
+2. Run E2E tests:
+   ```bash
+   npm run test:e2e
+   ```
+3. Build and test the Docker container:
+   ```bash
+   docker compose --build -d
+   ```
+   This will build the deployment container with the latest development code, available at `http://localhost:{LMIX_PORT}` (default port: `5649` for `LMiX` on the numpad).
 
 ## Contributing 🤝
 
 Whether you're a developer, writer, or just someone with amazing ideas, we'd love your help in pushing the boundaries of what's possible with AI interactions.
-
-### Getting Started 🚀
-
-Prerequisites:
-- Git
-- Docker
-- Node.js (LTS)
-
-1. Clone and install:
-   ```bash
-   git clone --recurse-submodules https://github.com/MichaelSchmidle/lmix
-   cd lmix
-   npm i
-   ```
-2. Set up environment:
-   ```bash
-   npx supabase init && npx supabase start
-   cp default.env .env
-   # Edit .env with your Supabase credentials
-   ```
-3. Start development:
-   ```bash
-   npm run dev
-   ```
-
-Tests: `npm test`
-E2E Tests: `npm run test:e2e`
 
 ## License
 

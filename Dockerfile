@@ -5,10 +5,12 @@ WORKDIR /app
 # Add build arguments
 ARG SUPABASE_URL
 ARG SUPABASE_KEY
+ARG LMIX_VERSION=unspecified
 
 # Set environment variables for build
 ENV SUPABASE_URL=${SUPABASE_URL}
 ENV SUPABASE_KEY=${SUPABASE_KEY}
+ENV LMIX_VERSION=${LMIX_VERSION}
 
 COPY package*.json ./
 RUN npm ci

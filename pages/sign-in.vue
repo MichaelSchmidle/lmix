@@ -84,8 +84,8 @@ if (user.value) {
       <UiPanelHeader>
         <NavPanelBrand />
         <template #mainToggle>
-          <UTooltip class="md:hidden" text="GitHub">
-            <UButton icon="i-ph-github-logo" variant="link" to="https://github.com/MichaelSchmidle/lmix" />
+          <UTooltip class="md:hidden" :popper="{ placement: 'left' }" text="GitHub">
+            <UButton icon="i-ph-github-logo" variant="link" to="https://github.com/MichaelSchmidle/lmix" target="_blank" />
           </UTooltip>
         </template>
       </UiPanelHeader>
@@ -112,8 +112,8 @@ if (user.value) {
       class="bg-gradient-to-tr from-cyan-200 to-primary-100 dark:from-cyan-900 dark:to-primary-800 divide-white dark:divide-black hidden md:flex">
       <UiPanelHeader>
         <template #mainToggle>
-          <UTooltip text="GitHub">
-            <UButton icon="i-ph-github-logo" variant="link" to="https://github.com/michaelschmidle/lmix" />
+          <UTooltip :popper="{ placement: 'left' }" text="GitHub">
+            <UButton icon="i-ph-github-logo" variant="link" to="https://github.com/michaelschmidle/lmix" target="_blank" />
           </UTooltip>
         </template>
       </UiPanelHeader>

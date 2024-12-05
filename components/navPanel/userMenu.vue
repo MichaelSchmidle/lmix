@@ -65,7 +65,9 @@ const handleExport = () => {
 
 <template>
   <UDropdown :items="userItems">
-    <UButton color="gray" icon="i-ph-user" square variant="ghost" :ui="{ rounded: 'rounded-full' }" />
+    <UTooltip :popper="{ placement: 'right' }" :text="t('title')">
+      <UButton color="gray" icon="i-ph-user" square variant="ghost" :ui="{ rounded: 'rounded-full' }" />
+    </UTooltip>
     <template v-if="user" #account>
       <i18n-t keypath="account" tag="span" @click.stop>
         <template #email><strong class="truncate">{{ user.email }}</strong></template>
@@ -82,6 +84,7 @@ const handleExport = () => {
 
 <i18n lang="yaml">
 en:
+  title: User Menu
   account: Signed in as {email}
   colorMode: Color Mode
   colorTheme: Color Theme

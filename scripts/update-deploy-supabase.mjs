@@ -55,48 +55,53 @@ async function downloadFile(url, targetPath) {
   })
 }
 
-async function downloadDirectory(dirPath, targetDir, tag) {
-  console.log(`📂 Downloading ${dirPath}...`)
-  
-  const url = `https://api.github.com/repos/${SUPABASE_REPO}/contents/${dirPath}?ref=${tag}`
-  const contents = await fetchJson(url)
+function cleanupDirectory(dir) {
+  if (fs.existsSync(dir)) {
+    fs.rmSync(dir, { recursive: true, force: true })
+    console.log(`🧹 Cleaned up ${dir}`)
+  }
+}
+
+async function downloadDirectory(dirPath, targetDir, commitHash) {
+  console.log(`📂 Downloading directory ${dirPath}...`)
+
+  const apiUrl = `https://api.github.com/repos/${SUPABASE_REPO}/contents/${dirPath}?ref=${commitHash}`
+  const contents = await fetchJson(apiUrl)
 
   for (const item of contents) {
     const targetPath = path.join(targetDir, item.name)
 
     if (item.type === 'dir') {
       fs.mkdirSync(targetPath, { recursive: true })
-      await downloadDirectory(`${dirPath}/${item.name}`, targetPath, tag)
+      await downloadDirectory(`${dirPath}/${item.name}`, targetPath, commitHash)
     } else if (item.type === 'file') {
-      console.log(`📄 Downloading ${item.path}...`)
+      console.log(`📄 Downloading file ${item.path}...`)
       await downloadFile(item.download_url, targetPath)
     }
   }
 }
 
-// Get tag from command line
-const tag = process.argv[2]
-if (!tag) {
-  console.error('❌ Error: Version tag is required')
-  console.error('Usage: npm run dev:update-deploy-supabase -- <tag>')
-  console.error('Example: npm run dev:update-deploy-supabase -- v1.0.0')
+// Get commit hash from command line
+const commitHash = process.argv[2]
+if (!commitHash) {
+  console.error('❌ Error: Commit hash is required')
   process.exit(1)
 }
 
-console.log(`🚀 Updating Supabase docker files to ${tag}...`)
+console.log(`🚀 Updating Supabase deploy files from commit ${commitHash}...`)
 
 // Create supabase directory if it doesn't exist
 const supabaseDir = path.join(deployDir, 'supabase')
 fs.mkdirSync(supabaseDir, { recursive: true })
 
-// Clean up existing docker directory
-const dockerDir = path.join(supabaseDir, 'docker')
-fs.rmSync(dockerDir, { recursive: true, force: true })
+// Clean up existing content
+const supabaseDockerDir = path.join(supabaseDir, 'docker')
+cleanupDirectory(supabaseDockerDir)
 
-// Download the entire docker directory
-await downloadDirectory('docker', dockerDir, tag)
+// Download files
+await downloadDirectory('docker', supabaseDockerDir, commitHash)
 
-// Update version file
-fs.writeFileSync(path.join(deployDir, 'SUPABASE_VERSION'), tag)
+// Update commit hash file
+fs.writeFileSync(path.join(deployDir, 'SUPABASE_COMMIT_HASH'), commitHash)
 
 console.log('✅ Update complete!')

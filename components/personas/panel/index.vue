@@ -20,8 +20,8 @@ const props = defineProps({
   </UiPanelHeader>
   <UiPanelContent v-auto-animate>
     <UButton block icon="i-ph-mask-happy-duotone" :label="t('newPersona')" to="/personas/add" />
-    <UVerticalNavigation :links="getPersonaNavigation()" />
-    <NoData v-if="!getPersonaNavigation().length" :message="t('noPersonas')" />
+    <UVerticalNavigation v-if="getPersonaNavigation().length" :links="getPersonaNavigation()" />
+    <NoData v-else :message="t('noPersonas')" />
   </UiPanelContent>
 </template>
 

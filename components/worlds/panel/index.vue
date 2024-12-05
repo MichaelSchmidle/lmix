@@ -20,8 +20,8 @@ const props = defineProps({
   </UiPanelHeader>
   <UiPanelContent v-auto-animate>
     <UButton block icon="i-ph-panorama-duotone" :label="t('newWorld')" to="/worlds/add" />
-    <UVerticalNavigation :links="getWorldNavigation()" />
-    <NoData v-if="!getWorldNavigation().length" :message="t('noWorlds')" />
+    <UVerticalNavigation v-if="getWorldNavigation().length" :links="getWorldNavigation()" />
+    <NoData v-else :message="t('noWorlds')" />
   </UiPanelContent>
 </template>
 

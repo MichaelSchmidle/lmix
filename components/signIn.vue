@@ -24,7 +24,7 @@ const handleSubmit = async (credentials: { email: string; password: string }, no
 </script>
 
 <template>
-  <UCard>
+  <UCard class="max-w-sm mx-auto">
     <FormKit type="form" :incomplete-message="false" name="credentials" @submit="handleSubmit">
       <FormKit type="email" name="email" :label="t('email.label')" validation="required|email"
         :validation-messages="{ required: t('email.required'), email: t('email.invalid') }" />

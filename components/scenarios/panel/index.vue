@@ -20,8 +20,8 @@ const props = defineProps({
   </UiPanelHeader>
   <UiPanelContent v-auto-animate>
     <UButton block icon="i-ph-panorama-duotone" :label="t('newScenario')" to="/scenarios/add" />
-    <UVerticalNavigation :links="getScenarioNavigation()" />
-    <NoData v-if="!getScenarioNavigation().length" :message="t('noScenarios')" />
+    <UVerticalNavigation v-if="getScenarioNavigation().length" :links="getScenarioNavigation()" />
+    <NoData v-else :message="t('noScenarios')" />
   </UiPanelContent>
 </template>
 

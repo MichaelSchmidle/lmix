@@ -20,8 +20,8 @@ const props = defineProps({
   </UiPanelHeader>
   <UiPanelContent v-auto-animate>
     <UButton block icon="i-ph-head-circuit-duotone" :label="t('newAssistant')" to="/assistants/add" />
-    <UVerticalNavigation :links="getAssistantNavigation()" />
-    <NoData v-if="!getAssistantNavigation().length" :message="t('noAssistants')" />
+    <UVerticalNavigation v-if="getAssistantNavigation().length" :links="getAssistantNavigation()" />
+    <NoData v-else :message="t('noAssistants')" />
   </UiPanelContent>
 </template>
 

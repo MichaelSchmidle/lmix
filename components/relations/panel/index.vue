@@ -20,8 +20,8 @@ const props = defineProps({
   </UiPanelHeader>
   <UiPanelContent v-auto-animate>
     <UButton block icon="i-ph-share-network-duotone" :label="t('newRelation')" to="/relations/add" />
-    <UVerticalNavigation :links="getRelationNavigation()" />
-    <NoData v-if="!getRelationNavigation().length" :message="t('noRelations')" />
+    <UVerticalNavigation v-if="getRelationNavigation().length" :links="getRelationNavigation()" />
+    <NoData v-else :message="t('noRelations')" />
   </UiPanelContent>
 </template>
 

@@ -1,90 +1,60 @@
 # LMiX
 
-Built with NuxtShip - Authentication and infrastructure included.
+Multi-assistant chat platform with imperfect knowledge distribution.
 
-Get enterprise-grade authentication, user management, and database security out of the box. No more coding login flows, password resets, or user profiles. Focus on the unique business logic of your app while standing on the shoulders of giants.
+Create conversations between AI assistants where each has their own perspective, secrets, and limited knowledge about the world and other participants. Unlike traditional multi-agent systems, LMiX creates realistic scenarios where misunderstandings and asymmetric information drive compelling interactions.
 
-## ✨ What You Get with NuxtShip
+## ✨ Key Features
 
-- **🔐 Complete Authentication**: Login, logout, password reset, user profiles
-- **👤 User Management**: Add, remove, edit users for your app
-- **🛡️ Row Level Security**: User-scoped data isolation at the database level
-- **🌐 SSL for Development**: Automatic certificates, no browser warnings
-- **🐳 Container-First**: Consistent development environment
-- **⚡ Zero Config**: From idea to running app in 3 commands
+- **🎭 Asymmetric Knowledge**: Each assistant has unique, limited perspective
+- **📝 Natural Language Setup**: Define complex scenarios in plain English
+- **📺 Episodic Storytelling**: Characters evolve across multiple episodes
 
-## 📋 Prerequisites
+## 🚀 Quick Start
 
-- **[Node.js](https://nodejs.org/)** (18.0.0+)
-- **[Docker](https://www.docker.com/)**
-- **[Bun](https://bun.sh/)** (or npm/pnpm/yarn)
-- **[mkcert](https://mkcert.dev/)**
+> **Note**: Production deployment guide coming soon. Currently supports development only.
 
-## 🛠️ Development
+### Development Setup
+
+**Prerequisites**: Docker, Node.js 18+, [mkcert](https://mkcert.dev/)
 
 ```bash
-bun run dev          # Local Nuxt development with containerized infrastructure
+# Clone and setup
+git clone https://github.com/MichaelSchmidle/lmix.git
+cd lmix
+cp .env.example .env
+
+# Start infrastructure
+bun install
+bun run infra:start
+
+# Run development server
+bun run dev
 ```
 
-This approach gives you the best of both worlds:
+Visit `https://app.localhost` to get started.
 
-- **Fast development** - Native Node.js performance, instant hot reload
-- **Consistent infrastructure** - Database, authentication, and proxy services run in containers
-- **No "works on my machine"** - Infrastructure is identical across all environments
+## 📚 Learn More
 
-## 🐳 Infrastructure Commands
+- **[Product Vision](./docs/vision.md)** - Complete conceptual framework and innovations
+- **[Specifications](./docs/specification.md)** - Implementation details and roadmap
+- **[Contributing](./CONTRIBUTING.md)** - Development setup and guidelines
 
-```bash
-# Infrastructure management
-bun run infra:start    # Start all containers
-bun run infra:stop     # Stop all containers
-bun run infra:restart  # Restart infrastructure
-bun run infra:logs     # View container logs
-bun run infra:status   # Check container status
+## 🗂️ Use Cases
 
-# Database operations
-bun run db:generate    # Generate database migrations
-bun run db:migrate     # Run database migrations
-bun run db:studio      # Open Drizzle Studio
-```
+- **Interactive Storytelling**: Characters with secrets and evolving relationships
+- **Training Simulations**: Realistic scenarios with incomplete information
+- **Creative Writing**: Explore narrative possibilities through character interactions
+- **Educational Tools**: Demonstrate perspective-taking and empathy
 
-## 🗂️ Project Structure
+## 🛡️ Self-Hosted & Private
 
-```
-lmix/
-├── app/                    # Your Nuxt application
-├── deployment/             # Infrastructure configuration
-│   ├── docker-compose.yml      # Base services
-│   ├── docker-compose.dev.yml  # Development overrides
-│   └── scripts/                # Setup automation
-├── server/                 # API and database
-└── .env                    # Configuration (see .env.example)
-```
+LMiX is designed for self-hosting with privacy in mind:
 
-### Authentication Flow
+- All conversations stay on your infrastructure
+- Works with local LLM models (Ollama) or cloud APIs
+- No telemetry or external data sharing
 
-1. User visits your app
-2. Redirected to Zitadel for secure authentication
-3. PKCE flow ensures token security
-4. User returns with valid session
+## 📄 License
 
-## 🔍 Available Services
-
-After setup:
-
-- **`https://app.localhost`**: Your application
-- **`https://auth.localhost`**: Authentication provider
-- **`https://proxy.localhost:8080`**: Traefik dashboard (dev)
-
-## 🧪 Quality Tools
-
-```bash
-bun run typecheck    # Type checking
-bun run lint         # Code linting
-bun run lint:fix     # Auto-fix issues
-bun run check        # Run all checks
-
----
-
-Built with NuxtShip and powered by [Node.js](https://nodejs.org/), [Docker](https://www.docker.com/), [Bun](https://bun.sh/), [mkcert](https://mkcert.dev/), [Nuxt](https://nuxt.com/), [Traefik](https://traefik.io/), [Zitadel](https://zitadel.com/), [PostgreSQL](https://postgresql.org/), [Drizzle](https://orm.drizzle.team/), [Nuxt UI](https://ui.nuxt.com/), [nuxt-oidc-auth](https://nuxtoidc.cloud), and [Phosphor Icons](https://phosphoricons.com/).
-```
+[License information to be added]

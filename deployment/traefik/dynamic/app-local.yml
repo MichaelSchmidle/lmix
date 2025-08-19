@@ -1,0 +1,18 @@
+# Dynamic configuration for local development
+# Routes app.dev.lmix.ai to local dev server (localhost:3000)
+# Generated automatically by setup script
+
+http:
+  routers:
+    app-local:
+      rule: "Host(`app.dev.lmix.ai`)"
+      tls: true
+      service: app-local-service
+      entryPoints:
+        - websecure
+        
+  services:
+    app-local-service:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:3000"

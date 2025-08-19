@@ -1,0 +1,46 @@
+services:
+  traefik:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./traefik/certs:/certs:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+    command:
+      - --global.checkNewVersion=false
+      - --global.sendAnonymousUsage=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --providers.docker=true
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=app-dev
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --providers.file.watch=true
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --log.level=INFO
+    labels:
+      - "traefik.http.routers.traefik.rule=Host(`${PROXY_DOMAIN}`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.service=api@internal"
+
+  zitadel:
+    volumes:
+      - ./zitadel/machinekey:/machinekey
+      - ./zitadel/pat:/pat
+    environment:
+      ZITADEL_TLS_ENABLED: false
+    labels:
+      - "traefik.http.services.zitadel.loadbalancer.server.scheme=h2c"
+
+  postgres:
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+
+
+networks:
+  app:
+    name: ${DOCKER_NETWORK:-app-dev}

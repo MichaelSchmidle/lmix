@@ -14,7 +14,9 @@ export default defineNuxtConfig({
     bundle: {
       optimizeTranslationDirective: false,
     },
+    defaultLocale: 'en',
     locales: ['en'],
+    strategy: 'prefix',
   },
   modules: [
     '@nuxt/eslint',

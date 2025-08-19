@@ -1,3 +1,14 @@
 @import "tailwindcss";
 @import "@nuxt/ui-pro";
 @plugin "@tailwindcss/typography";
+
+@theme {
+  --font-display: 'DM Serif Display', serif;
+  --font-sans: 'DM Sans', sans-serif;
+  --font-serif: 'DM Serif Text', serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+html {
+  @apply selection:bg-primary-200 selection:text-primary-900;
+}

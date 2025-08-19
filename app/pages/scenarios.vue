@@ -6,10 +6,10 @@
 <script setup lang="ts">
 const { t } = useI18n()
 
-const title = computed(() => t('home'))
+const title = computed(() => t('scenarios'))
 </script>
 
 <i18n lang="yaml">
 en:
-  home: 'Home'
+  scenarios: 'Scenarios'
 </i18n>

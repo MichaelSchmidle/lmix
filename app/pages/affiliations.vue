@@ -1,14 +1,12 @@
 <template>
-  <div>
-    <IndexPanel
-      base-route="affiliations"
-      :title="title"
-    >
-      <AffiliationsCreateButton size="lg" />
-      <Affiliations />
-    </IndexPanel>
-    <NuxtPage />
-  </div>
+  <IndexPanel
+    base-route="affiliations"
+    :title="title"
+  >
+    <AffiliationsCreateButton size="lg" />
+    <Affiliations />
+  </IndexPanel>
+  <NuxtPage />
 </template>
 
 <script setup lang="ts">

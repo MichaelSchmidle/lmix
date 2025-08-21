@@ -1,14 +1,12 @@
 <template>
-  <div>
-    <IndexPanel
-      base-route="worlds"
-      :title="title"
-    >
-      <WorldsCreateButton size="lg" />
-      <Worlds />
-    </IndexPanel>
-    <NuxtPage />
-  </div>
+  <IndexPanel
+    base-route="worlds"
+    :title="title"
+  >
+    <WorldsCreateButton size="lg" />
+    <Worlds />
+  </IndexPanel>
+  <NuxtPage />
 </template>
 
 <script setup lang="ts">

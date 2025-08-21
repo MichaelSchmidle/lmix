@@ -1,14 +1,12 @@
 <template>
-  <div>
-    <IndexPanel
-      base-route="personas"
-      :title="title"
-    >
-      <PersonasCreateButton size="lg" />
-      <Personas />
-    </IndexPanel>
-    <NuxtPage />
-  </div>
+  <IndexPanel
+    base-route="personas"
+    :title="title"
+  >
+    <PersonasCreateButton size="lg" />
+    <Personas />
+  </IndexPanel>
+  <NuxtPage />
 </template>
 
 <script setup lang="ts">

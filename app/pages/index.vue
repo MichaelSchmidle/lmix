@@ -1,12 +1,10 @@
 <template>
-  <div>
-    <UDashboardPanel>
-      <UDashboardNavbar
-        :title="title"
-        toggle-side="right"
-      />
-    </UDashboardPanel>
-  </div>
+  <UDashboardPanel>
+    <UDashboardNavbar
+      :title="title"
+      toggle-side="right"
+    />
+  </UDashboardPanel>
 </template>
 
 <script setup lang="ts">

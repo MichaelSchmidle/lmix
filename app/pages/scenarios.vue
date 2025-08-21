@@ -1,14 +1,12 @@
 <template>
-  <div>
-    <IndexPanel
-      base-route="scenarios"
-      :title="title"
-    >
-      <ScenariosCreateButton size="lg" />
-      <Scenarios />
-    </IndexPanel>
-    <NuxtPage />
-  </div>
+  <IndexPanel
+    base-route="scenarios"
+    :title="title"
+  >
+    <ScenariosCreateButton size="lg" />
+    <Scenarios />
+  </IndexPanel>
+  <NuxtPage />
 </template>
 
 <script setup lang="ts">

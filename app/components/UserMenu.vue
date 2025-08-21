@@ -1,25 +1,38 @@
 <template>
-  <UDropdownMenu :content="{ align: 'end' }" :items="items">
-    <UTooltip :content="{ side: 'left' }" :text="t('userMenu')">
-      <UAvatar :alt="typeof user?.userInfo?.name === 'string'
-        ? user.userInfo.name
-        : undefined
-        " class="cursor-pointer" />
+  <UDropdownMenu :items="items">
+    <UTooltip
+      :content="{ side: 'right' }"
+      :text="t('userMenu')"
+    >
+      <UAvatar
+        :alt="
+          typeof user?.userInfo?.name === 'string'
+            ? user.userInfo.name
+            : undefined
+        "
+        class="cursor-pointer"
+      />
     </UTooltip>
 
     <template #loggedInAs>
-      <UUser :avatar="{
-        alt:
+      <UUser
+        :avatar="{
+          alt:
+            typeof user?.userInfo?.name === 'string'
+              ? user.userInfo.name
+              : undefined,
+        }"
+        :name="
           typeof user?.userInfo?.name === 'string'
             ? user.userInfo.name
-            : undefined,
-      }" :name="typeof user?.userInfo?.name === 'string'
-        ? user.userInfo.name
-        : undefined
-        " :description="typeof user?.userInfo?.email === 'string'
+            : undefined
+        "
+        :description="
+          typeof user?.userInfo?.email === 'string'
             ? user.userInfo.email
             : undefined
-            " />
+        "
+      />
     </template>
   </UDropdownMenu>
 </template>

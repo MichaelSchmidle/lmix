@@ -1,15 +1,26 @@
 <template>
-  <DashboardPanel :title="title">
-  </DashboardPanel>
+  <div>
+    <IndexPanel
+      base-route="models"
+      :title="title"
+    >
+      <ModelsCreateButton size="lg" />
+      <Models />
+    </IndexPanel>
+    <NuxtPage />
+  </div>
 </template>
 
 <script setup lang="ts">
 const { t } = useI18n()
+const title = t('models')
 
-const title = computed(() => t('models'))
+useHead({
+  title: title,
+})
 </script>
 
 <i18n lang="yaml">
 en:
-  models: 'Models'
+  models: Models
 </i18n>

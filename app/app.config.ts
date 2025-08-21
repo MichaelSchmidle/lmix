@@ -48,4 +48,22 @@ export default defineAppConfig({
       warning: 'i-ph-warning'
     },
   },
+  uiPro: {
+    dashboardNavbar: {
+      slots: {
+        root: 'sm:px-4',
+      },
+    },
+    dashboardPanel: {
+      slots: {
+        body: 'px-4 py-3 sm:px-4 sm:py-4',
+      },
+    },
+    dashboardSidebar: {
+      slots: {
+        body: 'py-3',
+        footer: 'py-3',
+      },
+    },
+  },
 })

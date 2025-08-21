@@ -1,15 +1,24 @@
 <template>
-  <DashboardPanel :title="title">
-  </DashboardPanel>
+  <div>
+    <UDashboardPanel>
+      <UDashboardNavbar
+        :title="title"
+        toggle-side="right"
+      />
+    </UDashboardPanel>
+  </div>
 </template>
 
 <script setup lang="ts">
 const { t } = useI18n()
+const title = t('create')
 
-const title = computed(() => t('home'))
+useHead({
+  title: title,
+})
 </script>
 
 <i18n lang="yaml">
 en:
-  home: 'Home'
+  create: Create Production
 </i18n>

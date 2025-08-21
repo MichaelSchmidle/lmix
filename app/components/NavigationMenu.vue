@@ -1,5 +1,8 @@
 <template>
-  <UNavigationMenu :items="items" orientation="vertical" />
+  <UNavigationMenu
+    :items="items"
+    orientation="vertical"
+  />
 </template>
 
 <script setup lang="ts">
@@ -14,14 +17,14 @@ const items = ref<NavigationMenuItem[]>([
     to: localeRoute('models'),
   },
   {
-    icon: 'i-ph-head-circuit-fill',
-    label: t('assistants'),
-    to: localeRoute('assistants'),
-  },
-  {
     icon: 'i-ph-mask-happy-fill',
     label: t('personas'),
     to: localeRoute('personas'),
+  },
+  {
+    icon: 'i-ph-head-circuit-fill',
+    label: t('assistants'),
+    to: localeRoute('assistants'),
   },
   {
     icon: 'i-ph-planet-fill',

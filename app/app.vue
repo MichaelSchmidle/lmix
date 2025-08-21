@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import * as locales from "@nuxt/ui-pro/locale"
+import * as locales from '@nuxt/ui-pro/locale'
 
 const config = useRuntimeConfig()
 const { locale } = useI18n()

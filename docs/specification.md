@@ -6,9 +6,11 @@
 ## Iteration 1: MVP - Basic Multi-Assistant Chat
 
 ### Goal
+
 Create a working multi-assistant chat where each assistant has limited knowledge about the scenario and other participants.
 
 ### User Story
+
 **As a** user  
 **I want to** create a conversation between AI assistants with different perspectives and secrets  
 **So that** I can explore how asymmetric knowledge affects their interaction
@@ -16,37 +18,49 @@ Create a working multi-assistant chat where each assistant has limited knowledge
 ### Core Business Objects
 
 #### Models
+
 LLM configurations (e.g., "gpt-4", "claude-3-sonnet", "llama-2")
 
 #### Affiliations
+
 Group/organization definitions with three layers of truth:
+
 - **Universal**: Known to everyone (public facts)
 - **Internal**: Known only to members (shared secrets, including knowledge about other affiliations)
 - **External**: How non-members perceive them
 
-#### Personas  
+#### Personas
+
 Character definitions with three layers of truth:
+
 - **Universal**: Known to everyone (public facts)
 - **Internal**: Known only to self (personal secrets, true motivations)
 - **External**: How others perceive them
 - Can be affiliated with zero or more Affiliations
 
 #### Assistants
+
 The pairing of a Persona with a Model (junction table)
 
 #### Productions
+
 Conversation containers with world and scenario
 
 ### Core Features
 
 #### 1.1 Manage Models (CRUD)
+
 - Name (e.g., "GPT-4 Turbo")
-- Provider (openai/anthropic/ollama)
+- API Endpoint (e.g., "https://api.openai.com/v1/chat/completions")
+- API Key (optional - nullable for local/Ollama models)
 - Model ID (e.g., "gpt-4-turbo-preview")
 - Configuration (temperature, max_tokens, etc.)
+- Is Default (only one default model per user)
 
 #### 1.2 Manage Affiliations (CRUD)
+
 **Example Affiliation:**
+
 ```
 Name: "NYPD Undercover Unit"
 Universal Truth: "Elite law enforcement division focused on organized crime"
@@ -55,6 +69,7 @@ External Truth: "Tough on crime, by the book, incorruptible"
 ```
 
 **Another Example:**
+
 ```
 Name: "Rosetti Crime Family"
 Universal Truth: "Local Italian-American business association"
@@ -63,7 +78,9 @@ External Truth: "Community leaders, generous donors to local causes"
 ```
 
 #### 1.3 Manage Personas (CRUD)
+
 **Example Persona:**
+
 ```
 Name: "Alice Thompson"
 Affiliations: []
@@ -73,6 +90,7 @@ External Truth: "Caring professional, sometimes asks too many personal questions
 ```
 
 **Another Example:**
+
 ```
 Name: "Bob Wilson / Detective Johnson"
 Affiliations: ["NYPD Undercover Unit"]
@@ -82,6 +100,7 @@ External Truth: "Nervous, dealing with work stress, closed off emotionally"
 ```
 
 **Another Example:**
+
 ```
 Name: "Tony Rosetti"
 Affiliations: ["Rosetti Crime Family"]
@@ -91,23 +110,29 @@ External Truth: "Successful businessman, bit rough around the edges"
 ```
 
 #### 1.4 Manage Assistants (CRUD)
+
 - Select Persona
 - Select Model
 - Optional: Override model settings for this specific pairing
 
 #### 1.5 Create & Run Productions
+
 **Input:**
+
 - Production name
-- World description (immutable laws/setting)
-- Scenario description (starting situation - only publicly known facts!)
+- Select World (from library or create new)
+- Select Scenario (from library or create new)
 - Select 2+ assistants
+- Show Directive toggle (display system prompts in UI)
 
 **Correct Example:**
+
 ```
 Name: "Therapy Session"
-World: "Modern day New York City, realistic physics"
-Scenario: "Alice is meeting Bob for his first therapy session on a Tuesday afternoon"
+World: [Select: "Modern NYC" - already defined]
+Scenario: [Select: "First Therapy Session" - already defined]
 Assistants: [Alice on GPT-4, Bob on Claude]
+Show Directive: false
 ```
 
 **Note:** Bob being undercover is NOT in the scenario - it's in his internal truth!
@@ -115,6 +140,7 @@ Assistants: [Alice on GPT-4, Bob on Claude]
 ### Knowledge Distribution
 
 #### What Each Assistant Knows:
+
 ```
 WORLD: [Shared by all]
 SCENARIO: [Shared by all - public information only]
@@ -124,13 +150,13 @@ YOU ARE: [Persona Name]
 - Internal: [Your internal truth - only you know this!]
 
 YOUR AFFILIATIONS:
-- [Affiliation Name]: 
+- [Affiliation Name]:
   - Universal: [Affiliation's universal truth]
   - Internal: [Affiliation's internal truth - shared with all members!]
 
 OTHER PARTICIPANTS:
 - [Other Persona Name]
-  - Universal: [Their universal truth]  
+  - Universal: [Their universal truth]
   - External: [Their external truth - how you see them]
   - Affiliations: [List their affiliations]
     - [Affiliation]: Universal + External truth only (unless you're also a member)
@@ -144,37 +170,35 @@ KNOWN AFFILIATIONS: [All affiliations mentioned by participants]
 
 **Knowledge Layering Example:**
 Bob (NYPD member) talking to Tony (Mafia member):
+
 - Bob knows: NYPD's internal secrets, Mafia's public facade
-- Tony knows: Mafia's internal secrets (including Murphy corruption), NYPD's public facade  
+- Tony knows: Mafia's internal secrets (including Murphy corruption), NYPD's public facade
 - Neither knows the other's personal secrets
-
-### Solved: Shared Secrets ✅
-
-**Challenge:** Bob's boss Charlie should know Bob is undercover.
-
-**Solution:** Affiliations solve this elegantly!
-- Create "NYPD Undercover Unit" affiliation
-- Bob and Charlie are both members
-- Affiliation's internal truth: "Bob Wilson is Detective Johnson"
-- Both Bob and Charlie know this shared secret
-- Bob's personal internal truth: "Hates lying" (only Bob knows)
 
 ### Technical Implementation
 
 #### Database Schema (Iteration 1)
+
 ```sql
 -- LLM configurations
 CREATE TABLE models (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id TEXT NOT NULL,
   name TEXT NOT NULL,
-  provider TEXT NOT NULL, -- 'openai', 'anthropic', 'ollama'
-  model_id TEXT NOT NULL, -- 'gpt-4', 'claude-3-sonnet', etc.
+  api_endpoint TEXT NOT NULL, -- Full API endpoint URL
+  api_key TEXT, -- Nullable for local/Ollama models
+  model_id TEXT NOT NULL, -- Model identifier for the endpoint
   config JSONB, -- temperature, max_tokens, etc.
+  is_default BOOLEAN DEFAULT false,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Group/organization definitions  
+-- Ensure only one default model per user
+CREATE UNIQUE INDEX idx_one_default_model_per_user
+  ON models (user_id)
+  WHERE is_default = true;
+
+-- Group/organization definitions
 CREATE TABLE affiliations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id TEXT NOT NULL,
@@ -190,6 +214,7 @@ CREATE TABLE personas (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id TEXT NOT NULL,
   name TEXT NOT NULL,
+  avatar_url TEXT, -- Visual representation
   universal_truth TEXT, -- Public facts
   internal_truth TEXT,  -- Personal secrets/private knowledge
   external_truth TEXT,  -- How others perceive them
@@ -216,13 +241,32 @@ CREATE TABLE assistants (
   UNIQUE(user_id, persona_id, model_id)
 );
 
+-- Reusable world settings
+CREATE TABLE worlds (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL, -- Immutable laws/setting
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Reusable scenarios
+CREATE TABLE scenarios (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL, -- Starting situation (public info only!)
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Conversation containers
 CREATE TABLE productions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id TEXT NOT NULL,
   name TEXT NOT NULL,
-  world TEXT NOT NULL,    -- Immutable laws/setting
-  scenario TEXT NOT NULL, -- Starting situation (public info only!)
+  world_id UUID REFERENCES worlds(id) NOT NULL,
+  scenario_id UUID REFERENCES scenarios(id) NOT NULL,
+  show_directive BOOLEAN DEFAULT false, -- Show system prompts in UI
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -238,6 +282,7 @@ CREATE TABLE turns (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   production_id UUID REFERENCES productions(id) ON DELETE CASCADE,
   assistant_id UUID REFERENCES assistants(id),
+  parent_turn_id UUID REFERENCES turns(id), -- For branching conversations
   content TEXT NOT NULL,
   turn_number INTEGER NOT NULL,
   created_at TIMESTAMP DEFAULT NOW()
@@ -245,12 +290,25 @@ CREATE TABLE turns (
 ```
 
 #### API Endpoints
+
 ```typescript
 // Models CRUD
 GET    /api/models
 POST   /api/models
 PUT    /api/models/:id
 DELETE /api/models/:id
+
+// Worlds CRUD
+GET    /api/worlds
+POST   /api/worlds
+PUT    /api/worlds/:id
+DELETE /api/worlds/:id
+
+// Scenarios CRUD
+GET    /api/scenarios
+POST   /api/scenarios
+PUT    /api/scenarios/:id
+DELETE /api/scenarios/:id
 
 // Affiliations CRUD
 GET    /api/affiliations
@@ -281,25 +339,31 @@ POST   /api/productions/:id/turns
 ```
 
 #### Pages & Components
+
 ```
-/                         # Welcome/dashboard
-/models                   # Models management (table + create/edit modal)
+/                        # Welcome/dashboard
+/models                  # Models management (table + create/edit modal)
+/worlds                  # Worlds management (table + create/edit modal)
+/scenarios               # Scenarios management (table + create/edit modal)
 /affiliations            # Affiliations management (table + create/edit modal)
-/personas                 # Personas management (table + create/edit modal)  
+/personas                # Personas management (table + create/edit modal)
 /assistants              # Assistants management (table + create/edit modal)
 /productions             # Productions list (table + create modal)
 /productions/[id]        # Chat interface
 
 Components:
 - ModelForm.vue          # Create/edit form in modal
+- WorldForm.vue          # Create/edit form in modal
+- ScenarioForm.vue       # Create/edit form in modal
 - AffiliationForm.vue    # Create/edit form in modal
 - PersonaForm.vue        # Create/edit form in modal (with affiliation selector)
 - AssistantForm.vue      # Create/edit form in modal
-- ProductionForm.vue     # Create form in modal
+- ProductionForm.vue     # Create form in modal (with world/scenario selectors)
 - ChatInterface.vue      # Main chat UI using Nuxt UI components
 ```
 
 ### Success Criteria
+
 - [ ] User can create models, affiliations, personas, and assistants
 - [ ] Personas can be affiliated with multiple organizations
 - [ ] User can create a production with 2+ assistants
@@ -310,6 +374,7 @@ Components:
 - [ ] Works with OpenAI API (configurable)
 
 ### Out of Scope for Iteration 1
+
 - Entity/relation extraction
 - Observations and memory
 - Episodes/series
@@ -323,46 +388,54 @@ Components:
 ## Iteration 2: Observations & Memory (Planned)
 
 ### Goal
+
 Add dynamic knowledge accumulation through observations extracted from conversations.
 
 ### Features
+
 - Automatic observation extraction from turns
 - Knowledge filtering based on what each assistant would observe
 - Observations affect future responses
 
 ### Technical Additions
+
 - Add observations table
 - Implement extraction service
 - Update context builder to include relevant observations
 
-*Details to be specified after Iteration 1 is complete*
+_Details to be specified after Iteration 1 is complete_
 
 ---
 
 ## Iteration 3: Episodes & Persistence (Planned)
 
 ### Goal
+
 Enable episodic storytelling where characters evolve across multiple episodes.
 
 ### Features
+
 - Series container for episodes
 - Observation persistence across episodes
 - Smart memory filtering for context windows
 
-*Details to be specified after Iteration 2 is complete*
+_Details to be specified after Iteration 2 is complete_
 
 ---
 
 ## Implementation Status
 
 ### ✅ Completed
+
 - Product vision documented
 - Core concept defined
 
 ### 🚧 In Progress
+
 - Iteration 1 specification
 
 ### 📋 Planned
+
 - Iteration 1 implementation
 - Iteration 2 specification
 - Iteration 3 specification
@@ -372,6 +445,7 @@ Enable episodic storytelling where characters evolve across multiple episodes.
 ## Notes
 
 This specification follows agile principles:
+
 1. **Working software over comprehensive documentation** - We specify just enough to build
 2. **Responding to change over following a plan** - Specifications evolve based on learnings
 3. **Customer collaboration over contract negotiation** - User feedback drives iterations

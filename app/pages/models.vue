@@ -1,9 +1,10 @@
 <template>
   <IndexPanel
-    base-route="models"
+    route="models"
     :title="title"
   >
     <ModelsCreateLink size="lg" />
+
     <Models />
   </IndexPanel>
   <NuxtPage />
@@ -11,14 +12,20 @@
 
 <script setup lang="ts">
 const { t } = useI18n()
-const title = t('models')
+const title = t('title')
+const modelStore = useModelStore()
 
 useHead({
-  title: title,
+  title,
+})
+
+// Fetch models client-side after hydration
+onMounted(async () => {
+  await modelStore.fetchModels()
 })
 </script>
 
 <i18n lang="yaml">
 en:
-  models: Models
+  title: Models
 </i18n>

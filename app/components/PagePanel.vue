@@ -1,5 +1,5 @@
 <template>
-  <UDashboardPanel id="assistants-index-panel">
+  <UDashboardPanel :id="`${route}-panel`">
     <template #header>
       <UDashboardNavbar
         :title="title"
@@ -10,27 +10,32 @@
             class="xl:hidden"
             color="neutral"
             icon="i-ph-arrow-left"
-            :to="localeRoute('assistants')"
+            :to="localeRoute('models')"
             variant="ghost"
           />
         </template>
       </UDashboardNavbar>
+
+      <UDashboardToolbar
+        v-if="$slots.toolbar"
+        :ui="{ root: 'gap-x-4 gap-y-3 justify-between' }"
+      >
+        <slot name="toolbar" />
+      </UDashboardToolbar>
     </template>
-    <template #body> TODO: Create assistant form </template>
+
+    <template #body>
+      <slot />
+    </template>
   </UDashboardPanel>
 </template>
 
 <script setup lang="ts">
-const { t } = useI18n()
-const localeRoute = useLocalePath()
-const title = t('create')
+const route = useRoute()
+const localeRoute = useLocaleRoute()
 
-useHead({
-  title,
-})
+defineProps<{
+  route: string
+  title: string
+}>()
 </script>
-
-<i18n lang="yaml">
-en:
-  create: Create Assistant
-</i18n>

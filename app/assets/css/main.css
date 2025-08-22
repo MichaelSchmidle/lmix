@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "@nuxt/ui-pro";
+@import 'tailwindcss';
+@import '@nuxt/ui-pro';
 @plugin "@tailwindcss/typography";
 
 @theme {
@@ -11,4 +11,8 @@
 
 html {
   @apply selection:bg-primary-200 selection:text-primary-900;
+}
+
+code {
+  @apply font-normal;
 }

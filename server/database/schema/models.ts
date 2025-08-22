@@ -30,6 +30,10 @@ export const models = pgTable('models', {
   oneDefaultPerUser: uniqueIndex('idx_one_default_model_per_user')
     .on(table.userId)
     .where(sql`${table.isDefault} = true`),
+  
+  // Ensure no duplicate models per user (same model ID and endpoint)
+  uniqueModelPerUser: uniqueIndex('idx_unique_model_per_user')
+    .on(table.userId, table.modelId, table.apiEndpoint),
 }))
 
 /**

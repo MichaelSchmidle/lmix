@@ -1,22 +1,20 @@
 <template>
-  <UDashboardPanel>
-    <UDashboardNavbar
-      :title="title"
-      toggle-side="right"
-    />
-  </UDashboardPanel>
+  <PagePanel
+    route="index"
+    :title="title"
+  ></PagePanel>
 </template>
 
 <script setup lang="ts">
 const { t } = useI18n()
-const title = t('create')
+const title = t('title')
 
 useHead({
-  title: title,
+  title,
 })
 </script>
 
 <i18n lang="yaml">
 en:
-  create: Create Production
+  title: Create Production
 </i18n>

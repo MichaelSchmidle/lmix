@@ -26,7 +26,7 @@ const localeRoute = useLocalePath()
 const title = t('create')
 
 useHead({
-  title: title,
+  title,
 })
 </script>
 

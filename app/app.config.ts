@@ -1,5 +1,10 @@
 export default defineAppConfig({
   ui: {
+    button: {
+      slots: {
+        base: 'cursor-pointer',
+      },
+    },
     colors: {
       primary: 'indigo',
       neutral: 'stone',
@@ -63,6 +68,7 @@ export default defineAppConfig({
     dashboardNavbar: {
       slots: {
         root: 'sm:px-4',
+        title: 'overflow-hidden text-ellipsis',
       },
     },
     dashboardPanel: {
@@ -74,6 +80,11 @@ export default defineAppConfig({
       slots: {
         body: 'py-3',
         footer: 'py-3',
+      },
+    },
+    dashboardToolbar: {
+      slots: {
+        root: 'sm:px-4',
       },
     },
   },

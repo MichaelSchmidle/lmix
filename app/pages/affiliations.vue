@@ -1,6 +1,6 @@
 <template>
   <IndexPanel
-    base-route="affiliations"
+    route="affiliations"
     :title="title"
   >
     <AffiliationsCreateLink size="lg" />
@@ -11,14 +11,14 @@
 
 <script setup lang="ts">
 const { t } = useI18n()
-const title = t('affiliations')
+const title = t('title')
 
 useHead({
-  title: title,
+  title,
 })
 </script>
 
 <i18n lang="yaml">
 en:
-  affiliations: Affiliations
+  title: Affiliations
 </i18n>

@@ -1,35 +1,33 @@
 <template>
-  <UNavigationMenu
-    :items="items"
-    orientation="vertical"
-  />
+  <div>
+    <USkeleton
+      v-if="loading"
+      class="h-8 w-full"
+    />
+
+    <UNavigationMenu
+      v-else
+      :items="items"
+      orientation="vertical"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
-
 const { t } = useI18n({ useScope: 'local' })
-const modelsStore = useModelsStore()
+const route = useRoute()
+const modelStore = useModelStore()
+const { loading } = storeToRefs(modelStore)
 
-// Computed navigation items based on models from store
-const items = computed<NavigationMenuItem[]>(() => {
-  return [
-    {
-      children: modelsStore.navigationItems,
-      defaultOpen: true,
-      icon: 'i-ph-circuitry-fill',
-      label: t('models'),
-    },
-  ]
-})
-
-// Load models on mount
-onMounted(() => {
-  modelsStore.fetchModels()
+// Use the store's built-in navigation items with current model ID
+const items = computed(() => {
+  const currentModelId = route.params.id as string | undefined
+  return modelStore.navigationItems(currentModelId)
 })
 </script>
 
 <i18n lang="yaml">
 en:
   models: Models
+  default: Default
 </i18n>

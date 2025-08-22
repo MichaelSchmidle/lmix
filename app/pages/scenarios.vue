@@ -1,6 +1,6 @@
 <template>
   <IndexPanel
-    base-route="scenarios"
+    route="scenarios"
     :title="title"
   >
     <ScenariosCreateLink size="lg" />
@@ -11,14 +11,14 @@
 
 <script setup lang="ts">
 const { t } = useI18n()
-const title = t('scenarios')
+const title = t('title')
 
 useHead({
-  title: title,
+  title,
 })
 </script>
 
 <i18n lang="yaml">
 en:
-  scenarios: Scenarios
+  title: Scenarios
 </i18n>

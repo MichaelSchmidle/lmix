@@ -94,6 +94,34 @@ export const useModelsStore = defineStore('models', () => {
     }
   }
 
+  async function createModels(input: CreateModelInput | CreateModelInput[]) {
+    loading.value = true
+    error.value = null
+    
+    try {
+      const response = await $fetch('/api/models', {
+        method: 'POST',
+        body: input
+      })
+      
+      // Handle both single and multiple model responses
+      if (Array.isArray(input)) {
+        // Multiple models created
+        modelsList.value.push(...response.models)
+        return response
+      } else {
+        // Single model created
+        modelsList.value.push(response.model)
+        return response
+      }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to create model(s)'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function updateModel(id: string, input: UpdateModelInput) {
     loading.value = true
     error.value = null
@@ -177,22 +205,6 @@ export const useModelsStore = defineStore('models', () => {
     fetchModels()
   })
 
-  async function fetchAvailableModels(apiEndpoint: string, apiKey?: string | null) {
-    try {
-      const response = await $fetch('/api/models/list-available', {
-        method: 'POST',
-        body: {
-          apiEndpoint,
-          apiKey
-        }
-      })
-      
-      return response.models
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Failed to fetch available models')
-    }
-  }
-
   return {
     // State
     modelsList: readonly(modelsList),
@@ -208,10 +220,10 @@ export const useModelsStore = defineStore('models', () => {
     // Actions
     fetchModels,
     createModel,
+    createModels,
     updateModel,
     deleteModel,
     setDefaultModel,
-    testModelConnection,
-    fetchAvailableModels
+    testModelConnection
   }
 })

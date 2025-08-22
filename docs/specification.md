@@ -50,12 +50,31 @@ Conversation containers with world and scenario
 
 #### 1.1 Manage Models (CRUD)
 
-- Name (e.g., "GPT-4 Turbo")
-- API Endpoint (e.g., "https://api.openai.com/v1/chat/completions")
+**Model Discovery Workflow:**
+1. **Provider Configuration**: User enters API endpoint and optional API key
+2. **Model Discovery**: Frontend fetches available models directly from provider's API
+3. **Model Selection**: User selects which models to add from discovered list
+4. **Batch Creation**: Selected models are created in database with provider configuration
+
+**Model Properties:**
+- Name (e.g., "GPT-4 Turbo") - auto-generated from model ID
+- API Endpoint (e.g., "https://api.openai.com/v1") - normalized base URL
 - API Key (optional - nullable for local/Ollama models)
-- Model ID (e.g., "gpt-4-turbo-preview")
-- Configuration (temperature, max_tokens, etc.)
+- Model ID (e.g., "gpt-4-turbo-preview") - as returned by provider
+- Configuration (temperature, max_tokens, etc.) - provider-specific defaults
 - Is Default (only one default model per user)
+
+**Supported Providers:**
+- OpenAI and OpenAI-compatible APIs
+- Anthropic (static model list)
+- Ollama (local models)
+- Generic providers with OpenAI-compatible endpoints
+
+**Key Features:**
+- Direct browser-to-provider model discovery (no proxy endpoint)
+- Bulk model addition in single operation
+- Duplicate prevention (checks modelId + apiEndpoint)
+- Bidirectional navigation between configuration and selection steps
 
 #### 1.2 Manage Affiliations (CRUD)
 
@@ -293,10 +312,12 @@ CREATE TABLE turns (
 
 ```typescript
 // Models CRUD
-GET    /api/models
-POST   /api/models
-PUT    /api/models/:id
-DELETE /api/models/:id
+GET    /api/models               // List all user's models
+POST   /api/models               // Create single model or array of models
+PUT    /api/models/:id           // Update a model
+DELETE /api/models/:id           // Delete a model
+PATCH  /api/models/:id/default   // Set as default model
+POST   /api/models/test          // Test model connection
 
 // Worlds CRUD
 GET    /api/worlds

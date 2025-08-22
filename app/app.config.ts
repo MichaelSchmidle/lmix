@@ -4,6 +4,12 @@ export default defineAppConfig({
       primary: 'indigo',
       neutral: 'stone',
     },
+    container: {
+      base: 'max-w-prose py-3 sm:py-4.5 lg:py-6 space-y-12',
+    },
+    form: {
+      base: 'space-y-6',
+    },
     icons: {
       arrowLeft: 'i-ph-arrow-left',
       arrowRight: 'i-ph-arrow-right',
@@ -45,7 +51,12 @@ export default defineAppConfig({
       success: 'i-ph-check-circle',
       system: 'i-ph-desktop',
       tip: 'i-ph-lightbulb',
-      warning: 'i-ph-warning'
+      warning: 'i-ph-warning',
+    },
+    input: {
+      slots: {
+        root: 'w-full',
+      },
     },
   },
   uiPro: {

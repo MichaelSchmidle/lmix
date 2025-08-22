@@ -1,14 +1,16 @@
 /**
  * POST /api/models
  * 
- * Create a new model configuration
+ * Create one or more model configurations
+ * Accepts either a single model object or an array of models
  */
 import { db } from '../../utils/db'
 import { requireAuth } from '../../utils/auth'
 import { models } from '../../database/schema/models'
 import { z } from 'zod'
+import { eq, and } from 'drizzle-orm'
 
-// Validation schema
+// Validation schema for a single model
 const createModelSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   apiEndpoint: z.string().url('Must be a valid URL'),
@@ -25,6 +27,12 @@ const createModelSchema = z.object({
   isDefault: z.boolean().optional()
 })
 
+// Accept either single model or array of models
+const requestSchema = z.union([
+  createModelSchema,
+  z.array(createModelSchema).min(1, 'At least one model is required')
+])
+
 export default defineEventHandler(async (event) => {
   // Require authentication
   const userId = requireAuth(event)
@@ -34,7 +42,7 @@ export default defineEventHandler(async (event) => {
   
   let validatedData
   try {
-    validatedData = createModelSchema.parse(body)
+    validatedData = requestSchema.parse(body)
   } catch (error) {
     throw createError({
       statusCode: 400,
@@ -44,24 +52,79 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Normalize to array for consistent processing
+  const modelsToCreate = Array.isArray(validatedData) ? validatedData : [validatedData]
+  
+  // Check that only one model can be default
+  const defaultModels = modelsToCreate.filter(m => m.isDefault)
+  if (defaultModels.length > 1) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Only one model can be set as default'
+    })
+  }
+
   try {
-    // Create the model
-    const [newModel] = await db
-      .insert(models)
-      .values({
-        userId,
-        name: validatedData.name,
-        apiEndpoint: validatedData.apiEndpoint,
-        apiKey: validatedData.apiKey || null,
-        modelId: validatedData.modelId,
-        config: validatedData.config || {},
-        isDefault: validatedData.isDefault || false
+    // Check for existing models with same modelId and apiEndpoint to prevent duplicates
+    const existingModels = await db
+      .select({ modelId: models.modelId, apiEndpoint: models.apiEndpoint })
+      .from(models)
+      .where(eq(models.userId, userId))
+    
+    const existingSet = new Set(
+      existingModels.map(m => `${m.modelId}|${m.apiEndpoint}`)
+    )
+    
+    // Filter out duplicates
+    const uniqueModels = modelsToCreate.filter(m => 
+      !existingSet.has(`${m.modelId}|${m.apiEndpoint}`)
+    )
+    
+    if (uniqueModels.length === 0) {
+      throw createError({
+        statusCode: 409,
+        statusMessage: 'All specified models are already configured'
       })
+    }
+
+    // If any model is set as default, clear existing defaults first
+    if (defaultModels.length > 0) {
+      await db
+        .update(models)
+        .set({ isDefault: false })
+        .where(and(
+          eq(models.userId, userId),
+          eq(models.isDefault, true)
+        ))
+    }
+
+    // Create the models
+    const createdModels = await db
+      .insert(models)
+      .values(uniqueModels.map(model => ({
+        userId,
+        name: model.name,
+        apiEndpoint: model.apiEndpoint,
+        apiKey: model.apiKey || null,
+        modelId: model.modelId,
+        config: model.config || {},
+        isDefault: model.isDefault || false
+      })))
       .returning()
     
-    return {
-      model: newModel,
-      message: 'Model created successfully'
+    // Return appropriate response based on input type
+    if (Array.isArray(validatedData)) {
+      return {
+        models: createdModels,
+        count: createdModels.length,
+        skipped: modelsToCreate.length - uniqueModels.length,
+        message: `Successfully created ${createdModels.length} model(s)`
+      }
+    } else {
+      return {
+        model: createdModels[0],
+        message: 'Model created successfully'
+      }
     }
   } catch (error) {
     // Check for unique constraint violation
@@ -72,9 +135,14 @@ export default defineEventHandler(async (event) => {
       })
     }
     
+    // Re-throw if it's already a createError
+    if (error instanceof Error && 'statusCode' in error) {
+      throw error
+    }
+    
     throw createError({
       statusCode: 500,
-      statusMessage: 'Failed to create model'
+      statusMessage: 'Failed to create model(s)'
     })
   }
 })

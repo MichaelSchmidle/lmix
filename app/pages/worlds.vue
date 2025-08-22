@@ -3,7 +3,7 @@
     base-route="worlds"
     :title="title"
   >
-    <WorldsCreateButton size="lg" />
+    <WorldsCreateLink size="lg" />
     <Worlds />
   </IndexPanel>
   <NuxtPage />

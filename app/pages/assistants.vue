@@ -3,7 +3,7 @@
     base-route="assistants"
     :title="title"
   >
-    <AssistantsCreateButton size="lg" />
+    <AssistantsCreateLink size="lg" />
     <Assistants />
   </IndexPanel>
   <NuxtPage />

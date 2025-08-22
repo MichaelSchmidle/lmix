@@ -3,7 +3,7 @@
     base-route="personas"
     :title="title"
   >
-    <PersonasCreateButton size="lg" />
+    <PersonasCreateLink size="lg" />
     <Personas />
   </IndexPanel>
   <NuxtPage />

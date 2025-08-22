@@ -3,7 +3,7 @@
     base-route="scenarios"
     :title="title"
   >
-    <ScenariosCreateButton size="lg" />
+    <ScenariosCreateLink size="lg" />
     <Scenarios />
   </IndexPanel>
   <NuxtPage />

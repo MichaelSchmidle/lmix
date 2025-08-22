@@ -3,7 +3,7 @@
     base-route="affiliations"
     :title="title"
   >
-    <AffiliationsCreateButton size="lg" />
+    <AffiliationsCreateLink size="lg" />
     <Affiliations />
   </IndexPanel>
   <NuxtPage />

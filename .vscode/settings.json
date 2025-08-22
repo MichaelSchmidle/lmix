@@ -5,5 +5,7 @@
   "editor.formatOnType": true,
   "prettier.semi": false,
   "prettier.singleAttributePerLine": true,
-  "prettier.singleQuote": true
+  "prettier.singleQuote": true,
+  "editor.tabSize": 2,
+  "editor.mouseWheelZoom": true
 }

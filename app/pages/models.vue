@@ -3,7 +3,7 @@
     base-route="models"
     :title="title"
   >
-    <ModelsCreateButton size="lg" />
+    <ModelsCreateLink size="lg" />
     <Models />
   </IndexPanel>
   <NuxtPage />

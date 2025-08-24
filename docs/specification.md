@@ -61,7 +61,6 @@ Conversation containers with world and scenario
 - API Endpoint (e.g., "https://api.openai.com/v1") - normalized base URL
 - API Key (optional - nullable for local/Ollama models)
 - Model ID (e.g., "gpt-4-turbo-preview") - as returned by provider
-- Configuration (temperature, max_tokens, etc.) - provider-specific defaults
 - Is Default (only one default model per user)
 
 **Supported Providers:**
@@ -196,6 +195,27 @@ Bob (NYPD member) talking to Tony (Mafia member):
 
 ### Technical Implementation
 
+#### Security
+
+**API Key Protection:**
+- All API keys are encrypted at rest using industry-standard encryption
+- Keys are automatically masked in API responses (showing only first/last few characters)
+- Decryption occurs only server-side when making API calls to providers
+- No API keys are ever transmitted in plain text to the client
+- Database queries return masked keys to prevent accidental exposure
+
+**Row Level Security (RLS):**
+- All tables enforce user isolation through PostgreSQL RLS policies
+- Users can only access their own models, personas, affiliations, and productions
+- Authentication is required for all API endpoints
+- User identity is validated through OIDC tokens
+
+**Data Validation:**
+- All user inputs are validated both client-side and server-side
+- API endpoints enforce strict validation schemas
+- SQL injection protection through parameterized queries (Drizzle ORM)
+- XSS prevention through proper input sanitization
+
 #### Database Schema (Iteration 1)
 
 ```sql
@@ -207,7 +227,7 @@ CREATE TABLE models (
   api_endpoint TEXT NOT NULL, -- Full API endpoint URL
   api_key TEXT, -- Nullable for local/Ollama models
   model_id TEXT NOT NULL, -- Model identifier for the endpoint
-  config JSONB, -- temperature, max_tokens, etc.
+  -- Configuration removed for MVP simplicity
   is_default BOOLEAN DEFAULT false,
   created_at TIMESTAMP DEFAULT NOW()
 );
@@ -314,9 +334,8 @@ CREATE TABLE turns (
 // Models CRUD
 GET    /api/models               // List all user's models
 POST   /api/models               // Create single model or array of models
-PUT    /api/models/:id           // Update a model
+PUT    /api/models/:id           // Update a model (including isDefault field)
 DELETE /api/models/:id           // Delete a model
-PATCH  /api/models/:id/default   // Set as default model
 POST   /api/models/test          // Test model connection
 
 // Worlds CRUD

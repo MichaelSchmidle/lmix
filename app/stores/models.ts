@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
 import type { NavigationMenuItem } from '@nuxt/ui'
 import type { Model, CreateModelInput, UpdateModelInput } from '~/types/models'
 
@@ -247,3 +247,7 @@ export const useModelStore = defineStore('models', () => {
     testModelConnection,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useModelStore, import.meta.hot))
+}

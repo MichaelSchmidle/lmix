@@ -15,7 +15,7 @@
       :description="t('steps.0.description')"
     >
       <UForm
-        :schema="providerConfigSchema"
+        :schema="localizedProviderConfigSchema"
         :state="providerConfig"
         :validate-on="['change', 'input']"
         @submit="handleDiscoverModels"
@@ -86,7 +86,7 @@
       </template>
 
       <UForm
-        :schema="modelSelectionSchema"
+        :schema="localizedModelSelectionSchema"
         :state="modelSelection"
         :validate-on="['change']"
         @submit="handleCreateModels"
@@ -135,9 +135,13 @@
 
 <script setup lang="ts">
 // ===== IMPORTS =====
-import { z } from 'zod'
 import type { CheckboxGroupItem, StepperItem } from '@nuxt/ui'
+import { z } from 'zod'
 import type { Model } from '~/types/models'
+import {
+  providerConfigSchema,
+  modelSelectionSchema,
+} from '../../../shared/validation'
 
 interface ModelsResponse {
   object: 'list'
@@ -159,23 +163,29 @@ const toast = useToast()
 const modelStore = useModelStore()
 
 // ===== VALIDATION SCHEMAS =====
-const providerConfigSchema = z.object({
-  apiEndpoint: z
-    .string()
-    .min(1, t('validation.endpoint.required'))
-    .url(t('validation.endpoint.invalidUrl'))
+// Using shared validation schemas with localized messages
+const localizedProviderConfigSchema = providerConfigSchema.extend({
+  apiEndpoint: providerConfigSchema.shape.apiEndpoint
+    .refine(() => true, t('validation.endpoint.required'))
+    .refine((url) => url.length > 0, t('validation.endpoint.required'))
+    .refine(
+      (url) => /^https?:\/\/.+/.test(url),
+      t('validation.endpoint.invalidUrl')
+    )
     .refine(
       (url) => /\/v\d+(?:\/|$)/.test(url),
       t('validation.endpoint.missingVersion')
     ),
-  apiKey: z.string().nullable().optional(),
 })
 
-const modelSelectionSchema = z.object({
-  selectedModels: z.array(z.string()).min(1, t('validation.models.required')),
+const localizedModelSelectionSchema = modelSelectionSchema.extend({
+  selectedModels: modelSelectionSchema.shape.selectedModels.refine(
+    (arr) => arr.length > 0,
+    t('validation.models.required')
+  ),
 })
 
-type ProviderConfigSchema = z.output<typeof providerConfigSchema>
+type ProviderConfigSchema = z.output<typeof localizedProviderConfigSchema>
 
 // ===== INITIAL STATES =====
 const initialProviderConfig: ProviderConfigSchema = {
@@ -291,7 +301,7 @@ const handleDiscoverModels = async () => {
     } else {
       toast.add({
         color: 'error',
-        icon: 'i-ph-warning-fill',
+        icon: 'i-ph-x-circle-fill',
         title: t('errors.title'),
         description: t('errors.noModelsFound'),
         duration: 0,
@@ -301,7 +311,7 @@ const handleDiscoverModels = async () => {
     console.error('Error fetching models:', error)
     toast.add({
       color: 'error',
-      icon: 'i-ph-warning-fill',
+      icon: 'i-ph-x-circle-fill',
       title: t('errors.title'),
       description: t('errors.discoveryFailed'),
       duration: 0,
@@ -347,7 +357,7 @@ const handleCreateModels = async () => {
     console.error('Error creating models:', error)
     toast.add({
       color: 'error',
-      icon: 'i-ph-warning-fill',
+      icon: 'i-ph-x-circle-fill',
       title: t('errors.title'),
       description: t('errors.creationFailed'),
     })

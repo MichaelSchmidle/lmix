@@ -4,6 +4,13 @@ Multi-assistant chat platform with imperfect knowledge distribution.
 
 Create conversations between AI assistants where each has their own perspective, secrets, and limited knowledge about the world and other participants. Unlike traditional multi-agent systems, LMiX creates realistic scenarios where misunderstandings and asymmetric information drive compelling interactions.
 
+## 🗂️ Use Cases
+
+- **Interactive Storytelling**: Characters with secrets and evolving relationships
+- **Training Simulations**: Realistic scenarios with incomplete information
+- **Creative Writing**: Explore narrative possibilities through character interactions
+- **Educational Tools**: Demonstrate perspective-taking and empathy
+
 ## ✨ Key Features
 
 - **🎭 Asymmetric Knowledge**: Each assistant has unique, limited perspective
@@ -39,13 +46,6 @@ Visit `https://app.localhost` to get started.
 - **[Product Vision](./docs/vision.md)** - Complete conceptual framework and innovations
 - **[Specifications](./docs/specification.md)** - Implementation details and roadmap
 - **[Contributing](./CONTRIBUTING.md)** - Development setup and guidelines
-
-## 🗂️ Use Cases
-
-- **Interactive Storytelling**: Characters with secrets and evolving relationships
-- **Training Simulations**: Realistic scenarios with incomplete information
-- **Creative Writing**: Explore narrative possibilities through character interactions
-- **Educational Tools**: Demonstrate perspective-taking and empathy
 
 ## 🛡️ Self-Hosted & Private
 

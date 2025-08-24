@@ -6,11 +6,11 @@
     />
     <UPageCard
       v-else
-      :title="t('sections.basics.title')"
-      :description="t('sections.basics.description')"
+      :title="t('title')"
+      :description="t('description')"
     >
       <UForm
-        :schema="updateModelSchema"
+        :schema="localizedUpdateModelSchema"
         :state="formState"
         :validate-on="['blur', 'input']"
         @submit="handleUpdate"
@@ -23,6 +23,7 @@
         >
           <UInput
             v-model="formState.name"
+            autofocus
             :placeholder="t('fields.name.placeholder')"
           />
         </UFormField>
@@ -110,8 +111,8 @@
 </template>
 
 <script setup lang="ts">
-import { z } from 'zod'
 import type { Model, UpdateModelInput } from '~/types/models'
+import { updateModelSchema } from '../../../shared/validation'
 
 const { t } = useI18n()
 const modelStore = useModelStore()
@@ -146,16 +147,19 @@ const hasChanges = computed(() => {
   )
 })
 
-// Validation schema
-const updateModelSchema = z.object({
-  name: z.string().min(1, t('validation.name.required')),
-  modelId: z.string().min(1, t('validation.modelId.required')),
-  apiEndpoint: z
-    .string()
-    .min(1, t('validation.apiEndpoint.required'))
-    .url(t('validation.apiEndpoint.invalidUrl')),
-  apiKey: z.string().nullable().optional(),
-  isDefault: z.boolean().optional(),
+// Validation schema with localized messages
+const localizedUpdateModelSchema = updateModelSchema.extend({
+  name: updateModelSchema.shape.name
+    .refine((name) => name.length > 0, t('validation.name.required')),
+  modelId: updateModelSchema.shape.modelId
+    .refine((id) => id.length > 0, t('validation.modelId.required')),
+  apiEndpoint: updateModelSchema.shape.apiEndpoint
+    .refine((url) => url.length > 0, t('validation.apiEndpoint.required'))
+    .refine((url) => /^https?:\/\/.+/.test(url), t('validation.apiEndpoint.invalidUrl'))
+    .refine(
+      (url) => /\/v\d+(?:\/|$)/.test(url),
+      'URL must include a version path (e.g., /v1)'
+    ),
 })
 
 // Initialize form when model prop changes
@@ -196,14 +200,17 @@ const handleTestConnection = async () => {
     let errorDescription = t('test.error.description')
     if (error && typeof error === 'object' && 'data' in error) {
       const errorData = error.data as Record<string, unknown>
-      if (errorData?.statusMessage && typeof errorData.statusMessage === 'string') {
+      if (
+        errorData?.statusMessage &&
+        typeof errorData.statusMessage === 'string'
+      ) {
         errorDescription = errorData.statusMessage
       }
     }
 
     toast.add({
       color: 'error',
-      icon: 'i-ph-x-circle',
+      icon: 'i-ph-x-circle-fill',
       title: t('test.error.title'),
       description: errorDescription,
     })
@@ -240,7 +247,7 @@ const handleUpdate = async () => {
 
     toast.add({
       color: 'error',
-      icon: 'i-ph-x-circle',
+      icon: 'i-ph-x-circle-fill',
       title: t('error.title'),
       description: t('error.description'),
     })
@@ -250,10 +257,8 @@ const handleUpdate = async () => {
 
 <i18n lang="yaml">
 en:
-  sections:
-    basics:
-      title: Configure Model
-      description: Update the settings for this model.
+  title: Configure Model
+  description: Update the settings for this model.
   fields:
     name:
       label: Model Name

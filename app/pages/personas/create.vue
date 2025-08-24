@@ -2,7 +2,9 @@
   <PagePanel
     route-name="personas-create"
     :title="title"
-  />
+  >
+    <PersonasUpsert />
+  </PagePanel>
 </template>
 
 <script setup lang="ts">
@@ -16,5 +18,5 @@ useHead({
 
 <i18n lang="yaml">
 en:
-  title: Create Personas
+  title: Create Persona
 </i18n>

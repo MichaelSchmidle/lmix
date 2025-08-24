@@ -1,75 +1,19 @@
-/**
- * Types for model discovery and management
- */
+import type { InferSelectModel } from 'drizzle-orm'
+import type { models } from '../../server/database/schema/models'
 
-/**
- * Model as returned from a provider's API
- */
-export interface ProviderModel {
-  id: string
-  name?: string
-  created?: number
-  owned_by?: string
-  // Additional metadata varies by provider
-  [key: string]: any
+// Database model type (with serialized dates for client-server communication)
+export type Model = Omit<InferSelectModel<typeof models>, 'createdAt' | 'updatedAt'> & {
+  createdAt: string
+  updatedAt: string
 }
 
-/**
- * Configuration for connecting to a provider
- */
-export interface ProviderConfig {
+// Input types for API operations
+export type CreateModelInput = {
+  name: string
   apiEndpoint: string
   apiKey?: string | null
+  modelId: string
+  isDefault?: boolean
 }
 
-/**
- * State management for the model discovery wizard
- */
-export interface ModelDiscoveryState {
-  config: ProviderConfig
-  discoveredModels: ProviderModel[]
-  selectedModelIds: string[]
-  currentStep: 1 | 2
-  loading: boolean
-  error: string | null
-}
-
-/**
- * Transformed model ready for display/selection
- */
-export interface SelectableModel {
-  id: string
-  name: string
-  provider: string
-  isAlreadyConfigured: boolean
-  disabled: boolean
-  disabledReason?: string
-}
-
-/**
- * Provider response formats
- */
-export interface OpenAIModelsResponse {
-  data: ProviderModel[]
-  object: 'list'
-}
-
-export interface OllamaModelsResponse {
-  models: Array<{
-    name: string
-    model?: string
-    modified_at?: string
-    size?: number
-    digest?: string
-  }>
-}
-
-/**
- * Known provider types for special handling
- */
-export enum ProviderType {
-  OPENAI = 'openai',
-  ANTHROPIC = 'anthropic',
-  OLLAMA = 'ollama',
-  GENERIC = 'generic'
-}
+export type UpdateModelInput = Partial<CreateModelInput>

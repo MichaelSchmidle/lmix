@@ -1,48 +1,12 @@
 import { defineStore } from 'pinia'
 import type { NavigationMenuItem } from '@nuxt/ui'
-
-export type Model = {
-  id: string
-  userId: string
-  name: string
-  apiEndpoint: string
-  apiKey: string | null
-  modelId: string
-  config: {
-    temperature?: number
-    maxTokens?: number
-    topP?: number
-    frequencyPenalty?: number
-    presencePenalty?: number
-    stopSequences?: string[]
-  } | null
-  isDefault: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-export type CreateModelInput = {
-  name: string
-  apiEndpoint: string
-  apiKey?: string | null
-  modelId: string
-  config?: {
-    temperature?: number
-    maxTokens?: number
-    topP?: number
-    frequencyPenalty?: number
-    presencePenalty?: number
-    stopSequences?: string[]
-  }
-  isDefault?: boolean
-}
-
-export type UpdateModelInput = Partial<CreateModelInput>
+import type { Model, CreateModelInput, UpdateModelInput } from '~/types/models'
 
 export const useModelStore = defineStore('models', () => {
   // State
   const modelsList = ref<Model[]>([])
-  const loading = ref(true) // Start with loading true until first fetch
+  const loading = ref(true) // Initial loading state only (shows skeletons)
+  const busy = ref(false) // Any operation in progress (disables buttons)
   const error = ref<string | null>(null)
   const initialized = ref(false) // Track if we've fetched at least once
 
@@ -65,33 +29,38 @@ export const useModelStore = defineStore('models', () => {
     })
   )
 
-  const navigationItems = computed(() => (currentModelId?: string) => {
-    const localeRoute = useLocalePath()
+  const navigationItems = computed(
+    () =>
+      (currentModelId?: string): NavigationMenuItem[] => {
+        const localeRoute = useLocalePath()
 
-    // Group models by endpoint
-    const modelsByEndpoint = sortedModels.value.reduce(
-      (acc, model) => {
-        if (!acc[model.apiEndpoint]) {
-          acc[model.apiEndpoint] = []
-        }
-        acc[model.apiEndpoint]!.push(model)
-        return acc
-      },
-      {} as Record<string, Model[]>
-    )
+        // Group models by endpoint
+        const modelsByEndpoint = sortedModels.value.reduce(
+          (acc, model) => {
+            if (!acc[model.apiEndpoint]) {
+              acc[model.apiEndpoint] = []
+            }
+            acc[model.apiEndpoint]!.push(model)
+            return acc
+          },
+          {} as Record<string, Model[]>
+        )
 
-    // Create navigation items grouped by endpoint
-    return Object.entries(modelsByEndpoint).map(([endpoint, models]) => ({
-      icon: 'i-ph-hard-drive-fill',
-      label: new URL(endpoint).hostname, // Show just the hostname for cleaner display
-      defaultOpen: models.some(model => model.id === currentModelId),
-      children: models.map((model: Model) => ({
-        label: model.name,
-        to: localeRoute({ name: 'models-id', params: { id: model.id } }),
-        icon: model.isDefault ? 'i-ph-star-fill' : undefined,
-      })),
-    }))
-  })
+        // Create navigation items grouped by endpoint
+        return Object.entries(modelsByEndpoint).map(([endpoint, models]) => ({
+          icon: 'i-ph-hard-drive-fill',
+          label: new URL(endpoint).hostname, // Show just the hostname for cleaner display
+          defaultOpen: models.some(
+            (model: Model) => model.id === currentModelId
+          ),
+          children: models.map((model: Model) => ({
+            label: model.name,
+            to: localeRoute({ name: 'models-id', params: { id: model.id } }),
+            icon: model.isDefault ? 'i-ph-bookmark-fill' : undefined,
+          })),
+        }))
+      }
+  )
 
   // Actions
   async function fetchModels() {
@@ -115,7 +84,7 @@ export const useModelStore = defineStore('models', () => {
   }
 
   async function createModel(input: CreateModelInput) {
-    loading.value = true
+    busy.value = true
     error.value = null
 
     try {
@@ -131,12 +100,12 @@ export const useModelStore = defineStore('models', () => {
         err instanceof Error ? err.message : 'Failed to create model'
       throw err
     } finally {
-      loading.value = false
+      busy.value = false
     }
   }
 
   async function createModels(input: CreateModelInput | CreateModelInput[]) {
-    loading.value = true
+    busy.value = true
     error.value = null
 
     try {
@@ -165,12 +134,12 @@ export const useModelStore = defineStore('models', () => {
         err instanceof Error ? err.message : 'Failed to create model(s)'
       throw err
     } finally {
-      loading.value = false
+      busy.value = false
     }
   }
 
   async function updateModel(id: string, input: UpdateModelInput) {
-    loading.value = true
+    busy.value = true
     error.value = null
 
     try {
@@ -190,12 +159,12 @@ export const useModelStore = defineStore('models', () => {
         err instanceof Error ? err.message : 'Failed to update model'
       throw err
     } finally {
-      loading.value = false
+      busy.value = false
     }
   }
 
   async function deleteModel(id: string) {
-    loading.value = true
+    busy.value = true
     error.value = null
 
     try {
@@ -209,21 +178,19 @@ export const useModelStore = defineStore('models', () => {
         err instanceof Error ? err.message : 'Failed to delete model'
       throw err
     } finally {
-      loading.value = false
+      busy.value = false
     }
   }
 
   async function setDefaultModel(id: string) {
-    loading.value = true
+    busy.value = true
     error.value = null
 
     try {
-      const response = await $fetch<{ model: Model }>(
-        `/api/models/${id}/default`,
-        {
-          method: 'PATCH',
-        }
-      )
+      const response = await $fetch<{ model: Model }>(`/api/models/${id}`, {
+        method: 'PUT',
+        body: { isDefault: true },
+      })
 
       // Update all models' default status
       modelsList.value.forEach((model) => {
@@ -236,7 +203,7 @@ export const useModelStore = defineStore('models', () => {
         err instanceof Error ? err.message : 'Failed to set default model'
       throw err
     } finally {
-      loading.value = false
+      busy.value = false
     }
   }
 
@@ -261,6 +228,7 @@ export const useModelStore = defineStore('models', () => {
     // State
     modelsList,
     loading,
+    busy,
     error,
 
     // Getters

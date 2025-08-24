@@ -1,6 +1,6 @@
 <template>
   <IndexPanel
-    route="affiliations"
+    route-name="affiliations"
     :title="title"
   >
     <AffiliationsCreateLink size="lg" />

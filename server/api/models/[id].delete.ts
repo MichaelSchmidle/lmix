@@ -38,21 +38,6 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Don't allow deleting the default model if it's the only one
-  if (existingModel.isDefault) {
-    const userModels = await db
-      .select()
-      .from(models)
-      .where(eq(models.userId, userId))
-    
-    if (userModels.length === 1) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Cannot delete the only model. Please add another model first.'
-      })
-    }
-  }
-
   try {
     // Delete the model
     await db
@@ -65,7 +50,7 @@ export default defineEventHandler(async (event) => {
     return {
       message: 'Model deleted successfully'
     }
-  } catch (error) {
+  } catch {
     throw createError({
       statusCode: 500,
       statusMessage: 'Failed to delete model'

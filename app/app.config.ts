@@ -1,4 +1,7 @@
 export default defineAppConfig({
+  icon: {
+    cssLayer: 'components', // Ensures icons load in correct CSS layer regardless of module order
+  },
   ui: {
     button: {
       slots: {
@@ -10,7 +13,7 @@ export default defineAppConfig({
       neutral: 'stone',
     },
     container: {
-      base: 'max-w-prose py-3 sm:py-4.5 lg:py-6 space-y-12',
+      base: 'max-w-prose px-0 py-3 sm:py-4.5 lg:py-6 space-y-12',
     },
     form: {
       base: 'space-y-6',
@@ -63,6 +66,11 @@ export default defineAppConfig({
         root: 'w-full',
       },
     },
+    textarea: {
+      slots: {
+        root: 'w-full',
+      },
+    },
   },
   uiPro: {
     dashboardNavbar: {
@@ -85,6 +93,11 @@ export default defineAppConfig({
     dashboardToolbar: {
       slots: {
         root: 'sm:px-4',
+      },
+    },
+    pageCard: {
+      slots: {
+        container: 'gap-y-6 py-3 sm:py-4.5',
       },
     },
   },

@@ -1,6 +1,6 @@
 <template>
   <IndexPanel
-    route="models"
+    route-name="models"
     :title="title"
   >
     <ModelsCreateLink size="lg" />

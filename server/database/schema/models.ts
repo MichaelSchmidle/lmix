@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, boolean, jsonb, uniqueIndex } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, uuid, boolean, uniqueIndex } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
 /**
@@ -14,14 +14,6 @@ export const models = pgTable('models', {
   apiEndpoint: text('api_endpoint').notNull(), // Full API endpoint URL
   apiKey: text('api_key'), // Nullable for local/Ollama models
   modelId: text('model_id').notNull(), // Model identifier for the endpoint
-  config: jsonb('config').$type<{
-    temperature?: number
-    maxTokens?: number
-    topP?: number
-    frequencyPenalty?: number
-    presencePenalty?: number
-    stopSequences?: string[]
-  }>(), // Model configuration parameters
   isDefault: boolean('is_default').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

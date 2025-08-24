@@ -1,5 +1,5 @@
 <template>
-  <UDashboardPanel :id="`${route}-panel`">
+  <UDashboardPanel :id="`${routeName}-panel`">
     <template #header>
       <UDashboardNavbar
         :title="title"
@@ -10,16 +10,13 @@
             class="xl:hidden"
             color="neutral"
             icon="i-ph-arrow-left"
-            :to="localeRoute('models')"
+            :to="localeRoute(routeName)"
             variant="ghost"
           />
         </template>
       </UDashboardNavbar>
 
-      <UDashboardToolbar
-        v-if="$slots.toolbar"
-        :ui="{ root: 'gap-x-4 gap-y-3 justify-between' }"
-      >
+      <UDashboardToolbar v-if="$slots.toolbar">
         <slot name="toolbar" />
       </UDashboardToolbar>
     </template>
@@ -31,11 +28,10 @@
 </template>
 
 <script setup lang="ts">
-const route = useRoute()
 const localeRoute = useLocaleRoute()
 
 defineProps<{
-  route: string
+  routeName: string
   title: string
 }>()
 </script>

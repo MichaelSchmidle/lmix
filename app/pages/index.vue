@@ -1,8 +1,8 @@
 <template>
   <PagePanel
-    route="index"
+    route-name="index"
     :title="title"
-  ></PagePanel>
+  />
 </template>
 
 <script setup lang="ts">

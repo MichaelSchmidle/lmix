@@ -1,6 +1,6 @@
 <template>
   <IndexPanel
-    route="scenarios"
+    route-name="scenarios"
     :title="title"
   >
     <ScenariosCreateLink size="lg" />

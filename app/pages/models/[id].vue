@@ -1,35 +1,42 @@
 <template>
   <PagePanel
-    route="models-id"
+    route-name="models-id"
     :title="title"
   >
     <template #toolbar>
-      <USkeleton
-        v-if="loading"
-        class="h-5 w-64"
-      />
-
       <div
-        v-else
-        class="text-sm truncate"
+        v-if="loading"
+        class="flex gap-x-4 items-center justify-between w-full"
       >
-        {{ model?.name }}
+        <USkeleton class="h-5 w-64" />
+
+        <USkeleton class="h-5 w-24" />
       </div>
 
-      <ModelsDelete />
+      <div
+        v-else-if="model"
+        class="flex gap-x-4 items-center justify-between w-full"
+      >
+        <span class="text-sm truncate">{{ model.name }}</span>
+        <ModelsDelete :model="model" />
+      </div>
     </template>
 
-    <ModelsUpdate />
+    <ModelsUpdate :model="model" />
   </PagePanel>
 </template>
 
 <script setup lang="ts">
+import type { Model } from '~/types/models'
+
 const { t } = useI18n({ useScope: 'local' })
 const modelStore = useModelStore()
 const { loading } = storeToRefs(modelStore)
-const model = computed(() =>
+
+const model = computed<Model | undefined>(() =>
   modelStore.getModelById(useRoute().params.id as string)
 )
+
 const title = t('title')
 
 useHead({

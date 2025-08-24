@@ -1,6 +1,6 @@
 <template>
   <IndexPanel
-    route="personas"
+    route-name="personas"
     :title="title"
   >
     <PersonasCreateLink size="lg" />

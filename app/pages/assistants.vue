@@ -1,6 +1,6 @@
 <template>
   <IndexPanel
-    route="assistants"
+    route-name="assistants"
     :title="title"
   >
     <AssistantsCreateLink size="lg" />

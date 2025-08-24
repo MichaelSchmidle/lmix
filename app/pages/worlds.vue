@@ -1,6 +1,6 @@
 <template>
   <IndexPanel
-    route="worlds"
+    route-name="worlds"
     :title="title"
   >
     <WorldsCreateLink size="lg" />

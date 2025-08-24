@@ -1,6 +1,6 @@
 <template>
   <PagePanel
-    route="models-create"
+    route-name="models-create"
     :title="title"
   >
     <ModelsInsert />

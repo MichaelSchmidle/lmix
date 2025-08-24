@@ -28,11 +28,11 @@
         >
           <template #description>
             <i18n-t keypath="steps.0.endpoint.description">
-              <template #version
-                ><span class="prose dark:prose-invert prose-sm"
-                  ><code>/v1</code></span
-                ></template
-              >
+              <template #version>
+                <span class="prose dark:prose-invert prose-sm">
+                  <code>/v1</code>
+                </span>
+              </template>
             </i18n-t>
           </template>
 
@@ -58,6 +58,7 @@
         <div class="flex gap-4 justify-end">
           <UButton
             type="submit"
+            icon="i-ph-magnifying-glass"
             :label="t('actions.discover')"
             :loading="loading"
           />
@@ -114,6 +115,7 @@
         <div class="flex gap-4 justify-end">
           <UButton
             type="button"
+            :disabled="loading"
             :label="t('actions.back')"
             variant="outline"
             @click="currentStep = 0"
@@ -121,6 +123,7 @@
 
           <UButton
             type="submit"
+            icon="i-ph-plus"
             :label="t('actions.create')"
             :loading="loading"
           />
@@ -132,16 +135,9 @@
 
 <script setup lang="ts">
 // ===== IMPORTS =====
-import type { CheckboxGroupItem, StepperItem } from '@nuxt/ui'
 import { z } from 'zod'
-
-// ===== TYPES =====
-interface Model {
-  id: string
-  object: 'model'
-  created?: number // Optional since LMStudio doesn't include it
-  owned_by: string
-}
+import type { CheckboxGroupItem, StepperItem } from '@nuxt/ui'
+import type { Model } from '~/types/models'
 
 interface ModelsResponse {
   object: 'list'
@@ -149,7 +145,7 @@ interface ModelsResponse {
 }
 
 interface CreateModelsResponse {
-  models: import('~/stores/models').Model[]
+  models: Model[]
   count: number
   skipped: number
   message: string
@@ -180,7 +176,6 @@ const modelSelectionSchema = z.object({
 })
 
 type ProviderConfigSchema = z.output<typeof providerConfigSchema>
-type ModelSelectionSchema = z.output<typeof modelSelectionSchema>
 
 // ===== INITIAL STATES =====
 const initialProviderConfig: ProviderConfigSchema = {
@@ -374,7 +369,7 @@ en:
         placeholder: https://api.openai.com/v1
       apiKey:
         label: API Key
-        description: Required for most providers
+        description: Your API key for authentication (leave empty if not required)
         placeholder: sk-…
     1:
       title: Select Models
@@ -400,6 +395,6 @@ en:
   errors:
     title: Error
     discoveryFailed: Failed to discover models.
-    creationFailed: Failed to create models.
     noModelsFound: No models found at this endpoint.
+    creationFailed: Failed to create models.
 </i18n>

@@ -9,6 +9,7 @@ import { requireAuth } from '../../utils/auth'
 import { models } from '../../database/schema/models'
 import { z } from 'zod'
 import { eq, and } from 'drizzle-orm'
+import { encrypt, maskApiKey } from '../../utils/crypto'
 
 // Validation schema for a single model
 const createModelSchema = z.object({
@@ -16,14 +17,6 @@ const createModelSchema = z.object({
   apiEndpoint: z.string().url('Must be a valid URL'),
   apiKey: z.string().optional().nullable(),
   modelId: z.string().min(1, 'Model ID is required'),
-  config: z.object({
-    temperature: z.number().min(0).max(2).optional(),
-    maxTokens: z.number().positive().optional(),
-    topP: z.number().min(0).max(1).optional(),
-    frequencyPenalty: z.number().min(-2).max(2).optional(),
-    presencePenalty: z.number().min(-2).max(2).optional(),
-    stopSequences: z.array(z.string()).optional()
-  }).optional(),
   isDefault: z.boolean().optional()
 })
 
@@ -40,14 +33,14 @@ export default defineEventHandler(async (event) => {
   // Validate request body
   const body = await readBody(event)
   
-  let validatedData
+  let validatedData: z.infer<typeof requestSchema>
   try {
     validatedData = requestSchema.parse(body)
   } catch (error) {
     throw createError({
       statusCode: 400,
       statusMessage: error instanceof z.ZodError 
-        ? error.errors[0].message 
+        ? error.errors[0]?.message || 'Validation error'
         : 'Invalid request data'
     })
   }
@@ -105,24 +98,29 @@ export default defineEventHandler(async (event) => {
         userId,
         name: model.name,
         apiEndpoint: model.apiEndpoint,
-        apiKey: model.apiKey || null,
+        apiKey: encrypt(model.apiKey) || null,
         modelId: model.modelId,
-        config: model.config || {},
         isDefault: model.isDefault || false
       })))
       .returning()
     
+    // Mask API keys before returning
+    const maskedCreatedModels = createdModels.map(model => ({
+      ...model,
+      apiKey: maskApiKey(model.apiKey)
+    }))
+    
     // Return appropriate response based on input type
     if (Array.isArray(validatedData)) {
       return {
-        models: createdModels,
-        count: createdModels.length,
+        models: maskedCreatedModels,
+        count: maskedCreatedModels.length,
         skipped: modelsToCreate.length - uniqueModels.length,
-        message: `Successfully created ${createdModels.length} model(s)`
+        message: `Successfully created ${maskedCreatedModels.length} model(s)`
       }
     } else {
       return {
-        model: createdModels[0],
+        model: maskedCreatedModels[0],
         message: 'Model created successfully'
       }
     }

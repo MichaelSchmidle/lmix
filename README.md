@@ -57,4 +57,4 @@ LMiX is designed for self-hosting with privacy in mind:
 
 ## 📄 License
 
-[License information to be added]
+MIT License - see [LICENSE](LICENSE) for details.

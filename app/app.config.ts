@@ -1,8 +1,22 @@
 export default defineAppConfig({
+  icon: {
+    cssLayer: 'components', // Ensures icons load in correct CSS layer regardless of module order
+  },
   ui: {
+    button: {
+      slots: {
+        base: 'cursor-pointer',
+      },
+    },
     colors: {
       primary: 'indigo',
       neutral: 'stone',
+    },
+    container: {
+      base: 'max-w-prose px-0 py-3 sm:py-4.5 lg:py-6 space-y-12',
+    },
+    form: {
+      base: 'space-y-6',
     },
     icons: {
       arrowLeft: 'i-ph-arrow-left',
@@ -45,13 +59,24 @@ export default defineAppConfig({
       success: 'i-ph-check-circle',
       system: 'i-ph-desktop',
       tip: 'i-ph-lightbulb',
-      warning: 'i-ph-warning'
+      warning: 'i-ph-warning',
+    },
+    input: {
+      slots: {
+        root: 'w-full',
+      },
+    },
+    textarea: {
+      slots: {
+        root: 'w-full',
+      },
     },
   },
   uiPro: {
     dashboardNavbar: {
       slots: {
         root: 'sm:px-4',
+        title: 'overflow-hidden text-ellipsis',
       },
     },
     dashboardPanel: {
@@ -63,6 +88,16 @@ export default defineAppConfig({
       slots: {
         body: 'py-3',
         footer: 'py-3',
+      },
+    },
+    dashboardToolbar: {
+      slots: {
+        root: 'sm:px-4',
+      },
+    },
+    pageCard: {
+      slots: {
+        container: 'gap-y-6 py-3 sm:py-4.5',
       },
     },
   },

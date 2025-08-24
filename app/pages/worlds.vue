@@ -1,9 +1,9 @@
 <template>
   <IndexPanel
-    base-route="worlds"
+    route-name="worlds"
     :title="title"
   >
-    <WorldsCreateButton size="lg" />
+    <WorldsCreateLink size="lg" />
     <Worlds />
   </IndexPanel>
   <NuxtPage />
@@ -11,14 +11,14 @@
 
 <script setup lang="ts">
 const { t } = useI18n()
-const title = t('worlds')
+const title = t('title')
 
 useHead({
-  title: title,
+  title,
 })
 </script>
 
 <i18n lang="yaml">
 en:
-  worlds: Worlds
+  title: Worlds
 </i18n>

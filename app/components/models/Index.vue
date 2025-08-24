@@ -1,25 +1,24 @@
 <template>
-  <UNavigationMenu
-    :items="items"
-    orientation="vertical"
-  />
+  <div>
+    <USkeleton
+      v-if="loading"
+      class="h-8 w-full"
+    />
+
+    <UNavigationMenu
+      v-else
+      :items="items"
+      orientation="vertical"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
-const { t } = useI18n({ useScope: 'local' })
+const route = useRoute()
+const modelStore = useModelStore()
+const { loading } = storeToRefs(modelStore)
 
-const items = ref<NavigationMenuItem[]>([
-  {
-    children: [],
-    defaultOpen: true,
-    icon: 'i-ph-circuitry-fill',
-    label: t('models'),
-  },
-])
+// Use the store's built-in navigation items with current model ID
+const currentModelId = computed(() => route.params.id as string | undefined)
+const items = computed(() => modelStore.navigationItems(currentModelId.value))
 </script>
-
-<i18n lang="yaml">
-en:
-  models: Models
-</i18n>

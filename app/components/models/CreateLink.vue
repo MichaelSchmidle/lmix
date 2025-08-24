@@ -30,5 +30,5 @@ const props = withDefaults(
 
 <i18n lang="yaml">
 en:
-  create: Create Model
+  create: Create Models
 </i18n>

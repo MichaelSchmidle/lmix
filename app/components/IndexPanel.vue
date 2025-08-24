@@ -1,6 +1,6 @@
 <template>
   <UDashboardPanel
-    :id="`${baseRoute}-panel`"
+    :id="`${routeName}-panel`"
     :class="[
       'md:max-w-64',
       hasPage ? 'hidden xl:flex' : 'border-default border-r',
@@ -23,11 +23,11 @@ const route = useRoute()
 const localeRoute = useLocaleRoute()
 
 const props = defineProps<{
-  baseRoute: string
+  routeName: string
   title: string
 }>()
 
 const hasPage = computed(
-  () => route.name !== localeRoute(props.baseRoute)?.name
+  () => route.name !== localeRoute(props.routeName)?.name
 )
 </script>

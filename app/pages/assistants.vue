@@ -1,9 +1,9 @@
 <template>
   <IndexPanel
-    base-route="assistants"
+    route-name="assistants"
     :title="title"
   >
-    <AssistantsCreateButton size="lg" />
+    <AssistantsCreateLink size="lg" />
     <Assistants />
   </IndexPanel>
   <NuxtPage />
@@ -11,14 +11,14 @@
 
 <script setup lang="ts">
 const { t } = useI18n()
-const title = t('assistants')
+const title = t('title')
 
 useHead({
-  title: title,
+  title,
 })
 </script>
 
 <i18n lang="yaml">
 en:
-  assistants: Assistants
+  title: Assistants
 </i18n>

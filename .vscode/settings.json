@@ -1,8 +1,13 @@
 {
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnPaste": true,
   "editor.formatOnSave": true,
   "editor.formatOnType": true,
+  "editor.mouseWheelZoom": true,
+  "editor.tabSize": 2,
   "prettier.semi": false,
   "prettier.singleAttributePerLine": true,
   "prettier.singleQuote": true

@@ -59,7 +59,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       PROJECT_NAME: process.env.PROJECT_NAME || 'Set PROJECT_NAME in .env',
-      PROJECT_DISPLAY_NAME: process.env.PROJECT_DISPLAY_NAME || 'Set PROJECT_DISPLAY_NAME in .env',
+      PROJECT_DISPLAY_NAME:
+        process.env.PROJECT_DISPLAY_NAME || 'Set PROJECT_DISPLAY_NAME in .env',
       VERSION: process.env.VERSION || 'Set VERSION in .env',
       APP_DOMAIN: process.env.APP_DOMAIN || 'Set APP_DOMAIN in .env',
       AUTH_DOMAIN: process.env.AUTH_DOMAIN || 'Set AUTH_DOMAIN in .env',

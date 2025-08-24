@@ -7,13 +7,18 @@
       <template #header>
         <HomeButton />
       </template>
+
       <NavigationMenu />
-      <ProductionsCreateButton size="lg" />
+
+      <ProductionsCreateLink size="lg" />
+
       <Productions />
+
       <template #footer>
         <UserMenu />
       </template>
     </UDashboardSidebar>
+
     <NuxtPage />
   </UDashboardGroup>
 </template>

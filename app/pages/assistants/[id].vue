@@ -18,13 +18,16 @@
         class="flex gap-x-4 items-center justify-between w-full"
       >
         <span class="text-sm truncate">
-          {{ assistant.name || `${assistant.persona?.name} + ${assistant.model?.name}` }}
+          {{
+            assistant.name ||
+            `${assistant.persona?.name}@${assistant.model?.name}`
+          }}
         </span>
         <AssistantsDelete :assistant="assistant" />
       </div>
     </template>
 
-    <AssistantsUpsert :assistant-id="assistant?.id" />
+    <AssistantsUpsert :assistant="assistant" />
   </PagePanel>
 </template>
 
@@ -33,6 +36,8 @@ import type { Assistant } from '~/types/assistants'
 
 const { t } = useI18n({ useScope: 'local' })
 const assistantStore = useAssistantStore()
+const personaStore = usePersonaStore()
+const modelStore = useModelStore()
 const { loading } = storeToRefs(assistantStore)
 
 const assistant = computed<Assistant | undefined>(() =>
@@ -41,11 +46,21 @@ const assistant = computed<Assistant | undefined>(() =>
 
 const title = t('title')
 
-// Fetch assistants on component mount if not already loaded
+// Fetch data on component mount if not already loaded
 onMounted(async () => {
-  if (!assistantStore.assistantsList.length) {
-    await assistantStore.fetchAssistants()
+  const fetchPromises = []
+
+  if (!assistantStore.assistants.length) {
+    fetchPromises.push(assistantStore.fetchAssistants())
   }
+  if (!personaStore.personas.length) {
+    fetchPromises.push(personaStore.fetchPersonas())
+  }
+  if (!modelStore.models.length) {
+    fetchPromises.push(modelStore.fetchModels())
+  }
+
+  await Promise.all(fetchPromises)
 })
 
 useHead({

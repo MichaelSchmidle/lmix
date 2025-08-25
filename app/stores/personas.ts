@@ -8,7 +8,7 @@ import type {
 
 export const usePersonaStore = defineStore('personas', () => {
   // State
-  const personasList = ref<Persona[]>([])
+  const personas = ref<Persona[]>([])
   const loading = ref(true) // Initial loading state only (shows skeletons)
   const busy = ref(false) // Any operation in progress (disables buttons)
   const error = ref<string | null>(null)
@@ -16,12 +16,11 @@ export const usePersonaStore = defineStore('personas', () => {
 
   // Getters
   const getPersonaById = computed(
-    () => (id: string) =>
-      personasList.value.find((persona) => persona.id === id)
+    () => (id: string) => personas.value.find((persona) => persona.id === id)
   )
 
   const sortedPersonas = computed(() =>
-    [...personasList.value].sort((a, b) => a.name.localeCompare(b.name))
+    [...personas.value].sort((a, b) => a.name.localeCompare(b.name))
   )
 
   const navigationItems = computed(() => (): NavigationMenuItem[] => {
@@ -48,7 +47,7 @@ export const usePersonaStore = defineStore('personas', () => {
 
     try {
       const response = await $fetch('/api/personas')
-      personasList.value = response.personas
+      personas.value = response.personas
       initialized.value = true
     } catch (err) {
       error.value =
@@ -69,7 +68,7 @@ export const usePersonaStore = defineStore('personas', () => {
         body: input,
       })
 
-      personasList.value.push(response.persona)
+      personas.value.push(response.persona)
       return response.persona
     } catch (err) {
       error.value =
@@ -93,9 +92,9 @@ export const usePersonaStore = defineStore('personas', () => {
         }
       )
 
-      const index = personasList.value.findIndex((p) => p.id === id)
+      const index = personas.value.findIndex((p) => p.id === id)
       if (index !== -1) {
-        personasList.value[index] = response.persona
+        personas.value[index] = response.persona
       }
 
       return response.persona
@@ -117,7 +116,7 @@ export const usePersonaStore = defineStore('personas', () => {
         method: 'DELETE',
       })
 
-      personasList.value = personasList.value.filter((p) => p.id !== id)
+      personas.value = personas.value.filter((p) => p.id !== id)
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to delete persona'
@@ -129,7 +128,7 @@ export const usePersonaStore = defineStore('personas', () => {
 
   return {
     // State
-    personasList,
+    personas,
     loading,
     busy,
     error,

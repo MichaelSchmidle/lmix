@@ -43,9 +43,10 @@ export default defineEventHandler(async (event) => {
       success: true,
       message: 'Assistant deleted successfully'
     }
-  } catch (error: any) {
+  } catch (error) {
     // Re-throw if it's already a Nitro error
-    if (error.statusCode) {
+    const nitroError = error as { statusCode?: number }
+    if (nitroError.statusCode) {
       throw error
     }
     

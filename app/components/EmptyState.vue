@@ -1,11 +1,10 @@
 <template>
   <UAlert
-    color="info"
+    color="neutral"
     icon="i-ph-empty"
     variant="soft"
     :description="t('description')"
-  >
-  </UAlert>
+  />
 </template>
 
 <script setup lang="ts">

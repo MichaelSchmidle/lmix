@@ -22,7 +22,9 @@
     </template>
 
     <template #body>
-      <slot />
+      <UContainer>
+        <slot />
+      </UContainer>
     </template>
   </UDashboardPanel>
 </template>

@@ -19,7 +19,7 @@
 
         <UAlert
           color="warning"
-          icon="i-ph-warning"
+          icon="i-ph-warning-fill"
           :title="t('content.alert.title')"
           :description="t('content.alert.description')"
         />

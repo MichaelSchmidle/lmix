@@ -6,7 +6,7 @@
     />
 
     <UNavigationMenu
-      v-else-if="personaStore.personasList.length > 0 || loading"
+      v-else-if="personaStore.personas.length > 0 || loading"
       :items="navigationItems()"
       orientation="vertical"
     />
@@ -26,5 +26,5 @@ const { loading, navigationItems } = storeToRefs(personaStore)
 <i18n lang="yaml">
 en:
   empty:
-    description: No personas yet.
+    description: No personas yet
 </i18n>

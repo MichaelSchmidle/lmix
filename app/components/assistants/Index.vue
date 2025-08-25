@@ -6,7 +6,7 @@
     />
 
     <UNavigationMenu
-      v-else-if="assistantStore.assistantsList.length > 0 || loading"
+      v-else-if="assistantStore.assistants.length > 0 || loading"
       :items="navigationItems()"
       orientation="vertical"
     />
@@ -26,5 +26,5 @@ const { loading, navigationItems } = storeToRefs(assistantStore)
 <i18n lang="yaml">
 en:
   empty:
-    description: No assistants yet.
+    description: No assistants yet
 </i18n>

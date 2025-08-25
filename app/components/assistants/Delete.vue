@@ -1,108 +1,144 @@
 <template>
-  <UButton
-    icon="i-ph-trash"
-    color="red"
-    variant="ghost"
-    square
-    :disabled="assistantStore.busy"
-    @click="isOpen = true"
-  />
-
   <UModal
-    v-model="isOpen"
-    :ui="{ width: 'sm:max-w-md' }"
+    v-model:open="open"
+    :dismissible="!isDeleting"
+    :title="t('modal.title')"
+    :description="t('modal.description')"
   >
-    <UCard>
-      <template #header>
-        <h3 class="text-base font-semibold leading-6">
-          {{ t('title') }}
-        </h3>
-      </template>
+    <template #content>
+      <UPageCard :title="t('content.title')">
+        <template #description>
+          <i18n-t keypath="content.description">
+            <template #name>
+              <span class="prose dark:prose-invert">
+                <code>{{
+                  assistant.name ||
+                  `${assistant.persona?.name}@${assistant.model?.name}`
+                }}</code>
+              </span>
+            </template>
+          </i18n-t>
+        </template>
 
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        {{ t('description', { 
-          name: assistant.name || `${assistant.persona?.name} + ${assistant.model?.name}` 
-        }) }}
-      </p>
+        <UAlert
+          color="warning"
+          icon="i-ph-warning-fill"
+          :title="t('content.alert.title')"
+          :description="t('content.alert.description')"
+        />
 
-      <template #footer>
-        <div class="flex justify-end gap-3">
+        <p
+          v-if="errorMessage"
+          class="text-error text-sm"
+        >
+          {{ errorMessage }}
+        </p>
+
+        <div class="flex gap-x-4 justify-end mt-6">
           <UButton
-            color="white"
+            color="neutral"
+            :label="t('cancel')"
             variant="ghost"
-            :label="t('actions.cancel')"
-            :disabled="assistantStore.busy"
-            @click="isOpen = false"
+            :disabled="isDeleting"
+            @click="handleClose"
           />
+
           <UButton
-            color="red"
-            :label="t('actions.delete')"
-            :loading="assistantStore.busy"
-            :disabled="assistantStore.busy"
+            color="error"
+            icon="i-ph-trash-simple-fill"
+            :label="t('delete')"
+            :loading="isDeleting"
             @click="handleDelete"
           />
         </div>
-      </template>
-    </UCard>
+      </UPageCard>
+    </template>
+
+    <UButton
+      color="error"
+      icon="i-ph-trash-simple-fill"
+      :label="t('delete')"
+      size="sm"
+      variant="ghost"
+    />
   </UModal>
 </template>
 
 <script setup lang="ts">
 import type { Assistant } from '~/types/assistants'
 
+const { t } = useI18n()
+const assistantStore = useAssistantStore()
+const localeRoute = useLocaleRoute()
+const toast = useToast()
+
 const props = defineProps<{
   assistant: Assistant
 }>()
 
-const { t } = useI18n()
-const assistantStore = useAssistantStore()
-const toast = useToast()
-const router = useRouter()
-const localePath = useLocalePath()
+const open = ref(false)
+const isDeleting = ref(false)
+const errorMessage = ref<string | null>(null)
 
-const isOpen = ref(false)
+const handleClose = () => {
+  if (!isDeleting.value) {
+    open.value = false
+    errorMessage.value = null
+  }
+}
 
 const handleDelete = async () => {
+  isDeleting.value = true
+  errorMessage.value = null
+
   try {
     await assistantStore.deleteAssistant(props.assistant.id)
-    
+
     toast.add({
       color: 'success',
       icon: 'i-ph-check-circle-fill',
       title: t('success.title'),
-      description: t('success.description', { 
-        name: props.assistant.name || `${props.assistant.persona?.name} + ${props.assistant.model?.name}` 
+      description: t('success.description', {
+        name:
+          props.assistant.name ||
+          `${props.assistant.persona?.name} + ${props.assistant.model?.name}`,
       }),
     })
-    
-    isOpen.value = false
-    
-    // Navigate back to assistants list
-    router.push(localePath({ name: 'assistants' }))
+
+    // Navigate to assistants index after successful deletion
+    await navigateTo(localeRoute('assistants'))
   } catch (error) {
-    console.error(error)
-    
-    toast.add({
-      color: 'error',
-      icon: 'i-ph-x-circle-fill',
-      title: t('error.title'),
-      description: t('error.description'),
-    })
+    errorMessage.value =
+      error instanceof Error ? error.message : t('error.description')
+  } finally {
+    isDeleting.value = false
   }
 }
+
+// Clear error when modal opens
+watch(open, (newValue) => {
+  if (newValue) {
+    errorMessage.value = null
+  }
+})
 </script>
 
 <i18n lang="yaml">
 en:
-  title: Delete Assistant
-  description: "Are you sure you want to delete '{name}'? This action cannot be undone."
-  actions:
-    cancel: Cancel
-    delete: Delete
+  modal:
+    title: Confirm Deletion
+    description: Deleting an assistant requires confirmation.
+  content:
+    title: Delete Assistant
+    description: You are about to remove the assistant {name} from LMiX.
+    alert:
+      title: Warning
+      description: Deleting an assistant is permanent and cannot be undone. Are you sure you want to delete it?
+  cancel: Cancel
+  delete: Delete
   success:
     title: Assistant Deleted
-    description: "Assistant '{name}' has been successfully deleted."
+    description: The assistant has been successfully deleted.
   error:
-    title: Deletion Failed
     description: Failed to delete the assistant. Please try again.
 </i18n>

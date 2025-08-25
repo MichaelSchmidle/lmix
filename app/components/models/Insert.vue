@@ -1,76 +1,79 @@
 <template>
-  <UContainer>
-    <!-- Stepper -->
-    <UStepper
-      v-model="currentStep"
-      disabled
-      :items="steps"
-      :default-value="0"
-    />
+  <!-- Stepper -->
+  <UStepper
+    v-model="currentStep"
+    disabled
+    :items="steps"
+    :default-value="0"
+  />
 
-    <!-- Step 1: Provider Configuration -->
+  <!-- Step 1: Provider Configuration -->
+  <UForm
+    v-if="currentStep === 0"
+    :schema="localizedProviderConfigSchema"
+    :state="providerConfig"
+    :validate-on="['change', 'input']"
+    @submit="handleDiscoverModels"
+  >
     <UPageCard
-      v-if="currentStep === 0"
       :title="t('steps.0.title')"
       :description="t('steps.0.description')"
     >
-      <UForm
-        :schema="localizedProviderConfigSchema"
-        :state="providerConfig"
-        :validate-on="['change', 'input']"
-        @submit="handleDiscoverModels"
+      <UFormField
+        name="apiEndpoint"
+        :label="t('steps.0.endpoint.label')"
+        :description="t('steps.0.endpoint.description')"
+        required
       >
-        <UFormField
-          name="apiEndpoint"
-          :label="t('steps.0.endpoint.label')"
-          :description="t('steps.0.endpoint.description')"
-          required
-        >
-          <template #description>
-            <i18n-t keypath="steps.0.endpoint.description">
-              <template #version>
-                <span class="prose dark:prose-invert prose-sm">
-                  <code>/v1</code>
-                </span>
-              </template>
-            </i18n-t>
-          </template>
+        <template #description>
+          <i18n-t keypath="steps.0.endpoint.description">
+            <template #version>
+              <span class="prose dark:prose-invert prose-sm">
+                <code>/v1</code>
+              </span>
+            </template>
+          </i18n-t>
+        </template>
 
-          <UInput
-            v-model="providerConfig.apiEndpoint"
-            autofocus
-            :placeholder="t('steps.0.endpoint.placeholder')"
-          />
-        </UFormField>
+        <UInput
+          v-model="providerConfig.apiEndpoint"
+          autofocus
+          :placeholder="t('steps.0.endpoint.placeholder')"
+        />
+      </UFormField>
 
-        <UFormField
-          name="apiKey"
-          :label="t('steps.0.apiKey.label')"
-          :description="t('steps.0.apiKey.description')"
-        >
-          <UInput
-            v-model="providerConfig.apiKey"
-            type="password"
-            :placeholder="t('steps.0.apiKey.placeholder')"
-          />
-        </UFormField>
-
-        <div class="flex gap-4 justify-end">
-          <UButton
-            type="submit"
-            icon="i-ph-magnifying-glass"
-            :label="t('actions.discover')"
-            :loading="loading"
-          />
-        </div>
-      </UForm>
+      <UFormField
+        name="apiKey"
+        :label="t('steps.0.apiKey.label')"
+        :description="t('steps.0.apiKey.description')"
+      >
+        <UInput
+          v-model="providerConfig.apiKey"
+          type="password"
+          :placeholder="t('steps.0.apiKey.placeholder')"
+        />
+      </UFormField>
     </UPageCard>
 
-    <!-- Step 2: Model Selection -->
-    <UPageCard
-      v-if="currentStep === 1"
-      :title="t('steps.1.title')"
-    >
+    <div class="flex gap-4 justify-end">
+      <UButton
+        type="submit"
+        icon="i-ph-magnifying-glass"
+        :label="t('actions.discover')"
+        :loading="loading"
+      />
+    </div>
+  </UForm>
+
+  <!-- Step 2: Model Selection -->
+  <UForm
+    v-if="currentStep === 1"
+    :schema="localizedModelSelectionSchema"
+    :state="modelSelection"
+    :validate-on="['change']"
+    @submit="handleCreateModels"
+  >
+    <UPageCard :title="t('steps.1.title')">
       <template #description>
         <i18n-t
           class="text-sm text-muted"
@@ -84,59 +87,51 @@
           </template>
         </i18n-t>
       </template>
-
-      <UForm
-        :schema="localizedModelSelectionSchema"
-        :state="modelSelection"
-        :validate-on="['change']"
-        @submit="handleCreateModels"
+      <UFormField
+        name="selectedModels"
+        :label="t('steps.1.models.label')"
+        required
       >
-        <UFormField
-          name="selectedModels"
-          :label="t('steps.1.models.label')"
-          required
-        >
-          <!-- Select All -->
-          <UCheckbox
-            v-model="selectAll"
-            class="mb-1"
-            :label="t('steps.1.selectAll')"
-            @update:model-value="toggleSelectAll"
-          />
+        <!-- Select All -->
+        <UCheckbox
+          v-model="selectAll"
+          class="mb-1"
+          :label="t('steps.1.selectAll')"
+          @update:model-value="toggleSelectAll"
+        />
 
-          <!-- Model Selection -->
-          <UCheckboxGroup
-            v-model="modelSelection.selectedModels"
-            :items="checkboxItems"
-            value-key="value"
-          />
-        </UFormField>
-
-        <div class="flex gap-4 justify-end">
-          <UButton
-            type="button"
-            :disabled="loading"
-            :label="t('actions.back')"
-            variant="outline"
-            @click="currentStep = 0"
-          />
-
-          <UButton
-            type="submit"
-            icon="i-ph-plus"
-            :label="t('actions.create')"
-            :loading="loading"
-          />
-        </div>
-      </UForm>
+        <!-- Model Selection -->
+        <UCheckboxGroup
+          v-model="modelSelection.selectedModels"
+          :items="checkboxItems"
+          value-key="value"
+        />
+      </UFormField>
     </UPageCard>
-  </UContainer>
+
+    <div class="flex gap-4 justify-end">
+      <UButton
+        type="button"
+        :disabled="loading"
+        :label="t('actions.back')"
+        variant="outline"
+        @click="currentStep = 0"
+      />
+
+      <UButton
+        type="submit"
+        icon="i-ph-check"
+        :label="t('actions.save')"
+        :loading="loading"
+      />
+    </div>
+  </UForm>
 </template>
 
 <script setup lang="ts">
 // ===== IMPORTS =====
 import type { CheckboxGroupItem, StepperItem } from '@nuxt/ui'
-import { z } from 'zod'
+import type { z } from 'zod'
 import type { Model } from '~/types/models'
 import {
   providerConfigSchema,
@@ -155,7 +150,7 @@ interface CreateModelsResponse {
   message: string
 }
 
-// No emits needed - just reset form after success
+const emit = defineEmits(['success'])
 
 // ===== COMPOSABLES =====
 const { t } = useI18n({ useScope: 'local' })
@@ -225,7 +220,7 @@ const steps: StepperItem[] = [
 const existingModelIds = computed(
   () =>
     new Set(
-      modelStore.modelsList
+      modelStore.models
         .filter((m) => m.apiEndpoint === providerConfig.apiEndpoint)
         .map((m) => m.modelId)
     )
@@ -331,10 +326,6 @@ const handleCreateModels = async () => {
       apiEndpoint: providerConfig.apiEndpoint,
       apiKey: providerConfig.apiKey,
       modelId: String(modelId),
-      config: {
-        temperature: 0.7,
-        maxTokens: 2048,
-      },
     }))
 
     // Create the models using the store
@@ -352,6 +343,7 @@ const handleCreateModels = async () => {
     })
 
     // Reset form to allow creating more models
+    emit('success')
     resetForm()
   } catch (error: unknown) {
     console.error('Error creating models:', error)
@@ -360,6 +352,7 @@ const handleCreateModels = async () => {
       icon: 'i-ph-x-circle-fill',
       title: t('errors.title'),
       description: t('errors.creationFailed'),
+      duration: 0,
     })
   } finally {
     loading.value = false
@@ -391,7 +384,7 @@ en:
   actions:
     back: Back
     discover: Discover Models
-    create: 'Create Models'
+    save: Save Models
   validation:
     endpoint:
       required: API endpoint is required.

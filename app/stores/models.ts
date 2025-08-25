@@ -4,7 +4,7 @@ import type { Model, CreateModelInput, UpdateModelInput } from '~/types/models'
 
 export const useModelStore = defineStore('models', () => {
   // State
-  const modelsList = ref<Model[]>([])
+  const models = ref<Model[]>([])
   const loading = ref(true) // Initial loading state only (shows skeletons)
   const busy = ref(false) // Any operation in progress (disables buttons)
   const error = ref<string | null>(null)
@@ -12,15 +12,15 @@ export const useModelStore = defineStore('models', () => {
 
   // Getters
   const defaultModel = computed(() =>
-    modelsList.value.find((model) => model.isDefault)
+    models.value.find((model) => model.isDefault)
   )
 
   const getModelById = computed(
-    () => (id: string) => modelsList.value.find((model) => model.id === id)
+    () => (id: string) => models.value.find((model) => model.id === id)
   )
 
   const sortedModels = computed(() =>
-    [...modelsList.value].sort((a, b) => {
+    [...models.value].sort((a, b) => {
       // Default model first
       if (a.isDefault) return -1
       if (b.isDefault) return 1
@@ -35,16 +35,13 @@ export const useModelStore = defineStore('models', () => {
         const localeRoute = useLocalePath()
 
         // Group models by endpoint
-        const modelsByEndpoint = sortedModels.value.reduce(
-          (acc, model) => {
-            if (!acc[model.apiEndpoint]) {
-              acc[model.apiEndpoint] = []
-            }
-            acc[model.apiEndpoint]!.push(model)
-            return acc
-          },
-          {} as Record<string, Model[]>
-        )
+        const modelsByEndpoint = sortedModels.value.reduce((acc, model) => {
+          if (!acc[model.apiEndpoint]) {
+            acc[model.apiEndpoint] = []
+          }
+          acc[model.apiEndpoint]!.push(model)
+          return acc
+        }, {} as Record<string, Model[]>)
 
         // Create navigation items grouped by endpoint
         return Object.entries(modelsByEndpoint).map(([endpoint, models]) => ({
@@ -56,7 +53,7 @@ export const useModelStore = defineStore('models', () => {
           children: models.map((model: Model) => ({
             label: model.name,
             to: localeRoute({ name: 'models-id', params: { id: model.id } }),
-            icon: model.isDefault ? 'i-ph-bookmark-fill' : undefined,
+            icon: model.isDefault ? 'i-ph-asterisk' : undefined,
           })),
         }))
       }
@@ -72,7 +69,7 @@ export const useModelStore = defineStore('models', () => {
 
     try {
       const response = await $fetch('/api/models')
-      modelsList.value = response.models
+      models.value = response.models
       initialized.value = true
     } catch (err) {
       error.value =
@@ -93,7 +90,7 @@ export const useModelStore = defineStore('models', () => {
         body: input,
       })
 
-      modelsList.value.push(response.model)
+      models.value.push(response.model)
       return response.model
     } catch (err) {
       error.value =
@@ -121,12 +118,12 @@ export const useModelStore = defineStore('models', () => {
       if (Array.isArray(input)) {
         // Multiple models created
         const multiResponse = response as { models: Model[] }
-        modelsList.value.push(...multiResponse.models)
+        models.value.push(...multiResponse.models)
         return multiResponse
       } else {
         // Single model created
         const singleResponse = response as { model: Model }
-        modelsList.value.push(singleResponse.model)
+        models.value.push(singleResponse.model)
         return singleResponse
       }
     } catch (err) {
@@ -148,9 +145,9 @@ export const useModelStore = defineStore('models', () => {
         body: input,
       })
 
-      const index = modelsList.value.findIndex((m) => m.id === id)
+      const index = models.value.findIndex((m) => m.id === id)
       if (index !== -1) {
-        modelsList.value[index] = response.model
+        models.value[index] = response.model
       }
 
       return response.model
@@ -172,7 +169,7 @@ export const useModelStore = defineStore('models', () => {
         method: 'DELETE',
       })
 
-      modelsList.value = modelsList.value.filter((m) => m.id !== id)
+      models.value = models.value.filter((m) => m.id !== id)
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to delete model'
@@ -193,7 +190,7 @@ export const useModelStore = defineStore('models', () => {
       })
 
       // Update all models' default status
-      modelsList.value.forEach((model) => {
+      models.value.forEach((model) => {
         model.isDefault = model.id === id
       })
 
@@ -226,7 +223,7 @@ export const useModelStore = defineStore('models', () => {
 
   return {
     // State
-    modelsList,
+    models,
     loading,
     busy,
     error,

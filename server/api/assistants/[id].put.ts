@@ -125,9 +125,10 @@ export default defineEventHandler(async (event) => {
         model: assistantWithRelations.model || undefined,
       }
     }
-  } catch (error: any) {
+  } catch (error) {
     // Check for unique constraint violation
-    if (error.code === '23505' && error.constraint === 'idx_unique_assistant_per_user') {
+    const dbError = error as { code?: string; constraint?: string; statusCode?: number }
+    if (dbError.code === '23505' && dbError.constraint === 'idx_unique_assistant_per_user') {
       throw createError({
         statusCode: 409,
         statusMessage: 'An assistant with this persona and model combination already exists'
@@ -135,7 +136,7 @@ export default defineEventHandler(async (event) => {
     }
     
     // Re-throw if it's already a Nitro error
-    if (error.statusCode) {
+    if (dbError.statusCode) {
       throw error
     }
     

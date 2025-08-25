@@ -8,7 +8,7 @@ import type {
 
 export const useAssistantStore = defineStore('assistants', () => {
   // State
-  const assistantsList = ref<Assistant[]>([])
+  const assistants = ref<Assistant[]>([])
   const loading = ref(true) // Initial loading state only (shows skeletons)
   const busy = ref(false) // Any operation in progress (disables buttons)
   const error = ref<string | null>(null)
@@ -17,11 +17,11 @@ export const useAssistantStore = defineStore('assistants', () => {
   // Getters
   const getAssistantById = computed(
     () => (id: string) =>
-      assistantsList.value.find((assistant) => assistant.id === id)
+      assistants.value.find((assistant) => assistant.id === id)
   )
 
   const sortedAssistants = computed(() =>
-    [...assistantsList.value].sort((a, b) => {
+    [...assistants.value].sort((a, b) => {
       // Sort by display name (custom name or persona name)
       const nameA = a.name || a.persona?.name || ''
       const nameB = b.name || b.persona?.name || ''
@@ -33,23 +33,21 @@ export const useAssistantStore = defineStore('assistants', () => {
     const localeRoute = useLocalePath()
 
     return [
-      {
-        icon: 'i-ph-robot-fill',
-        label: 'Assistants',
-        defaultOpen: true,
-        children: sortedAssistants.value.map((assistant: Assistant) => {
-          const displayName = assistant.name || 
-            `${assistant.persona?.name || 'Unknown'} (${assistant.model?.name || 'Unknown'})`
-          
-          return {
-            label: displayName,
-            to: localeRoute({
-              name: 'assistants-id',
-              params: { id: assistant.id },
-            }),
-          }
-        }),
-      },
+      sortedAssistants.value.map((assistant: Assistant) => {
+        const displayName =
+          assistant.name ||
+          `${assistant.persona?.name || 'Unknown'}@${
+            assistant.model?.name || 'Unknown'
+          }`
+
+        return {
+          label: displayName,
+          to: localeRoute({
+            name: 'assistants-id',
+            params: { id: assistant.id },
+          }),
+        }
+      }),
     ]
   })
 
@@ -63,7 +61,7 @@ export const useAssistantStore = defineStore('assistants', () => {
 
     try {
       const response = await $fetch('/api/assistants')
-      assistantsList.value = response.assistants
+      assistants.value = response.assistants
       initialized.value = true
     } catch (err) {
       error.value =
@@ -79,12 +77,15 @@ export const useAssistantStore = defineStore('assistants', () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ assistant: Assistant }>('/api/assistants', {
-        method: 'POST',
-        body: input,
-      })
+      const response = await $fetch<{ assistant: Assistant }>(
+        '/api/assistants',
+        {
+          method: 'POST',
+          body: input,
+        }
+      )
 
-      assistantsList.value.push(response.assistant)
+      assistants.value.push(response.assistant)
       return response.assistant
     } catch (err) {
       error.value =
@@ -108,9 +109,9 @@ export const useAssistantStore = defineStore('assistants', () => {
         }
       )
 
-      const index = assistantsList.value.findIndex((a) => a.id === id)
+      const index = assistants.value.findIndex((a) => a.id === id)
       if (index !== -1) {
-        assistantsList.value[index] = response.assistant
+        assistants.value[index] = response.assistant
       }
 
       return response.assistant
@@ -132,7 +133,7 @@ export const useAssistantStore = defineStore('assistants', () => {
         method: 'DELETE',
       })
 
-      assistantsList.value = assistantsList.value.filter((a) => a.id !== id)
+      assistants.value = assistants.value.filter((a) => a.id !== id)
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to delete assistant'
@@ -144,7 +145,7 @@ export const useAssistantStore = defineStore('assistants', () => {
 
   return {
     // State
-    assistantsList,
+    assistants,
     loading,
     busy,
     error,

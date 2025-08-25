@@ -16,18 +16,10 @@
 <script setup lang="ts">
 const { t } = useI18n()
 const localeRoute = useLocaleRoute()
-const assistantStore = useAssistantStore()
 const title = t('title')
 
 useHead({
   title,
-})
-
-// Fetch assistants on component mount
-onMounted(async () => {
-  if (!assistantStore.assistants.length && !assistantStore.loading) {
-    await assistantStore.fetchAssistants()
-  }
 })
 </script>
 

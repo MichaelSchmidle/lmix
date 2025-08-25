@@ -5,14 +5,29 @@ import type {
   CreatePersonaInput,
   UpdatePersonaInput,
 } from '~/types/personas'
+import type { ApiResponse } from '~/server/utils/responses'
 
 export const usePersonaStore = defineStore('personas', () => {
+  // Use useFetch at store level with proper SSR handling
+  const { data: fetchedData, pending, refresh } = useFetch<ApiResponse<Persona[]>>('/api/personas', {
+    key: 'personas',
+    server: false, // Client-only for user-isolated data
+    lazy: false, // Fetch immediately when store is accessed
+    default: () => ({ success: true, data: [], message: '', count: 0 })
+  })
+
   // State
-  const personas = ref<Persona[]>([])
-  const loading = ref(true) // Initial loading state only (shows skeletons)
-  const busy = ref(false) // Any operation in progress (disables buttons)
+  const busy = ref(false)
   const error = ref<string | null>(null)
-  const initialized = ref(false) // Track if we've fetched at least once
+  
+  // Computed state from useFetch
+  const personas = computed(() => fetchedData.value?.data || [])
+  
+  // Loading state: true on server, follows pending on client
+  const loading = computed(() => {
+    if (process.server) return true // Always show skeleton on SSR
+    return pending.value // On client, show loading while fetching
+  })
 
   // Getters
   const getPersonaById = computed(
@@ -37,28 +52,12 @@ export const usePersonaStore = defineStore('personas', () => {
 
   // Actions
   async function fetchPersonas() {
-    // Only set loading if already initialized (subsequent fetches)
-    if (initialized.value) {
-      loading.value = true
-    }
-    error.value = null
-
-    try {
-      const response = await $fetch('/api/personas')
-      personas.value = response.data || []
-      initialized.value = true
-    } catch (err) {
-      error.value =
-        err instanceof Error ? err.message : 'Failed to fetch personas'
-      throw err
-    } finally {
-      loading.value = false
-    }
+    // Just refresh the existing useFetch
+    return refresh()
   }
 
   async function createPersona(input: CreatePersonaInput) {
     busy.value = true
-    error.value = null
 
     try {
       const response = await $fetch('/api/personas', {
@@ -72,9 +71,9 @@ export const usePersonaStore = defineStore('personas', () => {
       }
       throw new Error('No persona returned')
     } catch (err) {
-      error.value =
+      throw new Error(
         err instanceof Error ? err.message : 'Failed to create persona'
-      throw err
+      )
     } finally {
       busy.value = false
     }
@@ -82,7 +81,6 @@ export const usePersonaStore = defineStore('personas', () => {
 
   async function updatePersona(id: string, input: UpdatePersonaInput) {
     busy.value = true
-    error.value = null
 
     try {
       const response = await $fetch(`/api/personas/${id}`, {
@@ -99,9 +97,9 @@ export const usePersonaStore = defineStore('personas', () => {
       }
       throw new Error('No persona returned')
     } catch (err) {
-      error.value =
+      throw new Error(
         err instanceof Error ? err.message : 'Failed to update persona'
-      throw err
+      )
     } finally {
       busy.value = false
     }
@@ -109,7 +107,6 @@ export const usePersonaStore = defineStore('personas', () => {
 
   async function deletePersona(id: string) {
     busy.value = true
-    error.value = null
 
     try {
       await $fetch(`/api/personas/${id}`, {
@@ -118,9 +115,9 @@ export const usePersonaStore = defineStore('personas', () => {
 
       personas.value = personas.value.filter((p) => p.id !== id)
     } catch (err) {
-      error.value =
+      throw new Error(
         err instanceof Error ? err.message : 'Failed to delete persona'
-      throw err
+      )
     } finally {
       busy.value = false
     }

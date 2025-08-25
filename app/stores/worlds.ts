@@ -1,0 +1,148 @@
+import { defineStore, acceptHMRUpdate } from 'pinia'
+import type { NavigationMenuItem } from '@nuxt/ui'
+import type {
+  World,
+  CreateWorldInput,
+  UpdateWorldInput,
+} from '~/types/worlds'
+import type { ApiResponse } from '~/server/utils/responses'
+
+export const useWorldStore = defineStore('worlds', () => {
+  // Use useFetch at store level with proper SSR handling
+  const { data: fetchedData, pending, refresh } = useFetch<ApiResponse<World[]>>('/api/worlds', {
+    key: 'worlds',
+    server: false, // Client-only for user-isolated data
+    lazy: false, // Fetch immediately when store is accessed
+    default: () => ({ success: true, data: [], message: '', count: 0 })
+  })
+
+  // State
+  const busy = ref(false)
+  const error = ref<string | null>(null)
+  
+  // Computed state from useFetch
+  const worlds = computed(() => fetchedData.value?.data || [])
+  
+  // Loading state: true on server, follows pending on client
+  const loading = computed(() => {
+    if (process.server) return true // Always show skeleton on SSR
+    return pending.value // On client, show loading while fetching
+  })
+
+  // Getters
+  const getWorldById = computed(
+    () => (id: string) => worlds.value.find((world) => world.id === id)
+  )
+
+  const sortedWorlds = computed(() =>
+    [...worlds.value].sort((a, b) => a.name.localeCompare(b.name))
+  )
+
+  const navigationItems = computed(() => (): NavigationMenuItem[] => {
+    const localeRoute = useLocalePath()
+
+    return sortedWorlds.value.map((world: World) => ({
+      label: world.name,
+      to: localeRoute({
+        name: 'worlds-id',
+        params: { id: world.id },
+      }),
+    }))
+  })
+
+  // Actions
+  async function fetchWorlds() {
+    // Just refresh the existing useFetch
+    return refresh()
+  }
+
+  async function createWorld(input: CreateWorldInput) {
+    busy.value = true
+
+    try {
+      const response = await $fetch('/api/worlds', {
+        method: 'POST',
+        body: input,
+      })
+
+      if (response.data) {
+        worlds.value.push(response.data as World)
+        return response.data as World
+      }
+      throw new Error('No world returned')
+    } catch (err) {
+      throw new Error(
+        err instanceof Error ? err.message : 'Failed to create world'
+      )
+    } finally {
+      busy.value = false
+    }
+  }
+
+  async function updateWorld(id: string, input: UpdateWorldInput) {
+    busy.value = true
+
+    try {
+      const response = await $fetch(`/api/worlds/${id}`, {
+        method: 'PUT',
+        body: input,
+      })
+
+      if (response.data) {
+        const index = worlds.value.findIndex((w) => w.id === id)
+        if (index !== -1) {
+          worlds.value[index] = response.data as World
+        }
+        return response.data as World
+      }
+      throw new Error('No world returned')
+    } catch (err) {
+      throw new Error(
+        err instanceof Error ? err.message : 'Failed to update world'
+      )
+    } finally {
+      busy.value = false
+    }
+  }
+
+  async function deleteWorld(id: string) {
+    busy.value = true
+
+    try {
+      await $fetch(`/api/worlds/${id}`, {
+        method: 'DELETE',
+      })
+
+      worlds.value = worlds.value.filter((w) => w.id !== id)
+    } catch (err) {
+      throw new Error(
+        err instanceof Error ? err.message : 'Failed to delete world'
+      )
+    } finally {
+      busy.value = false
+    }
+  }
+
+  return {
+    // State
+    worlds,
+    loading,
+    busy,
+    error,
+
+    // Getters
+    getWorldById,
+    sortedWorlds,
+    navigationItems,
+
+    // Actions
+    fetchWorlds,
+    createWorld,
+    updateWorld,
+    deleteWorld,
+  }
+})
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useWorldStore, import.meta.hot))
+}

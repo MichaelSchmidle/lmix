@@ -16,18 +16,10 @@
 <script setup lang="ts">
 const { t } = useI18n()
 const localeRoute = useLocaleRoute()
-const personaStore = usePersonaStore()
 const title = t('title')
 
 useHead({
   title,
-})
-
-// Fetch personas on component mount
-onMounted(async () => {
-  if (!personaStore.personas.length && !personaStore.loading) {
-    await personaStore.fetchPersonas()
-  }
 })
 </script>
 

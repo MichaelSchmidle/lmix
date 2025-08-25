@@ -8,6 +8,7 @@
       size="lg"
       :to="localeRoute('worlds-create')"
     />
+    <Worlds />
   </IndexPanel>
   <NuxtPage />
 </template>

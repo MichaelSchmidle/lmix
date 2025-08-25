@@ -69,7 +69,7 @@ export const useModelStore = defineStore('models', () => {
 
     try {
       const response = await $fetch('/api/models')
-      models.value = response.models
+      models.value = response.data || []
       initialized.value = true
     } catch (err) {
       error.value =
@@ -85,13 +85,16 @@ export const useModelStore = defineStore('models', () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ model: Model }>('/api/models', {
+      const response = await $fetch('/api/models', {
         method: 'POST',
         body: input,
       })
 
-      models.value.push(response.model)
-      return response.model
+      if (response.data) {
+        models.value.push(response.data as Model)
+        return response.data as Model
+      }
+      throw new Error('No model returned')
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to create model'
@@ -106,26 +109,26 @@ export const useModelStore = defineStore('models', () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ models: Model[] } | { model: Model }>(
-        '/api/models',
-        {
-          method: 'POST',
-          body: input,
-        }
-      )
+      const response = await $fetch('/api/models', {
+        method: 'POST',
+        body: input,
+      })
 
       // Handle both single and multiple model responses
       if (Array.isArray(input)) {
         // Multiple models created
-        const multiResponse = response as { models: Model[] }
-        models.value.push(...multiResponse.models)
-        return multiResponse
+        if (Array.isArray(response.data)) {
+          models.value.push(...response.data)
+          return { models: response.data, count: response.count || response.data.length }
+        }
       } else {
         // Single model created
-        const singleResponse = response as { model: Model }
-        models.value.push(singleResponse.model)
-        return singleResponse
+        if (response.data && !Array.isArray(response.data)) {
+          models.value.push(response.data as Model)
+          return { model: response.data as Model }
+        }
       }
+      throw new Error('Invalid response format')
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to create model(s)'
@@ -140,17 +143,19 @@ export const useModelStore = defineStore('models', () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ model: Model }>(`/api/models/${id}`, {
+      const response = await $fetch(`/api/models/${id}`, {
         method: 'PUT',
         body: input,
       })
 
-      const index = models.value.findIndex((m) => m.id === id)
-      if (index !== -1) {
-        models.value[index] = response.model
+      if (response.data) {
+        const index = models.value.findIndex((m) => m.id === id)
+        if (index !== -1) {
+          models.value[index] = response.data as Model
+        }
+        return response.data as Model
       }
-
-      return response.model
+      throw new Error('No model returned')
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to update model'
@@ -184,7 +189,7 @@ export const useModelStore = defineStore('models', () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ model: Model }>(`/api/models/${id}`, {
+      const response = await $fetch(`/api/models/${id}`, {
         method: 'PUT',
         body: { isDefault: true },
       })
@@ -194,7 +199,7 @@ export const useModelStore = defineStore('models', () => {
         model.isDefault = model.id === id
       })
 
-      return response.model
+      return response.data as Model
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to set default model'

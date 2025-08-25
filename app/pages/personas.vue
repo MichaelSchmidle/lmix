@@ -25,7 +25,7 @@ useHead({
 
 // Fetch personas on component mount
 onMounted(async () => {
-  if (!personaStore.personas.length) {
+  if (!personaStore.personas.length && !personaStore.loading) {
     await personaStore.fetchPersonas()
   }
 })

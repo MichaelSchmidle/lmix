@@ -32,23 +32,21 @@ export const useAssistantStore = defineStore('assistants', () => {
   const navigationItems = computed(() => (): NavigationMenuItem[] => {
     const localeRoute = useLocalePath()
 
-    return [
-      sortedAssistants.value.map((assistant: Assistant) => {
-        const displayName =
-          assistant.name ||
-          `${assistant.persona?.name || 'Unknown'}@${
-            assistant.model?.name || 'Unknown'
-          }`
+    return sortedAssistants.value.map((assistant: Assistant) => {
+      const displayName =
+        assistant.name ||
+        `${assistant.persona?.name || 'Unknown'}@${
+          assistant.model?.name || 'Unknown'
+        }`
 
-        return {
-          label: displayName,
-          to: localeRoute({
-            name: 'assistants-id',
-            params: { id: assistant.id },
-          }),
-        }
-      }),
-    ]
+      return {
+        label: displayName,
+        to: localeRoute({
+          name: 'assistants-id',
+          params: { id: assistant.id },
+        }),
+      }
+    })
   })
 
   // Actions
@@ -61,7 +59,7 @@ export const useAssistantStore = defineStore('assistants', () => {
 
     try {
       const response = await $fetch('/api/assistants')
-      assistants.value = response.assistants
+      assistants.value = response.data || []
       initialized.value = true
     } catch (err) {
       error.value =
@@ -77,16 +75,16 @@ export const useAssistantStore = defineStore('assistants', () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ assistant: Assistant }>(
-        '/api/assistants',
-        {
-          method: 'POST',
-          body: input,
-        }
-      )
+      const response = await $fetch('/api/assistants', {
+        method: 'POST',
+        body: input,
+      })
 
-      assistants.value.push(response.assistant)
-      return response.assistant
+      if (response.data) {
+        assistants.value.push(response.data as Assistant)
+        return response.data as Assistant
+      }
+      throw new Error('No assistant returned')
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to create assistant'
@@ -101,20 +99,19 @@ export const useAssistantStore = defineStore('assistants', () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ assistant: Assistant }>(
-        `/api/assistants/${id}`,
-        {
-          method: 'PUT',
-          body: input,
+      const response = await $fetch(`/api/assistants/${id}`, {
+        method: 'PUT',
+        body: input,
+      })
+
+      if (response.data) {
+        const index = assistants.value.findIndex((a) => a.id === id)
+        if (index !== -1) {
+          assistants.value[index] = response.data as Assistant
         }
-      )
-
-      const index = assistants.value.findIndex((a) => a.id === id)
-      if (index !== -1) {
-        assistants.value[index] = response.assistant
+        return response.data as Assistant
       }
-
-      return response.assistant
+      throw new Error('No assistant returned')
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to update assistant'

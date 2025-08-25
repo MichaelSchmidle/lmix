@@ -10,6 +10,7 @@ import { models } from '../../database/schema/models'
 import { z } from 'zod'
 import { eq, and } from 'drizzle-orm'
 import { encrypt, maskApiKey } from '../../utils/crypto'
+import { successResponse, handleApiError } from '../../utils/responses'
 
 // Validation schema for a single model
 const createModelSchema = z.object({
@@ -112,17 +113,19 @@ export default defineEventHandler(async (event) => {
     
     // Return appropriate response based on input type
     if (Array.isArray(validatedData)) {
-      return {
-        models: maskedCreatedModels,
-        count: maskedCreatedModels.length,
-        skipped: modelsToCreate.length - uniqueModels.length,
-        message: `Successfully created ${maskedCreatedModels.length} model(s)`
-      }
+      return successResponse(
+        maskedCreatedModels,
+        `Successfully created ${maskedCreatedModels.length} model(s)`,
+        {
+          count: maskedCreatedModels.length,
+          meta: { skipped: modelsToCreate.length - uniqueModels.length }
+        }
+      )
     } else {
-      return {
-        model: maskedCreatedModels[0],
-        message: 'Model created successfully'
-      }
+      return successResponse(
+        maskedCreatedModels[0],
+        'Model created successfully'
+      )
     }
   } catch (error) {
     // Check for unique constraint violation
@@ -133,14 +136,6 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    // Re-throw if it's already a createError
-    if (error instanceof Error && 'statusCode' in error) {
-      throw error
-    }
-    
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to create model(s)'
-    })
+    return handleApiError(error, 'Failed to create model(s)')
   }
 })

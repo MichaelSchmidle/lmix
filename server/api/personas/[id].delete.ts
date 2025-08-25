@@ -7,6 +7,7 @@ import { db } from '../../utils/db'
 import { requireAuth } from '../../utils/auth'
 import { personas } from '../../database/schema/personas'
 import { eq, and } from 'drizzle-orm'
+import { deleteResponse, handleApiError } from '../../utils/responses'
 
 export default defineEventHandler(async (event) => {
   // Require authentication
@@ -40,19 +41,8 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    return {
-      success: true,
-      message: 'Persona deleted successfully'
-    }
-  } catch (error: unknown) {
-    // Re-throw if it's already a createError
-    if (error && typeof error === 'object' && 'statusCode' in error) {
-      throw error
-    }
-    
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to delete persona'
-    })
+    return deleteResponse('Persona deleted successfully')
+  } catch (error) {
+    return handleApiError(error, 'Failed to delete persona')
   }
 })

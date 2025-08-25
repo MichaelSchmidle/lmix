@@ -195,6 +195,21 @@ Bob (NYPD member) talking to Tony (Mafia member):
 
 ### Technical Implementation
 
+#### API Response Standardization
+
+**Unified Response Format:**
+- All API endpoints return a standardized response structure
+- Response format: `{ success: boolean, data?: T, message: string, count?: number, meta?: object }`
+- Consistent error handling through shared utilities
+- DELETE operations return `{ success: true, data: null, message: string }`
+- LIST operations include count field automatically
+
+**Error Handling:**
+- Centralized error handling through `handleApiError()` utility
+- Automatic detection and re-throwing of Nitro errors
+- Database constraint violations properly detected and handled
+- Consistent error messages across all endpoints
+
 #### Security
 
 **API Key Protection:**
@@ -331,11 +346,11 @@ CREATE TABLE turns (
 #### API Endpoints
 
 ```typescript
-// Models CRUD
-GET    /api/models               // List all user's models
-POST   /api/models               // Create single model or array of models
-PUT    /api/models/:id           // Update a model (including isDefault field)
-DELETE /api/models/:id           // Delete a model
+// Models CRUD (✅ Implemented with standardized responses)
+GET    /api/models               // Returns: ApiResponse<Model[]>
+POST   /api/models               // Accepts: Model | Model[], Returns: ApiResponse<Model | Model[]>
+PUT    /api/models/:id           // Returns: ApiResponse<Model>
+DELETE /api/models/:id           // Returns: ApiResponse<null>
 POST   /api/models/test          // Test model connection
 
 // Worlds CRUD
@@ -356,17 +371,17 @@ POST   /api/affiliations
 PUT    /api/affiliations/:id
 DELETE /api/affiliations/:id
 
-// Personas CRUD
-GET    /api/personas
-POST   /api/personas
-PUT    /api/personas/:id
-DELETE /api/personas/:id
+// Personas CRUD (✅ Implemented with standardized responses)
+GET    /api/personas             // Returns: ApiResponse<Persona[]>
+POST   /api/personas             // Returns: ApiResponse<Persona>
+PUT    /api/personas/:id         // Returns: ApiResponse<Persona>
+DELETE /api/personas/:id         // Returns: ApiResponse<null>
 
-// Assistants CRUD
-GET    /api/assistants
-POST   /api/assistants
-PUT    /api/assistants/:id
-DELETE /api/assistants/:id
+// Assistants CRUD (✅ Implemented with standardized responses)
+GET    /api/assistants           // Returns: ApiResponse<Assistant[]> with joined persona/model data
+POST   /api/assistants           // Returns: ApiResponse<Assistant>
+PUT    /api/assistants/:id       // Returns: ApiResponse<Assistant>
+DELETE /api/assistants/:id       // Returns: ApiResponse<null>
 
 // Productions
 GET    /api/productions          // List all
@@ -382,36 +397,60 @@ POST   /api/productions/:id/turns
 
 ```
 /                        # Welcome/dashboard
-/models                  # Models management (table + create/edit modal)
+/models                  # ✅ Models management with Insert/Update/Delete components
+/models/create           # ✅ Two-step model discovery and creation
+/models/[id]             # ✅ Model details and configuration
 /worlds                  # Worlds management (table + create/edit modal)
 /scenarios               # Scenarios management (table + create/edit modal)
 /affiliations            # Affiliations management (table + create/edit modal)
-/personas                # Personas management (table + create/edit modal)
-/assistants              # Assistants management (table + create/edit modal)
+/personas                # ✅ Personas management with Upsert/Delete components
+/personas/create         # ✅ Create new persona
+/personas/[id]           # ✅ Persona details and editing
+/assistants              # ✅ Assistants management with Upsert/Delete components
+/assistants/create       # ✅ Create new assistant
+/assistants/[id]         # ✅ Assistant details and editing
 /productions             # Productions list (table + create modal)
 /productions/[id]        # Chat interface
 
-Components:
-- ModelForm.vue          # Create/edit form in modal
+Implemented Components:
+- models/Insert.vue      # ✅ Two-step model discovery and batch creation
+- models/Update.vue      # ✅ Model configuration editor
+- models/Delete.vue      # ✅ Deletion confirmation modal
+- models/CreateModal.vue # ✅ Modal wrapper for Insert
+- personas/Upsert.vue    # ✅ Unified create/edit form
+- personas/Delete.vue    # ✅ Deletion confirmation modal
+- personas/CreateModal.vue # ✅ Modal wrapper for Upsert
+- assistants/Upsert.vue  # ✅ Unified create/edit form
+- assistants/Delete.vue  # ✅ Deletion confirmation modal
+- CreateButton.vue       # ✅ Reusable create button component
+
+Shared Utilities:
+- server/utils/responses.ts # ✅ Standardized API responses
+- app/types/components.ts   # ✅ Standardized component interfaces
+
+Planned Components:
 - WorldForm.vue          # Create/edit form in modal
 - ScenarioForm.vue       # Create/edit form in modal
 - AffiliationForm.vue    # Create/edit form in modal
-- PersonaForm.vue        # Create/edit form in modal (with affiliation selector)
-- AssistantForm.vue      # Create/edit form in modal
 - ProductionForm.vue     # Create form in modal (with world/scenario selectors)
 - ChatInterface.vue      # Main chat UI using Nuxt UI components
 ```
 
 ### Success Criteria
 
-- [ ] User can create models, affiliations, personas, and assistants
-- [ ] Personas can be affiliated with multiple organizations
+- [x] User can create models, affiliations (partial), personas, and assistants
+- [ ] Personas can be affiliated with multiple organizations (schema ready, UI pending)
 - [ ] User can create a production with 2+ assistants
 - [ ] Each assistant knows their own persona + affiliation truths
 - [ ] Each assistant only sees universal/external truths of others
 - [ ] Affiliated assistants share affiliation's internal knowledge
 - [ ] Conversation feels believably asymmetric with rich knowledge layers
-- [ ] Works with OpenAI API (configurable)
+- [x] Works with OpenAI API (configurable)
+- [x] Model discovery from OpenAI-compatible endpoints
+- [x] Bulk model creation from discovered models
+- [x] API key encryption and masking
+- [x] Standardized API responses across all endpoints
+- [x] Consistent error handling patterns
 
 ### Out of Scope for Iteration 1
 
@@ -469,16 +508,30 @@ _Details to be specified after Iteration 2 is complete_
 
 - Product vision documented
 - Core concept defined
+- Database schema implemented (all tables)
+- Authentication system (OIDC with row-level security)
+- Models CRUD with discovery workflow
+- Personas CRUD with three layers of truth
+- Assistants CRUD (persona + model pairing)
+- API response standardization
+- Consistent error handling
+- Component architecture patterns
+- Pinia stores for state management
+- i18n support throughout
 
 ### 🚧 In Progress
 
-- Iteration 1 specification
+- Affiliations CRUD UI
+- Worlds CRUD
+- Scenarios CRUD
+- Productions management
+- Chat interface
 
 ### 📋 Planned
 
-- Iteration 1 implementation
-- Iteration 2 specification
-- Iteration 3 specification
+- Complete Iteration 1 implementation
+- Iteration 2 specification (Observations & Memory)
+- Iteration 3 specification (Episodes & Persistence)
 
 ---
 

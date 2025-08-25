@@ -11,6 +11,7 @@ import { models } from '../../database/schema/models'
 import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
 import type { UpdateAssistantInput } from '~/types/assistants'
+import { successResponse, handleApiError, isDatabaseConstraintError } from '../../utils/responses'
 
 // Validation schema
 const updateAssistantSchema = z.object({
@@ -118,31 +119,22 @@ export default defineEventHandler(async (event) => {
       .limit(1)
     
     // Transform and return
-    return {
-      assistant: {
-        ...assistantWithRelations.assistant,
-        persona: assistantWithRelations.persona || undefined,
-        model: assistantWithRelations.model || undefined,
-      }
+    const transformedAssistant = {
+      ...assistantWithRelations.assistant,
+      persona: assistantWithRelations.persona || undefined,
+      model: assistantWithRelations.model || undefined,
     }
+    
+    return successResponse(transformedAssistant, 'Assistant updated successfully')
   } catch (error) {
     // Check for unique constraint violation
-    const dbError = error as { code?: string; constraint?: string; statusCode?: number }
-    if (dbError.code === '23505' && dbError.constraint === 'idx_unique_assistant_per_user') {
+    if (isDatabaseConstraintError(error) && error.code === '23505' && error.constraint === 'idx_unique_assistant_per_user') {
       throw createError({
         statusCode: 409,
         statusMessage: 'An assistant with this persona and model combination already exists'
       })
     }
     
-    // Re-throw if it's already a Nitro error
-    if (dbError.statusCode) {
-      throw error
-    }
-    
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to update assistant'
-    })
+    return handleApiError(error, 'Failed to update assistant')
   }
 })

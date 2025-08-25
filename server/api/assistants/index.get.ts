@@ -9,6 +9,7 @@ import { assistants } from '../../database/schema/assistants'
 import { personas } from '../../database/schema/personas'
 import { models } from '../../database/schema/models'
 import { desc, eq } from 'drizzle-orm'
+import { listResponse, handleApiError } from '../../utils/responses'
 
 export default defineEventHandler(async (event) => {
   // Require authentication
@@ -35,14 +36,8 @@ export default defineEventHandler(async (event) => {
       model: model || undefined,
     }))
     
-    return {
-      assistants: transformedAssistants,
-      count: transformedAssistants.length
-    }
-  } catch {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch assistants'
-    })
+    return listResponse(transformedAssistants, 'assistants')
+  } catch (error) {
+    return handleApiError(error, 'Failed to fetch assistants')
   }
 })

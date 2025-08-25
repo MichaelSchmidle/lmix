@@ -7,6 +7,7 @@ import { db } from '../../utils/db'
 import { requireAuth } from '../../utils/auth'
 import { assistants } from '../../database/schema/assistants'
 import { eq, and } from 'drizzle-orm'
+import { deleteResponse, handleApiError } from '../../utils/responses'
 
 export default defineEventHandler(async (event) => {
   // Require authentication
@@ -39,20 +40,8 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    return {
-      success: true,
-      message: 'Assistant deleted successfully'
-    }
+    return deleteResponse('Assistant deleted successfully')
   } catch (error) {
-    // Re-throw if it's already a Nitro error
-    const nitroError = error as { statusCode?: number }
-    if (nitroError.statusCode) {
-      throw error
-    }
-    
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to delete assistant'
-    })
+    return handleApiError(error, 'Failed to delete assistant')
   }
 })

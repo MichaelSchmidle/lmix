@@ -7,6 +7,7 @@ import { db } from '../../utils/db'
 import { requireAuth } from '../../utils/auth'
 import { personas } from '../../database/schema/personas'
 import { desc, eq } from 'drizzle-orm'
+import { listResponse, handleApiError } from '../../utils/responses'
 
 export default defineEventHandler(async (event) => {
   // Require authentication
@@ -20,14 +21,8 @@ export default defineEventHandler(async (event) => {
       .where(eq(personas.userId, userId))
       .orderBy(desc(personas.createdAt))
     
-    return {
-      personas: userPersonas,
-      count: userPersonas.length
-    }
-  } catch {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch personas'
-    })
+    return listResponse(userPersonas, 'personas')
+  } catch (error) {
+    return handleApiError(error, 'Failed to fetch personas')
   }
 })

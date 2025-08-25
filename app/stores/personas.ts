@@ -26,15 +26,13 @@ export const usePersonaStore = defineStore('personas', () => {
   const navigationItems = computed(() => (): NavigationMenuItem[] => {
     const localeRoute = useLocalePath()
 
-    return [
-      sortedPersonas.value.map((persona: Persona) => ({
-        label: persona.name,
-        to: localeRoute({
-          name: 'personas-id',
-          params: { id: persona.id },
-        }),
-      })),
-    ]
+    return sortedPersonas.value.map((persona: Persona) => ({
+      label: persona.name,
+      to: localeRoute({
+        name: 'personas-id',
+        params: { id: persona.id },
+      }),
+    }))
   })
 
   // Actions
@@ -47,7 +45,7 @@ export const usePersonaStore = defineStore('personas', () => {
 
     try {
       const response = await $fetch('/api/personas')
-      personas.value = response.personas
+      personas.value = response.data || []
       initialized.value = true
     } catch (err) {
       error.value =
@@ -63,13 +61,16 @@ export const usePersonaStore = defineStore('personas', () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ persona: Persona }>('/api/personas', {
+      const response = await $fetch('/api/personas', {
         method: 'POST',
         body: input,
       })
 
-      personas.value.push(response.persona)
-      return response.persona
+      if (response.data) {
+        personas.value.push(response.data as Persona)
+        return response.data as Persona
+      }
+      throw new Error('No persona returned')
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to create persona'
@@ -84,20 +85,19 @@ export const usePersonaStore = defineStore('personas', () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ persona: Persona }>(
-        `/api/personas/${id}`,
-        {
-          method: 'PUT',
-          body: input,
+      const response = await $fetch(`/api/personas/${id}`, {
+        method: 'PUT',
+        body: input,
+      })
+
+      if (response.data) {
+        const index = personas.value.findIndex((p) => p.id === id)
+        if (index !== -1) {
+          personas.value[index] = response.data as Persona
         }
-      )
-
-      const index = personas.value.findIndex((p) => p.id === id)
-      if (index !== -1) {
-        personas.value[index] = response.persona
+        return response.data as Persona
       }
-
-      return response.persona
+      throw new Error('No persona returned')
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to update persona'

@@ -26,7 +26,9 @@ useHead({
 
 // Fetch models client-side after hydration
 onMounted(async () => {
-  await modelStore.fetchModels()
+  if (!modelStore.models.length && !modelStore.loading) {
+    await modelStore.fetchModels()
+  }
 })
 </script>
 

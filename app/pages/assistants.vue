@@ -25,7 +25,7 @@ useHead({
 
 // Fetch assistants on component mount
 onMounted(async () => {
-  if (!assistantStore.assistants.length) {
+  if (!assistantStore.assistants.length && !assistantStore.loading) {
     await assistantStore.fetchAssistants()
   }
 })

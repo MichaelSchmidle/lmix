@@ -3,7 +3,11 @@
     route-name="assistants"
     :title="title"
   >
-    <AssistantsCreateLink size="lg" />
+    <CreateButton
+      :label="t('label')"
+      size="lg"
+      :to="localeRoute('assistants-create')"
+    />
     <Assistants />
   </IndexPanel>
   <NuxtPage />
@@ -11,14 +15,24 @@
 
 <script setup lang="ts">
 const { t } = useI18n()
+const localeRoute = useLocaleRoute()
+const assistantStore = useAssistantStore()
 const title = t('title')
 
 useHead({
   title,
+})
+
+// Fetch assistants on component mount
+onMounted(async () => {
+  if (!assistantStore.assistants.length && !assistantStore.loading) {
+    await assistantStore.fetchAssistants()
+  }
 })
 </script>
 
 <i18n lang="yaml">
 en:
   title: Assistants
+  label: Create Assistant
 </i18n>

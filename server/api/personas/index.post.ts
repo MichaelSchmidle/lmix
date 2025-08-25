@@ -7,6 +7,7 @@ import { db } from '../../utils/db'
 import { requireAuth } from '../../utils/auth'
 import { personas } from '../../database/schema/personas'
 import { z } from 'zod'
+import { successResponse, handleApiError } from '../../utils/responses'
 
 // Validation schema for creating a persona
 const createPersonaSchema = z.object({
@@ -55,18 +56,8 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    return {
-      persona: result[0]
-    }
-  } catch (error: unknown) {
-    // Re-throw if it's already a createError
-    if (error && typeof error === 'object' && 'statusCode' in error) {
-      throw error
-    }
-    
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to create persona'
-    })
+    return successResponse(result[0], 'Persona created successfully')
+  } catch (error) {
+    return handleApiError(error, 'Failed to create persona')
   }
 })

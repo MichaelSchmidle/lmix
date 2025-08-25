@@ -1,25 +1,30 @@
 <template>
-  <UNavigationMenu
-    :items="items"
-    orientation="vertical"
-  />
+  <div>
+    <USkeleton
+      v-if="loading"
+      class="h-13 w-full"
+    />
+
+    <UNavigationMenu
+      v-else-if="assistantStore.assistants.length > 0 || loading"
+      :items="navigationItems()"
+      orientation="vertical"
+    />
+    <EmptyState
+      v-else
+      :description="t('empty.description')"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
 const { t } = useI18n({ useScope: 'local' })
-
-const items = ref<NavigationMenuItem[]>([
-  {
-    children: [],
-    defaultOpen: true,
-    icon: 'i-ph-head-circuit-fill',
-    label: t('assistants'),
-  },
-])
+const assistantStore = useAssistantStore()
+const { loading, navigationItems } = storeToRefs(assistantStore)
 </script>
 
 <i18n lang="yaml">
 en:
-  assistants: Assistants
+  empty:
+    description: No assistants yet
 </i18n>

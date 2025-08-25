@@ -8,6 +8,7 @@ import { requireAuth } from '../../utils/auth'
 import { personas } from '../../database/schema/personas'
 import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
+import { successResponse, handleApiError } from '../../utils/responses'
 
 // Validation schema for updating a persona
 const updatePersonaSchema = z.object({
@@ -76,19 +77,8 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    return {
-      persona: result[0]
-    }
-  } catch (error: unknown) {
-    // Re-throw if it's already a createError
-    if (error && typeof error === 'object' && 'statusCode' in error) {
-      throw error
-    }
-    
-    
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to update persona'
-    })
+    return successResponse(result[0], 'Persona updated successfully')
+  } catch (error) {
+    return handleApiError(error, 'Failed to update persona')
   }
 })

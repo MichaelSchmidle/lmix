@@ -3,14 +3,18 @@
     route-name="worlds"
     :title="title"
   >
-    <WorldsCreateLink size="lg" />
-    <Worlds />
+    <CreateButton
+      :label="t('label')"
+      size="lg"
+      :to="localeRoute('worlds-create')"
+    />
   </IndexPanel>
   <NuxtPage />
 </template>
 
 <script setup lang="ts">
 const { t } = useI18n()
+const localeRoute = useLocaleRoute()
 const title = t('title')
 
 useHead({
@@ -21,4 +25,5 @@ useHead({
 <i18n lang="yaml">
 en:
   title: Worlds
+  label: Create World
 </i18n>

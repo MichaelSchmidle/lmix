@@ -9,6 +9,7 @@ import { models } from '../../database/schema/models'
 import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
 import { encrypt, isMaskedKey, maskApiKey } from '../../utils/crypto'
+import { successResponse, handleApiError } from '../../utils/responses'
 
 // Validation schema for updates (all fields optional)
 const updateModelSchema = z.object({
@@ -102,10 +103,7 @@ export default defineEventHandler(async (event) => {
       apiKey: maskApiKey(updatedModel.apiKey)
     }
     
-    return {
-      model: maskedModel,
-      message: 'Model updated successfully'
-    }
+    return successResponse(maskedModel, 'Model updated successfully')
   } catch (error) {
     // Check for unique constraint violation
     if (error instanceof Error && error.message.includes('idx_one_default_model_per_user')) {
@@ -115,9 +113,6 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to update model'
-    })
+    return handleApiError(error, 'Failed to update model')
   }
 })

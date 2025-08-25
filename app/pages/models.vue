@@ -3,7 +3,11 @@
     route-name="models"
     :title="title"
   >
-    <ModelsCreateLink size="lg" />
+    <CreateButton
+      :label="t('label')"
+      size="lg"
+      :to="localeRoute('models-create')"
+    />
 
     <Models />
   </IndexPanel>
@@ -12,6 +16,7 @@
 
 <script setup lang="ts">
 const { t } = useI18n()
+const localeRoute = useLocaleRoute()
 const title = t('title')
 const modelStore = useModelStore()
 
@@ -21,11 +26,14 @@ useHead({
 
 // Fetch models client-side after hydration
 onMounted(async () => {
-  await modelStore.fetchModels()
+  if (!modelStore.models.length && !modelStore.loading) {
+    await modelStore.fetchModels()
+  }
 })
 </script>
 
 <i18n lang="yaml">
 en:
   title: Models
+  label: Create Models
 </i18n>

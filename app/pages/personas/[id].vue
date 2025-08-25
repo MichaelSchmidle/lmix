@@ -22,7 +22,7 @@
       </div>
     </template>
 
-    <PersonasUpsert :persona-id="persona?.id" />
+    <PersonasUpsert :persona="persona" />
   </PagePanel>
 </template>
 
@@ -41,7 +41,7 @@ const title = t('title')
 
 // Fetch personas on component mount if not already loaded
 onMounted(async () => {
-  if (!personaStore.personasList.length) {
+  if (!personaStore.personas.length) {
     await personaStore.fetchPersonas()
   }
 })

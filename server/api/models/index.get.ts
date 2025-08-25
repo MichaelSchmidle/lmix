@@ -8,6 +8,7 @@ import { requireAuth } from '../../utils/auth'
 import { models } from '../../database/schema/models'
 import { desc, eq } from 'drizzle-orm'
 import { maskApiKey } from '../../utils/crypto'
+import { listResponse, handleApiError } from '../../utils/responses'
 
 export default defineEventHandler(async (event) => {
   // Require authentication
@@ -27,14 +28,8 @@ export default defineEventHandler(async (event) => {
       apiKey: maskApiKey(model.apiKey)
     }))
     
-    return {
-      models: maskedModels,
-      count: maskedModels.length
-    }
-  } catch {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch models'
-    })
+    return listResponse(maskedModels, 'models')
+  } catch (error) {
+    return handleApiError(error, 'Failed to fetch models')
   }
 })

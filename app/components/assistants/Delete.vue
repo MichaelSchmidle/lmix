@@ -11,7 +11,10 @@
           <i18n-t keypath="content.description">
             <template #name>
               <span class="prose dark:prose-invert">
-                <code>{{ model.name }}</code>
+                <code>{{
+                  assistant.name ||
+                  `${assistant.persona?.name}@${assistant.model?.name}`
+                }}</code>
               </span>
             </template>
           </i18n-t>
@@ -28,7 +31,7 @@
           v-if="errorMessage"
           class="text-error text-sm"
         >
-          {{ t('error') }}
+          {{ errorMessage }}
         </p>
 
         <div class="flex gap-x-4 justify-end mt-6">
@@ -62,14 +65,15 @@
 </template>
 
 <script setup lang="ts">
-import type { Model } from '~/types/models'
+import type { Assistant } from '~/types/assistants'
+
 const { t } = useI18n()
-const modelStore = useModelStore()
+const assistantStore = useAssistantStore()
 const localeRoute = useLocaleRoute()
 const toast = useToast()
 
 const props = defineProps<{
-  model: Model
+  assistant: Assistant
 }>()
 
 const open = ref(false)
@@ -88,17 +92,21 @@ const handleDelete = async () => {
   errorMessage.value = null
 
   try {
-    await modelStore.deleteModel(props.model.id)
+    await assistantStore.deleteAssistant(props.assistant.id)
 
     toast.add({
       color: 'success',
       icon: 'i-ph-check-circle-fill',
       title: t('success.title'),
-      description: t('success.description', { name: props.model.name }),
+      description: t('success.description', {
+        name:
+          props.assistant.name ||
+          `${props.assistant.persona?.name} + ${props.assistant.model?.name}`,
+      }),
     })
 
-    // Navigate to models index after successful deletion
-    await navigateTo(localeRoute('models'))
+    // Navigate to assistants index after successful deletion
+    await navigateTo(localeRoute('assistants'))
   } catch (error) {
     errorMessage.value =
       error instanceof Error ? error.message : t('error.description')
@@ -119,17 +127,18 @@ watch(open, (newValue) => {
 en:
   modal:
     title: Confirm Deletion
-    description: Deleting a model requires confirmation.
+    description: Deleting an assistant requires confirmation.
   content:
-    title: Delete Model
-    description: You are about to remove the model {name} from LMiX.
+    title: Delete Assistant
+    description: You are about to remove the assistant {name} from LMiX.
     alert:
       title: Warning
-      description: Deleting a model is permanent and cannot be undone. Are you sure you want to delete it?
+      description: Deleting an assistant is permanent and cannot be undone. Are you sure you want to delete it?
   cancel: Cancel
   delete: Delete
   success:
-    title: Model Deleted
-    description: The model has been successfully deleted.
-  error: Failed to delete the model. Please try again.
+    title: Assistant Deleted
+    description: The assistant has been successfully deleted.
+  error:
+    description: Failed to delete the assistant. Please try again.
 </i18n>

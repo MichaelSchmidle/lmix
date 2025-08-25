@@ -11,6 +11,10 @@ export default defineAppConfig({
     colors: {
       primary: 'indigo',
       neutral: 'stone',
+      error: 'rose',
+      info: 'cyan',
+      success: 'green',
+      warning: 'amber',
     },
     container: {
       base: 'max-w-prose px-0 py-3 sm:py-4.5 lg:py-6 space-y-12',
@@ -64,6 +68,28 @@ export default defineAppConfig({
     input: {
       slots: {
         root: 'w-full',
+      },
+    },
+    inputMenu: {
+      slots: {
+        root: 'w-full',
+      },
+    },
+    modal: {
+      slots: {
+        body: 'space-y-12',
+      },
+      variants: {
+        fullscreen: {
+          false: {
+            content: 'max-w-prose',
+          },
+        },
+      },
+    },
+    selectMenu: {
+      slots: {
+        base: 'w-full',
       },
     },
     textarea: {

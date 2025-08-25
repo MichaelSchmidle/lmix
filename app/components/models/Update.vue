@@ -1,113 +1,111 @@
 <template>
-  <UContainer>
-    <USkeleton
-      v-if="!model"
-      class="h-128 w-full"
-    />
-    <UPageCard
-      v-else
-      :title="t('title')"
-      :description="t('description')"
+  <USkeleton
+    v-if="loading"
+    class="h-128 w-full"
+  />
+  <UPageCard
+    v-else
+    :title="t('title')"
+    :description="t('description')"
+  >
+    <UForm
+      :schema="localizedUpdateModelSchema"
+      :state="formState"
+      :validate-on="['blur', 'input']"
+      @submit="handleUpdate"
     >
-      <UForm
-        :schema="localizedUpdateModelSchema"
-        :state="formState"
-        :validate-on="['blur', 'input']"
-        @submit="handleUpdate"
+      <UFormField
+        name="name"
+        :label="t('fields.name.label')"
+        :description="t('fields.name.description')"
+        required
       >
-        <UFormField
-          name="name"
-          :label="t('fields.name.label')"
-          :description="t('fields.name.description')"
-          required
-        >
-          <UInput
-            v-model="formState.name"
-            autofocus
-            :placeholder="t('fields.name.placeholder')"
-          />
-        </UFormField>
+        <UInput
+          v-model="formState.name"
+          autofocus
+          :placeholder="t('fields.name.placeholder')"
+        />
+      </UFormField>
 
-        <UFormField
-          name="modelId"
-          :label="t('fields.modelId.label')"
-          :description="t('fields.modelId.description')"
-          required
-        >
-          <UInput
-            v-model="formState.modelId"
-            :placeholder="t('fields.modelId.placeholder')"
-          />
-        </UFormField>
+      <UFormField
+        name="modelId"
+        :label="t('fields.modelId.label')"
+        :description="t('fields.modelId.description')"
+        required
+      >
+        <UInput
+          v-model="formState.modelId"
+          :placeholder="t('fields.modelId.placeholder')"
+        />
+      </UFormField>
 
-        <UFormField
-          name="apiEndpoint"
-          :label="t('fields.apiEndpoint.label')"
-          required
-        >
-          <template #description>
-            <i18n-t keypath="fields.apiEndpoint.description">
-              <template #version>
-                <span class="prose dark:prose-invert prose-sm">
-                  <code>/v1</code>
-                </span>
-              </template>
-            </i18n-t>
-          </template>
+      <UFormField
+        name="apiEndpoint"
+        :label="t('fields.apiEndpoint.label')"
+        required
+      >
+        <template #description>
+          <i18n-t keypath="fields.apiEndpoint.description">
+            <template #version>
+              <span class="prose dark:prose-invert prose-sm">
+                <code>/v1</code>
+              </span>
+            </template>
+          </i18n-t>
+        </template>
 
-          <UInput
-            v-model="formState.apiEndpoint"
-            :placeholder="t('fields.apiEndpoint.placeholder')"
-          />
-        </UFormField>
+        <UInput
+          v-model="formState.apiEndpoint"
+          :placeholder="t('fields.apiEndpoint.placeholder')"
+        />
+      </UFormField>
 
-        <UFormField
-          name="apiKey"
-          :label="t('fields.apiKey.label')"
-          :description="t('fields.apiKey.description')"
-        >
-          <UInput
-            v-model="formState.apiKey"
-            type="password"
-            :placeholder="t('fields.apiKey.placeholder')"
-          />
-        </UFormField>
+      <UFormField
+        name="apiKey"
+        :label="t('fields.apiKey.label')"
+        :description="t('fields.apiKey.description')"
+      >
+        <UInput
+          v-model="formState.apiKey"
+          type="password"
+          :placeholder="t('fields.apiKey.placeholder')"
+        />
+      </UFormField>
 
-        <UFormField
-          name="isDefault"
-          :label="t('fields.isDefault.label')"
-          :description="t('fields.isDefault.description')"
-        >
-          <UCheckbox
-            v-model="formState.isDefault"
-            :label="t('fields.isDefault.checkbox')"
-          />
-        </UFormField>
+      <UFormField
+        name="isDefault"
+        :label="t('fields.isDefault.label')"
+        :description="t('fields.isDefault.description')"
+      >
+        <UCheckbox
+          v-model="formState.isDefault"
+          :label="t('fields.isDefault.checkbox')"
+        />
+      </UFormField>
 
-        <!-- Actions -->
-        <div class="flex gap-4 justify-end mt-6">
-          <UButton
-            color="neutral"
-            :disabled="modelStore.busy"
-            icon="i-ph-plug-fill"
-            :label="t('actions.test')"
-            :loading="isTesting"
-            variant="ghost"
-            @click="handleTestConnection"
-          />
+      <!-- Actions -->
+      <div class="flex gap-4 justify-end mt-6">
+        <UButton
+          color="neutral"
+          :disabled="modelStore.busy"
+          icon="i-ph-plug-fill"
+          :label="t('actions.test')"
+          :loading="isTesting"
+          variant="ghost"
+          @click="handleTestConnection"
+        />
 
-          <UButton
-            type="submit"
-            color="primary"
-            :disabled="isTesting || modelStore.busy"
-            icon="i-ph-check"
-            :label="t('actions.save')"
-            :loading="modelStore.busy"
-          />
-        </div>
-      </UForm>
-    </UPageCard>
-  </UContainer>
+        <UButton
+          type="submit"
+          color="primary"
+          :disabled="isTesting || modelStore.busy"
+          icon="i-ph-check"
+          :label="t('actions.save')"
+          :loading="modelStore.busy"
+        />
+      </div>
+    </UForm>
+  </UPageCard>
 </template>
 
 <script setup lang="ts">
@@ -116,6 +114,7 @@ import { updateModelSchema } from '../../../shared/validation'
 
 const { t } = useI18n()
 const modelStore = useModelStore()
+const { loading } = storeToRefs(modelStore)
 const toast = useToast()
 
 const props = defineProps<{
@@ -149,13 +148,20 @@ const hasChanges = computed(() => {
 
 // Validation schema with localized messages
 const localizedUpdateModelSchema = updateModelSchema.extend({
-  name: updateModelSchema.shape.name
-    .refine((name) => name.length > 0, t('validation.name.required')),
-  modelId: updateModelSchema.shape.modelId
-    .refine((id) => id.length > 0, t('validation.modelId.required')),
+  name: updateModelSchema.shape.name.refine(
+    (name) => name.length > 0,
+    t('validation.name.required')
+  ),
+  modelId: updateModelSchema.shape.modelId.refine(
+    (id) => id.length > 0,
+    t('validation.modelId.required')
+  ),
   apiEndpoint: updateModelSchema.shape.apiEndpoint
     .refine((url) => url.length > 0, t('validation.apiEndpoint.required'))
-    .refine((url) => /^https?:\/\/.+/.test(url), t('validation.apiEndpoint.invalidUrl'))
+    .refine(
+      (url) => /^https?:\/\/.+/.test(url),
+      t('validation.apiEndpoint.invalidUrl')
+    )
     .refine(
       (url) => /\/v\d+(?:\/|$)/.test(url),
       'URL must include a version path (e.g., /v1)'
@@ -281,7 +287,7 @@ en:
       description: Use this model as the default for new assistants
       checkbox: Set as default model
   actions:
-    save: Save Changes
+    save: Save Model
     test: Test Connection
   validation:
     name:

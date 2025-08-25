@@ -6,7 +6,7 @@
     />
 
     <UNavigationMenu
-      v-else-if="modelStore.modelsList.length > 0"
+      v-else-if="modelStore.models.length > 0"
       :items="items"
       orientation="vertical"
     />
@@ -14,7 +14,6 @@
     <EmptyState
       v-else
       :description="t('empty.description')"
-      icon="i-ph-circuitry-fill"
     />
   </div>
 </template>
@@ -33,5 +32,5 @@ const items = computed(() => modelStore.navigationItems(currentModelId.value))
 <i18n lang="yaml">
 en:
   empty:
-    description: No models yet.
+    description: No models yet
 </i18n>

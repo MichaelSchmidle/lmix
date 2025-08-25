@@ -7,6 +7,7 @@ import { db } from '../../utils/db'
 import { requireAuth } from '../../utils/auth'
 import { models } from '../../database/schema/models'
 import { eq, and } from 'drizzle-orm'
+import { deleteResponse, handleApiError } from '../../utils/responses'
 
 export default defineEventHandler(async (event) => {
   // Require authentication
@@ -47,13 +48,8 @@ export default defineEventHandler(async (event) => {
         eq(models.userId, userId)
       ))
     
-    return {
-      message: 'Model deleted successfully'
-    }
-  } catch {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to delete model'
-    })
+    return deleteResponse('Model deleted successfully')
+  } catch (error) {
+    return handleApiError(error, 'Failed to delete model')
   }
 })

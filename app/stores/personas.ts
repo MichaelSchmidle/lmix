@@ -8,7 +8,7 @@ import type {
 
 export const usePersonaStore = defineStore('personas', () => {
   // State
-  const personasList = ref<Persona[]>([])
+  const personas = ref<Persona[]>([])
   const loading = ref(true) // Initial loading state only (shows skeletons)
   const busy = ref(false) // Any operation in progress (disables buttons)
   const error = ref<string | null>(null)
@@ -16,35 +16,24 @@ export const usePersonaStore = defineStore('personas', () => {
 
   // Getters
   const getPersonaById = computed(
-    () => (id: string) =>
-      personasList.value.find((persona) => persona.id === id)
+    () => (id: string) => personas.value.find((persona) => persona.id === id)
   )
 
   const sortedPersonas = computed(() =>
-    [...personasList.value].sort((a, b) => a.name.localeCompare(b.name))
+    [...personas.value].sort((a, b) => a.name.localeCompare(b.name))
   )
 
-  const navigationItems = computed(
-    () =>
-      (_currentPersonaId?: string): NavigationMenuItem[] => {
-        const localeRoute = useLocalePath()
+  const navigationItems = computed(() => (): NavigationMenuItem[] => {
+    const localeRoute = useLocalePath()
 
-        return [
-          {
-            icon: 'i-ph-mask-happy-fill',
-            label: 'Personas',
-            defaultOpen: true,
-            children: sortedPersonas.value.map((persona: Persona) => ({
-              label: persona.name,
-              to: localeRoute({
-                name: 'personas-id',
-                params: { id: persona.id },
-              }),
-            })),
-          },
-        ]
-      }
-  )
+    return sortedPersonas.value.map((persona: Persona) => ({
+      label: persona.name,
+      to: localeRoute({
+        name: 'personas-id',
+        params: { id: persona.id },
+      }),
+    }))
+  })
 
   // Actions
   async function fetchPersonas() {
@@ -56,7 +45,7 @@ export const usePersonaStore = defineStore('personas', () => {
 
     try {
       const response = await $fetch('/api/personas')
-      personasList.value = response.personas
+      personas.value = response.data || []
       initialized.value = true
     } catch (err) {
       error.value =
@@ -72,13 +61,16 @@ export const usePersonaStore = defineStore('personas', () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ persona: Persona }>('/api/personas', {
+      const response = await $fetch('/api/personas', {
         method: 'POST',
         body: input,
       })
 
-      personasList.value.push(response.persona)
-      return response.persona
+      if (response.data) {
+        personas.value.push(response.data as Persona)
+        return response.data as Persona
+      }
+      throw new Error('No persona returned')
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to create persona'
@@ -93,20 +85,19 @@ export const usePersonaStore = defineStore('personas', () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ persona: Persona }>(
-        `/api/personas/${id}`,
-        {
-          method: 'PUT',
-          body: input,
+      const response = await $fetch(`/api/personas/${id}`, {
+        method: 'PUT',
+        body: input,
+      })
+
+      if (response.data) {
+        const index = personas.value.findIndex((p) => p.id === id)
+        if (index !== -1) {
+          personas.value[index] = response.data as Persona
         }
-      )
-
-      const index = personasList.value.findIndex((p) => p.id === id)
-      if (index !== -1) {
-        personasList.value[index] = response.persona
+        return response.data as Persona
       }
-
-      return response.persona
+      throw new Error('No persona returned')
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to update persona'
@@ -125,7 +116,7 @@ export const usePersonaStore = defineStore('personas', () => {
         method: 'DELETE',
       })
 
-      personasList.value = personasList.value.filter((p) => p.id !== id)
+      personas.value = personas.value.filter((p) => p.id !== id)
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : 'Failed to delete persona'
@@ -137,7 +128,7 @@ export const usePersonaStore = defineStore('personas', () => {
 
   return {
     // State
-    personasList,
+    personas,
     loading,
     busy,
     error,

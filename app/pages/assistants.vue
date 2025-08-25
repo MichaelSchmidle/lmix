@@ -11,10 +11,18 @@
 
 <script setup lang="ts">
 const { t } = useI18n()
+const assistantStore = useAssistantStore()
 const title = t('title')
 
 useHead({
   title,
+})
+
+// Fetch assistants on component mount
+onMounted(async () => {
+  if (!assistantStore.assistantsList.length) {
+    await assistantStore.fetchAssistants()
+  }
 })
 </script>
 

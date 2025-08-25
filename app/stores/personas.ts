@@ -24,27 +24,19 @@ export const usePersonaStore = defineStore('personas', () => {
     [...personasList.value].sort((a, b) => a.name.localeCompare(b.name))
   )
 
-  const navigationItems = computed(
-    () =>
-      (_currentPersonaId?: string): NavigationMenuItem[] => {
-        const localeRoute = useLocalePath()
+  const navigationItems = computed(() => (): NavigationMenuItem[] => {
+    const localeRoute = useLocalePath()
 
-        return [
-          {
-            icon: 'i-ph-mask-happy-fill',
-            label: 'Personas',
-            defaultOpen: true,
-            children: sortedPersonas.value.map((persona: Persona) => ({
-              label: persona.name,
-              to: localeRoute({
-                name: 'personas-id',
-                params: { id: persona.id },
-              }),
-            })),
-          },
-        ]
-      }
-  )
+    return [
+      sortedPersonas.value.map((persona: Persona) => ({
+        label: persona.name,
+        to: localeRoute({
+          name: 'personas-id',
+          params: { id: persona.id },
+        }),
+      })),
+    ]
+  })
 
   // Actions
   async function fetchPersonas() {

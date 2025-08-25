@@ -2,7 +2,9 @@
   <PagePanel
     route-name="assistants-create"
     :title="title"
-  />
+  >
+    <AssistantsUpsert />
+  </PagePanel>
 </template>
 
 <script setup lang="ts">
@@ -16,5 +18,5 @@ useHead({
 
 <i18n lang="yaml">
 en:
-  title: Create Assistants
+  title: Create Assistant
 </i18n>

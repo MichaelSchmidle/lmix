@@ -14,7 +14,6 @@
     <EmptyState
       v-else
       :description="t('empty.description')"
-      icon="i-ph-circuitry-fill"
     />
   </div>
 </template>

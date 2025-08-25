@@ -66,6 +66,16 @@ export default defineAppConfig({
         root: 'w-full',
       },
     },
+    inputMenu: {
+      slots: {
+        root: 'w-full',
+      },
+    },
+    selectMenu: {
+      slots: {
+        base: 'w-full',
+      },
+    },
     textarea: {
       slots: {
         root: 'w-full',

@@ -205,12 +205,13 @@ const handleSubmit = async () => {
 
     const apiError = error as { data?: { statusMessage?: string; code?: string } }
     
-    // Check for specific error messages
+    // Check for specific error codes
     let errorDescription = props.assistant
       ? t('update.error.description')
       : t('create.error.description')
 
-    if (apiError.data?.statusMessage?.includes('already exists')) {
+    // Handle specific error codes
+    if (apiError.data?.code === 'ASSISTANT_DUPLICATE') {
       errorDescription = t('error.duplicate')
     }
 

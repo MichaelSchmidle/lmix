@@ -98,7 +98,8 @@ export default defineEventHandler(async (event) => {
     if (isDatabaseConstraintError(error) && error.code === '23505' && error.constraint === 'idx_unique_assistant_per_user') {
       throw createError({
         statusCode: 409,
-        statusMessage: 'An assistant with this persona and model combination already exists'
+        statusMessage: 'An assistant with this persona and model combination already exists',
+        data: { code: 'ASSISTANT_DUPLICATE' }
       })
     }
     

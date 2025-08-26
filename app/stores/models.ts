@@ -4,25 +4,31 @@ import type { Model, CreateModelInput, UpdateModelInput } from '~/types/models'
 import type { ApiResponse } from '~/server/utils/responses'
 
 export const useModelStore = defineStore('models', () => {
+  // State - this is the reactive data we'll mutate for optimistic updates
+  const models = ref<Model[]>([])
+  const busy = ref(false)
+  const error = ref<string | null>(null)
+  const isInitialized = ref(false)
+  
   // Use useFetch but handle client/server differently
   const { data: fetchedData, pending, refresh } = useFetch<ApiResponse<Model[]>>('/api/models', {
     key: 'models',
     server: false, // Only run on client
     lazy: false, // Fetch immediately when store is accessed on client
-    default: () => ({ success: true, data: [], message: '', count: 0 })
+    default: () => ({ success: true, data: [], message: '', count: 0 }),
+    onResponse({ response }) {
+      // Update our local state when data is fetched
+      if (response._data?.data) {
+        models.value = response._data.data
+        isInitialized.value = true
+      }
+    }
   })
   
-  // State
-  const busy = ref(false)
-  const error = ref<string | null>(null)
-  
-  // Computed models from fetch
-  const models = computed(() => fetchedData.value?.data || [])
-  
-  // Loading state: true on server, follows pending on client
+  // Loading state: true on server, follows pending on client, or if not initialized
   const loading = computed(() => {
     if (process.server) return true // Always show skeleton on SSR
-    return pending.value // On client, show loading while fetching
+    return pending.value || !isInitialized.value // Show loading until data is ready
   })
 
   // Getters
@@ -76,8 +82,12 @@ export const useModelStore = defineStore('models', () => {
 
   // Actions
   async function fetchModels() {
-    // Just refresh the existing useFetch
-    return refresh()
+    // Refresh from server and update local state
+    const result = await refresh()
+    if (result?.data.value?.data) {
+      models.value = result.data.value.data
+    }
+    return result
   }
 
   async function createModel(input: CreateModelInput) {
@@ -173,6 +183,10 @@ export const useModelStore = defineStore('models', () => {
 
       // Remove from local state
       models.value = models.value.filter((m) => m.id !== id)
+      
+      // Refresh assistants store to reflect cascade deletions
+      const assistantStore = useAssistantStore()
+      await assistantStore.fetchAssistants()
     } catch (err) {
       throw new Error(
         err instanceof Error ? err.message : 'Failed to delete model'

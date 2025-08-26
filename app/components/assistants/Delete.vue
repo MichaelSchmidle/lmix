@@ -108,8 +108,8 @@ const handleDelete = async () => {
     // Navigate to assistants index after successful deletion
     await navigateTo(localeRoute('assistants'))
   } catch (error) {
-    errorMessage.value =
-      error instanceof Error ? error.message : t('error.description')
+    console.error('Failed to delete assistant:', error)
+    errorMessage.value = t('error')
   } finally {
     isDeleting.value = false
   }

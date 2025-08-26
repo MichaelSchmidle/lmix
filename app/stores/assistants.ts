@@ -8,25 +8,31 @@ import type {
 import type { ApiResponse } from '~/server/utils/responses'
 
 export const useAssistantStore = defineStore('assistants', () => {
+  // State - this is the reactive data we'll mutate for optimistic updates
+  const assistants = ref<Assistant[]>([])
+  const busy = ref(false)
+  const error = ref<string | null>(null)
+  const isInitialized = ref(false)
+  
   // Use useFetch at store level with proper SSR handling
   const { data: fetchedData, pending, refresh } = useFetch<ApiResponse<Assistant[]>>('/api/assistants', {
     key: 'assistants',
     server: false, // Client-only for user-isolated data
     lazy: false, // Fetch immediately when store is accessed
-    default: () => ({ success: true, data: [], message: '', count: 0 })
+    default: () => ({ success: true, data: [], message: '', count: 0 }),
+    onResponse({ response }) {
+      // Update our local state when data is fetched
+      if (response._data?.data) {
+        assistants.value = response._data.data
+        isInitialized.value = true
+      }
+    }
   })
-
-  // State
-  const busy = ref(false)
-  const error = ref<string | null>(null)
   
-  // Computed state from useFetch
-  const assistants = computed(() => fetchedData.value?.data || [])
-  
-  // Loading state: true on server, follows pending on client
+  // Loading state: true on server, follows pending on client, or if not initialized
   const loading = computed(() => {
     if (process.server) return true // Always show skeleton on SSR
-    return pending.value // On client, show loading while fetching
+    return pending.value || !isInitialized.value // Show loading until data is ready
   })
 
   // Getters
@@ -66,8 +72,12 @@ export const useAssistantStore = defineStore('assistants', () => {
 
   // Actions
   async function fetchAssistants() {
-    // Just refresh the existing useFetch
-    return refresh()
+    // Refresh from server and update local state
+    const result = await refresh()
+    if (result?.data.value?.data) {
+      assistants.value = result.data.value.data
+    }
+    return result
   }
 
   async function createAssistant(input: CreateAssistantInput) {

@@ -101,8 +101,8 @@ const handleDelete = async () => {
     // Navigate to worlds index after successful deletion
     await navigateTo(localeRoute('worlds'))
   } catch (error) {
-    errorMessage.value =
-      error instanceof Error ? error.message : t('error.description')
+    console.error('Failed to delete world:', error)
+    errorMessage.value = t('error')
   } finally {
     isDeleting.value = false
   }

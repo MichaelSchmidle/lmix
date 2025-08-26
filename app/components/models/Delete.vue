@@ -100,8 +100,8 @@ const handleDelete = async () => {
     // Navigate to models index after successful deletion
     await navigateTo(localeRoute('models'))
   } catch (error) {
-    errorMessage.value =
-      error instanceof Error ? error.message : t('error.description')
+    console.error('Failed to delete model:', error)
+    errorMessage.value = t('error')
   } finally {
     isDeleting.value = false
   }

@@ -135,16 +135,9 @@ export const usePersonaStore = defineStore('personas', () => {
         method: 'DELETE',
       })
       
-      // Lazy cascade refresh - only if assistant store is already initialized
-      // Simple approach: try-catch to avoid premature initialization
-      try {
-        const assistantStore = useAssistantStore()
-        if (assistantStore.isInitialized) {
-          await assistantStore.fetchAssistants()
-        }
-      } catch {
-        // Assistant store not initialized yet, skip cascade
-      }
+      // Refresh assistants to reflect cascade deletions
+      const assistantStore = useAssistantStore()
+      await assistantStore.fetchAssistants()
     } catch (err) {
       personas.value = originalPersonas // Rollback on failure
       throw new Error(
@@ -161,7 +154,6 @@ export const usePersonaStore = defineStore('personas', () => {
     loading,
     busy,
     error,
-    isInitialized,
 
     // Getters
     getPersonaById,

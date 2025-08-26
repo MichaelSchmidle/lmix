@@ -164,7 +164,6 @@ export const useAssistantStore = defineStore('assistants', () => {
     loading,
     busy,
     error,
-    isInitialized,
 
     // Getters
     getAssistantById,

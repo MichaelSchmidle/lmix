@@ -150,7 +150,6 @@ export const useWorldStore = defineStore('worlds', () => {
     loading,
     busy,
     error,
-    isInitialized,
 
     // Getters
     getWorldById,

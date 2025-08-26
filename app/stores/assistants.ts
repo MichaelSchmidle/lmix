@@ -5,7 +5,7 @@ import type {
   CreateAssistantInput,
   UpdateAssistantInput,
 } from '~/types/assistants'
-import type { ApiResponse } from '~/server/utils/responses'
+import type { ApiResponse } from '../../server/utils/responses'
 
 export const useAssistantStore = defineStore('assistants', () => {
   // State - this is the reactive data we'll mutate for optimistic updates
@@ -15,7 +15,7 @@ export const useAssistantStore = defineStore('assistants', () => {
   const isInitialized = ref(false)
   
   // Use useFetch at store level with proper SSR handling
-  const { data: fetchedData, pending, refresh } = useFetch<ApiResponse<Assistant[]>>('/api/assistants', {
+  const { data: _fetchedData, pending, refresh } = useFetch<ApiResponse<Assistant[]>>('/api/assistants', {
     key: 'assistants',
     server: false, // Client-only for user-isolated data
     lazy: false, // Fetch immediately when store is accessed
@@ -31,7 +31,7 @@ export const useAssistantStore = defineStore('assistants', () => {
   
   // Loading state: true on server, follows pending on client, or if not initialized
   const loading = computed(() => {
-    if (process.server) return true // Always show skeleton on SSR
+    if (import.meta.server) return true // Always show skeleton on SSR
     return pending.value || !isInitialized.value // Show loading until data is ready
   })
 
@@ -72,16 +72,13 @@ export const useAssistantStore = defineStore('assistants', () => {
 
   // Actions
   async function fetchAssistants() {
-    // Refresh from server and update local state
-    const result = await refresh()
-    if (result?.data.value?.data) {
-      assistants.value = result.data.value.data
-    }
-    return result
+    // Just refresh - onResponse callback handles the update
+    return await refresh()
   }
 
   async function createAssistant(input: CreateAssistantInput) {
     busy.value = true
+    const originalAssistants = [...assistants.value]
 
     try {
       const response = await $fetch('/api/assistants', {
@@ -95,6 +92,7 @@ export const useAssistantStore = defineStore('assistants', () => {
       }
       throw new Error('No assistant returned')
     } catch (err) {
+      assistants.value = originalAssistants // Rollback on failure
       throw new Error(
         err instanceof Error ? err.message : 'Failed to create assistant'
       )
@@ -105,15 +103,21 @@ export const useAssistantStore = defineStore('assistants', () => {
 
   async function updateAssistant(id: string, input: UpdateAssistantInput) {
     busy.value = true
+    const index = assistants.value.findIndex((a) => a.id === id)
+    const originalAssistant = index !== -1 ? { ...assistants.value[index] } : null
 
     try {
+      // Optimistic update
+      if (index !== -1 && originalAssistant) {
+        assistants.value[index] = { ...originalAssistant, ...input }
+      }
+
       const response = await $fetch(`/api/assistants/${id}`, {
         method: 'PUT',
         body: input,
       })
 
       if (response.data) {
-        const index = assistants.value.findIndex((a) => a.id === id)
         if (index !== -1) {
           assistants.value[index] = response.data as Assistant
         }
@@ -121,6 +125,10 @@ export const useAssistantStore = defineStore('assistants', () => {
       }
       throw new Error('No assistant returned')
     } catch (err) {
+      // Rollback on failure
+      if (index !== -1 && originalAssistant) {
+        assistants.value[index] = originalAssistant
+      }
       throw new Error(
         err instanceof Error ? err.message : 'Failed to update assistant'
       )
@@ -131,14 +139,17 @@ export const useAssistantStore = defineStore('assistants', () => {
 
   async function deleteAssistant(id: string) {
     busy.value = true
+    const originalAssistants = [...assistants.value]
 
     try {
+      // Optimistic delete
+      assistants.value = assistants.value.filter((a) => a.id !== id)
+      
       await $fetch(`/api/assistants/${id}`, {
         method: 'DELETE',
       })
-
-      assistants.value = assistants.value.filter((a) => a.id !== id)
     } catch (err) {
+      assistants.value = originalAssistants // Rollback on failure
       throw new Error(
         err instanceof Error ? err.message : 'Failed to delete assistant'
       )
@@ -153,6 +164,7 @@ export const useAssistantStore = defineStore('assistants', () => {
     loading,
     busy,
     error,
+    isInitialized,
 
     // Getters
     getAssistantById,

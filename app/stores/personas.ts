@@ -5,7 +5,7 @@ import type {
   CreatePersonaInput,
   UpdatePersonaInput,
 } from '~/types/personas'
-import type { ApiResponse } from '~/server/utils/responses'
+import type { ApiResponse } from '../../server/utils/responses'
 
 export const usePersonaStore = defineStore('personas', () => {
   // State - this is the reactive data we'll mutate for optimistic updates
@@ -15,7 +15,7 @@ export const usePersonaStore = defineStore('personas', () => {
   const isInitialized = ref(false)
   
   // Use useFetch at store level with proper SSR handling
-  const { data: fetchedData, pending, refresh } = useFetch<ApiResponse<Persona[]>>('/api/personas', {
+  const { data: _fetchedData, pending, refresh } = useFetch<ApiResponse<Persona[]>>('/api/personas', {
     key: 'personas',
     server: false, // Client-only for user-isolated data
     lazy: false, // Fetch immediately when store is accessed
@@ -31,7 +31,7 @@ export const usePersonaStore = defineStore('personas', () => {
   
   // Loading state: true on server, follows pending on client, or if not initialized
   const loading = computed(() => {
-    if (process.server) return true // Always show skeleton on SSR
+    if (import.meta.server) return true // Always show skeleton on SSR
     return pending.value || !isInitialized.value // Show loading until data is ready
   })
 
@@ -58,16 +58,13 @@ export const usePersonaStore = defineStore('personas', () => {
 
   // Actions
   async function fetchPersonas() {
-    // Refresh from server and update local state
-    const result = await refresh()
-    if (result?.data.value?.data) {
-      personas.value = result.data.value.data
-    }
-    return result
+    // Just refresh - onResponse callback handles the update
+    return await refresh()
   }
 
   async function createPersona(input: CreatePersonaInput) {
     busy.value = true
+    const originalPersonas = [...personas.value]
 
     try {
       const response = await $fetch('/api/personas', {
@@ -81,6 +78,7 @@ export const usePersonaStore = defineStore('personas', () => {
       }
       throw new Error('No persona returned')
     } catch (err) {
+      personas.value = originalPersonas // Rollback on failure
       throw new Error(
         err instanceof Error ? err.message : 'Failed to create persona'
       )
@@ -91,15 +89,21 @@ export const usePersonaStore = defineStore('personas', () => {
 
   async function updatePersona(id: string, input: UpdatePersonaInput) {
     busy.value = true
+    const index = personas.value.findIndex((p) => p.id === id)
+    const originalPersona = index !== -1 ? { ...personas.value[index] } : null
 
     try {
+      // Optimistic update
+      if (index !== -1 && originalPersona) {
+        personas.value[index] = { ...originalPersona, ...input }
+      }
+
       const response = await $fetch(`/api/personas/${id}`, {
         method: 'PUT',
         body: input,
       })
 
       if (response.data) {
-        const index = personas.value.findIndex((p) => p.id === id)
         if (index !== -1) {
           personas.value[index] = response.data as Persona
         }
@@ -107,6 +111,10 @@ export const usePersonaStore = defineStore('personas', () => {
       }
       throw new Error('No persona returned')
     } catch (err) {
+      // Rollback on failure
+      if (index !== -1 && originalPersona) {
+        personas.value[index] = originalPersona
+      }
       throw new Error(
         err instanceof Error ? err.message : 'Failed to update persona'
       )
@@ -117,18 +125,28 @@ export const usePersonaStore = defineStore('personas', () => {
 
   async function deletePersona(id: string) {
     busy.value = true
+    const originalPersonas = [...personas.value]
 
     try {
+      // Optimistic delete
+      personas.value = personas.value.filter((p) => p.id !== id)
+      
       await $fetch(`/api/personas/${id}`, {
         method: 'DELETE',
       })
-
-      personas.value = personas.value.filter((p) => p.id !== id)
       
-      // Refresh assistants store to reflect cascade deletions
-      const assistantStore = useAssistantStore()
-      await assistantStore.fetchAssistants()
+      // Lazy cascade refresh - only if assistant store is already initialized
+      // Simple approach: try-catch to avoid premature initialization
+      try {
+        const assistantStore = useAssistantStore()
+        if (assistantStore.isInitialized) {
+          await assistantStore.fetchAssistants()
+        }
+      } catch {
+        // Assistant store not initialized yet, skip cascade
+      }
     } catch (err) {
+      personas.value = originalPersonas // Rollback on failure
       throw new Error(
         err instanceof Error ? err.message : 'Failed to delete persona'
       )
@@ -143,6 +161,7 @@ export const usePersonaStore = defineStore('personas', () => {
     loading,
     busy,
     error,
+    isInitialized,
 
     // Getters
     getPersonaById,

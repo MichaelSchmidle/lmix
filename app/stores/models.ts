@@ -1,7 +1,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import type { NavigationMenuItem } from '@nuxt/ui'
 import type { Model, CreateModelInput, UpdateModelInput } from '~/types/models'
-import type { ApiResponse } from '~/server/utils/responses'
+import type { ApiResponse } from '../../server/utils/responses'
 
 export const useModelStore = defineStore('models', () => {
   // State - this is the reactive data we'll mutate for optimistic updates
@@ -11,15 +11,16 @@ export const useModelStore = defineStore('models', () => {
   const isInitialized = ref(false)
   
   // Use useFetch but handle client/server differently
-  const { data: fetchedData, pending, refresh } = useFetch<ApiResponse<Model[]>>('/api/models', {
+  const { data: _fetchedData, pending, refresh } = useFetch<ApiResponse<Model[]>>('/api/models', {
     key: 'models',
     server: false, // Only run on client
     lazy: false, // Fetch immediately when store is accessed on client
     default: () => ({ success: true, data: [], message: '', count: 0 }),
     onResponse({ response }) {
       // Update our local state when data is fetched
-      if (response._data?.data) {
-        models.value = response._data.data
+      const data = (response._data as ApiResponse<Model[]>)?.data
+      if (data) {
+        models.value = data
         isInitialized.value = true
       }
     }
@@ -27,7 +28,7 @@ export const useModelStore = defineStore('models', () => {
   
   // Loading state: true on server, follows pending on client, or if not initialized
   const loading = computed(() => {
-    if (process.server) return true // Always show skeleton on SSR
+    if (import.meta.server) return true // Always show skeleton on SSR
     return pending.value || !isInitialized.value // Show loading until data is ready
   })
 
@@ -82,16 +83,13 @@ export const useModelStore = defineStore('models', () => {
 
   // Actions
   async function fetchModels() {
-    // Refresh from server and update local state
-    const result = await refresh()
-    if (result?.data.value?.data) {
-      models.value = result.data.value.data
-    }
-    return result
+    // Just refresh - onResponse callback handles the update
+    return await refresh()
   }
 
   async function createModel(input: CreateModelInput) {
     busy.value = true
+    const originalModels = [...models.value] // Save state for rollback
 
     try {
       const response = await $fetch('/api/models', {
@@ -105,6 +103,7 @@ export const useModelStore = defineStore('models', () => {
       }
       throw new Error('No model returned')
     } catch (err) {
+      models.value = originalModels // Rollback on failure
       throw new Error(
         err instanceof Error ? err.message : 'Failed to create model'
       )
@@ -115,6 +114,7 @@ export const useModelStore = defineStore('models', () => {
 
   async function createModels(input: CreateModelInput | CreateModelInput[]) {
     busy.value = true
+    const originalModels = [...models.value] // Save state for rollback
 
     try {
       const response = await $fetch('/api/models', {
@@ -138,6 +138,7 @@ export const useModelStore = defineStore('models', () => {
       }
       throw new Error('Invalid response format')
     } catch (err) {
+      models.value = originalModels // Rollback on failure
       throw new Error(
         err instanceof Error ? err.message : 'Failed to create model(s)'
       )
@@ -148,16 +149,22 @@ export const useModelStore = defineStore('models', () => {
 
   async function updateModel(id: string, input: UpdateModelInput) {
     busy.value = true
+    const index = models.value.findIndex((m) => m.id === id)
+    const originalModel = index !== -1 ? { ...models.value[index] } : null
 
     try {
+      // Optimistic update
+      if (index !== -1 && originalModel) {
+        models.value[index] = { ...originalModel, ...input }
+      }
+
       const response = await $fetch(`/api/models/${id}`, {
         method: 'PUT',
         body: input,
       })
 
       if (response.data) {
-        // Update local state
-        const index = models.value.findIndex((m) => m.id === id)
+        // Update with server response
         if (index !== -1) {
           models.value[index] = response.data as Model
         }
@@ -165,6 +172,10 @@ export const useModelStore = defineStore('models', () => {
       }
       throw new Error('No model returned')
     } catch (err) {
+      // Rollback on failure
+      if (index !== -1 && originalModel) {
+        models.value[index] = originalModel
+      }
       throw new Error(
         err instanceof Error ? err.message : 'Failed to update model'
       )
@@ -175,19 +186,28 @@ export const useModelStore = defineStore('models', () => {
 
   async function deleteModel(id: string) {
     busy.value = true
+    const originalModels = [...models.value]
 
     try {
+      // Optimistic delete
+      models.value = models.value.filter((m) => m.id !== id)
+      
       await $fetch(`/api/models/${id}`, {
         method: 'DELETE',
       })
-
-      // Remove from local state
-      models.value = models.value.filter((m) => m.id !== id)
       
-      // Refresh assistants store to reflect cascade deletions
-      const assistantStore = useAssistantStore()
-      await assistantStore.fetchAssistants()
+      // Lazy cascade refresh - only if assistant store is already initialized
+      // Simple approach: try-catch to avoid premature initialization
+      try {
+        const assistantStore = useAssistantStore()
+        if (assistantStore.isInitialized) {
+          await assistantStore.fetchAssistants()
+        }
+      } catch {
+        // Assistant store not initialized yet, skip cascade
+      }
     } catch (err) {
+      models.value = originalModels // Rollback on failure
       throw new Error(
         err instanceof Error ? err.message : 'Failed to delete model'
       )
@@ -198,20 +218,26 @@ export const useModelStore = defineStore('models', () => {
 
   async function setDefaultModel(id: string) {
     busy.value = true
+    const originalDefaults = models.value.map(m => ({ id: m.id, isDefault: m.isDefault }))
 
     try {
+      // Optimistic update
+      models.value.forEach((model) => {
+        model.isDefault = model.id === id
+      })
+
       const response = await $fetch(`/api/models/${id}`, {
         method: 'PUT',
         body: { isDefault: true },
       })
 
-      // Update all models' default status in local state
-      models.value.forEach((model) => {
-        model.isDefault = model.id === id
-      })
-
       return response.data as Model
     } catch (err) {
+      // Rollback default status
+      originalDefaults.forEach(original => {
+        const model = models.value.find(m => m.id === original.id)
+        if (model) model.isDefault = original.isDefault
+      })
       throw new Error(
         err instanceof Error ? err.message : 'Failed to set default model'
       )
@@ -243,6 +269,7 @@ export const useModelStore = defineStore('models', () => {
     loading,
     busy,
     error,
+    isInitialized,
 
     // Getters
     defaultModel,

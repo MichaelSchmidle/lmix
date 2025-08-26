@@ -5,7 +5,7 @@ import type {
   CreateWorldInput,
   UpdateWorldInput,
 } from '~/types/worlds'
-import type { ApiResponse } from '~/server/utils/responses'
+import type { ApiResponse } from '../../server/utils/responses'
 
 export const useWorldStore = defineStore('worlds', () => {
   // State - this is the reactive data we'll mutate for optimistic updates
@@ -15,7 +15,7 @@ export const useWorldStore = defineStore('worlds', () => {
   const isInitialized = ref(false)
   
   // Use useFetch at store level with proper SSR handling
-  const { data: fetchedData, pending, refresh } = useFetch<ApiResponse<World[]>>('/api/worlds', {
+  const { data: _fetchedData, pending, refresh } = useFetch<ApiResponse<World[]>>('/api/worlds', {
     key: 'worlds',
     server: false, // Client-only for user-isolated data
     lazy: false, // Fetch immediately when store is accessed
@@ -31,7 +31,7 @@ export const useWorldStore = defineStore('worlds', () => {
   
   // Loading state: true on server, follows pending on client, or if not initialized
   const loading = computed(() => {
-    if (process.server) return true // Always show skeleton on SSR
+    if (import.meta.server) return true // Always show skeleton on SSR
     return pending.value || !isInitialized.value // Show loading until data is ready
   })
 
@@ -58,16 +58,13 @@ export const useWorldStore = defineStore('worlds', () => {
 
   // Actions
   async function fetchWorlds() {
-    // Refresh from server and update local state
-    const result = await refresh()
-    if (result?.data.value?.data) {
-      worlds.value = result.data.value.data
-    }
-    return result
+    // Just refresh - onResponse callback handles the update
+    return await refresh()
   }
 
   async function createWorld(input: CreateWorldInput) {
     busy.value = true
+    const originalWorlds = [...worlds.value]
 
     try {
       const response = await $fetch('/api/worlds', {
@@ -81,6 +78,7 @@ export const useWorldStore = defineStore('worlds', () => {
       }
       throw new Error('No world returned')
     } catch (err) {
+      worlds.value = originalWorlds // Rollback on failure
       throw new Error(
         err instanceof Error ? err.message : 'Failed to create world'
       )
@@ -91,15 +89,21 @@ export const useWorldStore = defineStore('worlds', () => {
 
   async function updateWorld(id: string, input: UpdateWorldInput) {
     busy.value = true
+    const index = worlds.value.findIndex((w) => w.id === id)
+    const originalWorld = index !== -1 ? { ...worlds.value[index] } : null
 
     try {
+      // Optimistic update
+      if (index !== -1 && originalWorld) {
+        worlds.value[index] = { ...originalWorld, ...input }
+      }
+
       const response = await $fetch(`/api/worlds/${id}`, {
         method: 'PUT',
         body: input,
       })
 
       if (response.data) {
-        const index = worlds.value.findIndex((w) => w.id === id)
         if (index !== -1) {
           worlds.value[index] = response.data as World
         }
@@ -107,6 +111,10 @@ export const useWorldStore = defineStore('worlds', () => {
       }
       throw new Error('No world returned')
     } catch (err) {
+      // Rollback on failure
+      if (index !== -1 && originalWorld) {
+        worlds.value[index] = originalWorld
+      }
       throw new Error(
         err instanceof Error ? err.message : 'Failed to update world'
       )
@@ -117,14 +125,17 @@ export const useWorldStore = defineStore('worlds', () => {
 
   async function deleteWorld(id: string) {
     busy.value = true
+    const originalWorlds = [...worlds.value]
 
     try {
+      // Optimistic delete
+      worlds.value = worlds.value.filter((w) => w.id !== id)
+      
       await $fetch(`/api/worlds/${id}`, {
         method: 'DELETE',
       })
-
-      worlds.value = worlds.value.filter((w) => w.id !== id)
     } catch (err) {
+      worlds.value = originalWorlds // Rollback on failure
       throw new Error(
         err instanceof Error ? err.message : 'Failed to delete world'
       )
@@ -139,6 +150,7 @@ export const useWorldStore = defineStore('worlds', () => {
     loading,
     busy,
     error,
+    isInitialized,
 
     // Getters
     getWorldById,

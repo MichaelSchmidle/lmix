@@ -101,8 +101,8 @@ const handleDelete = async () => {
     // Navigate to personas index after successful deletion
     await navigateTo(localeRoute('personas'))
   } catch (error) {
-    errorMessage.value =
-      error instanceof Error ? error.message : t('error.description')
+    console.error('Failed to delete persona:', error)
+    errorMessage.value = t('error')
   } finally {
     isDeleting.value = false
   }

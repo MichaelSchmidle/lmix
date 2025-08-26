@@ -105,14 +105,6 @@ export default defineEventHandler(async (event) => {
     
     return successResponse(maskedModel, 'Model updated successfully')
   } catch (error) {
-    // Check for unique constraint violation
-    if (error instanceof Error && error.message.includes('idx_one_default_model_per_user')) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Only one default model allowed per user'
-      })
-    }
-    
     return handleApiError(error, 'Failed to update model')
   }
 })

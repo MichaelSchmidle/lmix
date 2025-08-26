@@ -195,6 +195,84 @@ Bob (NYPD member) talking to Tony (Mafia member):
 
 ### Technical Implementation
 
+#### Store Data Fetching Pattern
+
+**Blueprint for Optimal SSR + Client-Side Caching:**
+
+All Pinia stores should follow this proven pattern for user-isolated data fetching:
+
+```typescript
+export const useEntityStore = defineStore('entities', () => {
+  // ✅ Use useFetch at store level with key configuration
+  const { data: fetchedData, pending, refresh } = useFetch<ApiResponse<Entity[]>>('/api/entities', {
+    key: 'entities',        // For caching
+    server: false,          // Client-only for user-isolated data
+    lazy: false,           // 🚀 CRITICAL: Fetch immediately when store accessed
+    default: () => ({ success: true, data: [], message: '', count: 0 })
+  })
+  
+  // ✅ Computed state from useFetch
+  const entities = computed(() => fetchedData.value?.data || [])
+  
+  // ✅ Smart loading state for proper SSR skeleton handling
+  const loading = computed(() => {
+    if (process.server) return true  // SSR shows skeleton
+    return pending.value            // Client follows fetch state
+  })
+  
+  // ✅ Simple actions that leverage useFetch caching
+  async function fetchEntities() {
+    return refresh() // Refresh cached data when needed
+  }
+  
+  // ✅ CRUD operations update local state optimistically
+  async function createEntity(input: CreateEntityInput) {
+    const response = await $fetch('/api/entities', {
+      method: 'POST',
+      body: input,
+    })
+    
+    if (response.data) {
+      entities.value.push(response.data) // Optimistic update
+      return response.data
+    }
+    throw new Error('No entity returned')
+  }
+})
+```
+
+**Page Level Pattern:**
+
+```typescript
+// ✅ NO onMounted needed - store auto-fetches when accessed!
+const { t } = useI18n()
+const title = t('title')
+
+useHead({ title })
+```
+
+**Key Principles:**
+
+1. **`lazy: false`** - Fetch immediately when store accessed (not when `onMounted` runs)
+2. **`server: false`** - Client-only for user authentication requirements
+3. **Smart loading computed** - `process.server` for SSR, `pending` for client
+4. **No manual page fetching** - Store handles everything automatically
+5. **Leverage caching** - `useFetch` with `key` handles all caching logic
+
+**Why This Works:**
+
+- **SSR**: Shows skeleton immediately via `process.server` check
+- **Client hydration**: Store accessed → fetch starts immediately → skeleton continues
+- **Data loads**: `pending = false` → shows data/empty state
+- **Navigation**: Cached data → instant display, no skeleton flashing
+
+**Migration Notes:**
+
+- Remove all `onMounted(() => store.fetchEntities())` calls from pages
+- Replace manual loading state management with the computed pattern above
+- Ensure all stores use `lazy: false` for immediate fetching
+- Use `refresh()` in store actions for cache invalidation after mutations
+
 #### API Response Standardization
 
 **Unified Response Format:**
@@ -353,11 +431,11 @@ PUT    /api/models/:id           // Returns: ApiResponse<Model>
 DELETE /api/models/:id           // Returns: ApiResponse<null>
 POST   /api/models/test          // Test model connection
 
-// Worlds CRUD
-GET    /api/worlds
-POST   /api/worlds
-PUT    /api/worlds/:id
-DELETE /api/worlds/:id
+// Worlds CRUD (✅ Implemented with standardized responses)
+GET    /api/worlds               // Returns: ApiResponse<World[]>
+POST   /api/worlds               // Returns: ApiResponse<World>
+PUT    /api/worlds/:id           // Returns: ApiResponse<World>
+DELETE /api/worlds/:id           // Returns: ApiResponse<null>
 
 // Scenarios CRUD
 GET    /api/scenarios
@@ -400,7 +478,9 @@ POST   /api/productions/:id/turns
 /models                  # ✅ Models management with Insert/Update/Delete components
 /models/create           # ✅ Two-step model discovery and creation
 /models/[id]             # ✅ Model details and configuration
-/worlds                  # Worlds management (table + create/edit modal)
+/worlds                  # ✅ Worlds management with Upsert/Delete components
+/worlds/create           # ✅ Create new world
+/worlds/[id]             # ✅ World details and editing
 /scenarios               # Scenarios management (table + create/edit modal)
 /affiliations            # Affiliations management (table + create/edit modal)
 /personas                # ✅ Personas management with Upsert/Delete components
@@ -422,6 +502,9 @@ Implemented Components:
 - personas/CreateModal.vue # ✅ Modal wrapper for Upsert
 - assistants/Upsert.vue  # ✅ Unified create/edit form
 - assistants/Delete.vue  # ✅ Deletion confirmation modal
+- worlds/Upsert.vue      # ✅ Unified create/edit form
+- worlds/Delete.vue      # ✅ Deletion confirmation modal
+- worlds/CreateModal.vue # ✅ Modal wrapper for Upsert
 - CreateButton.vue       # ✅ Reusable create button component
 
 Shared Utilities:
@@ -429,7 +512,6 @@ Shared Utilities:
 - app/types/components.ts   # ✅ Standardized component interfaces
 
 Planned Components:
-- WorldForm.vue          # Create/edit form in modal
 - ScenarioForm.vue       # Create/edit form in modal
 - AffiliationForm.vue    # Create/edit form in modal
 - ProductionForm.vue     # Create form in modal (with world/scenario selectors)
@@ -438,7 +520,8 @@ Planned Components:
 
 ### Success Criteria
 
-- [x] User can create models, affiliations (partial), personas, and assistants
+- [x] User can create models, worlds, personas, and assistants
+- [ ] User can create affiliations (schema ready, UI pending)
 - [ ] Personas can be affiliated with multiple organizations (schema ready, UI pending)
 - [ ] User can create a production with 2+ assistants
 - [ ] Each assistant knows their own persona + affiliation truths
@@ -451,6 +534,7 @@ Planned Components:
 - [x] API key encryption and masking
 - [x] Standardized API responses across all endpoints
 - [x] Consistent error handling patterns
+- [x] Optimistic UI updates with proper SSR/client-side caching
 
 ### Out of Scope for Iteration 1
 
@@ -468,19 +552,23 @@ Planned Components:
 
 ### User Experience Enhancements
 
-#### Optimistic Updates
-**Priority: Medium**
-- Update local state immediately on user actions (create/update/delete)
-- Show loading states while API call is in progress
-- Rollback changes if API call fails
-- Benefits: Perceived performance improvement, more responsive UI
+#### ~~Optimistic Updates~~ ✅ **IMPLEMENTED**
+**Priority: ~~Medium~~ COMPLETED**
+- ✅ Update local state immediately on user actions (create/update/delete)
+- ✅ Show loading states while API call is in progress (`busy` state)
+- ⚠️ Rollback changes if API call fails (error handling throws, but no rollback)
+- ✅ Benefits: Perceived performance improvement, more responsive UI
 
-#### Request Deduplication
-**Priority: Medium**
-- Prevent duplicate API requests when multiple components trigger the same fetch
-- Implement request caching with TTL (time-to-live)
-- Use libraries like TanStack Query or SWR for automatic deduplication
-- Benefits: Reduced server load, faster responses for cached data
+**Current Implementation:** All CRUD stores use optimistic updates via direct array manipulation (`push`, `filter`, index assignment) combined with `useFetch` caching for seamless navigation.
+
+#### ~~Request Deduplication~~ ✅ **IMPLEMENTED**
+**Priority: ~~Medium~~ COMPLETED**
+- ✅ Prevent duplicate API requests when multiple components trigger the same fetch
+- ✅ Implement request caching with TTL (automatic via Nuxt `useFetch`)
+- ✅ ~~Use libraries like TanStack Query or SWR~~ Using native Nuxt `useFetch` caching
+- ✅ Benefits: Reduced server load, faster responses for cached data
+
+**Current Implementation:** Nuxt's `useFetch` with unique keys provides automatic request deduplication and caching across the entire application.
 
 #### Global Loading States
 **Priority: Low**
@@ -626,18 +714,20 @@ _Details to be specified after Iteration 2 is complete_
 - Database schema implemented (all tables)
 - Authentication system (OIDC with row-level security)
 - Models CRUD with discovery workflow
+- Worlds CRUD with reusable world definitions
 - Personas CRUD with three layers of truth
 - Assistants CRUD (persona + model pairing)
 - API response standardization
 - Consistent error handling
 - Component architecture patterns
-- Pinia stores for state management
+- Pinia stores for state management with optimal data fetching
+- Optimistic UI updates for responsive user experience
+- Request deduplication and intelligent caching
 - i18n support throughout
 
 ### 🚧 In Progress
 
 - Affiliations CRUD UI
-- Worlds CRUD
 - Scenarios CRUD
 - Productions management
 - Chat interface

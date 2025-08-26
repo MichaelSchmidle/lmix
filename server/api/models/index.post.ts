@@ -81,18 +81,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // If any model is set as default, clear existing defaults first
-    if (defaultModels.length > 0) {
-      await db
-        .update(models)
-        .set({ isDefault: false })
-        .where(and(
-          eq(models.userId, userId),
-          eq(models.isDefault, true)
-        ))
-    }
-
-    // Create the models
+    // Create the models (trigger handles clearing existing defaults)
     const createdModels = await db
       .insert(models)
       .values(uniqueModels.map(model => ({

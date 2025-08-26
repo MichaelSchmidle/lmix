@@ -11,7 +11,7 @@
           <i18n-t keypath="content.description">
             <template #name>
               <span class="prose dark:prose-invert">
-                <code>{{ model.name }}</code>
+                <code>{{ world.name }}</code>
               </span>
             </template>
           </i18n-t>
@@ -28,7 +28,7 @@
           v-if="errorMessage"
           class="text-error text-sm"
         >
-          {{ t('error') }}
+          {{ errorMessage }}
         </p>
 
         <div class="flex gap-x-4 justify-end mt-6">
@@ -62,14 +62,15 @@
 </template>
 
 <script setup lang="ts">
-import type { Model } from '~/types/models'
+import type { World } from '~/types/worlds'
+
 const { t } = useI18n()
-const modelStore = useModelStore()
+const worldStore = useWorldStore()
 const localeRoute = useLocaleRoute()
 const toast = useToast()
 
 const props = defineProps<{
-  model: Model
+  world: World
 }>()
 
 const open = ref(false)
@@ -88,19 +89,19 @@ const handleDelete = async () => {
   errorMessage.value = null
 
   try {
-    await modelStore.deleteModel(props.model.id)
+    await worldStore.deleteWorld(props.world.id)
 
     toast.add({
       color: 'success',
       icon: 'i-ph-check-circle-fill',
       title: t('success.title'),
-      description: t('success.description', { name: props.model.name }),
+      description: t('success.description', { name: props.world.name }),
     })
 
-    // Navigate to models index after successful deletion
-    await navigateTo(localeRoute('models'))
+    // Navigate to worlds index after successful deletion
+    await navigateTo(localeRoute('worlds'))
   } catch (error) {
-    console.error('Failed to delete model:', error)
+    console.error('Failed to delete world:', error)
     errorMessage.value = t('error')
   } finally {
     isDeleting.value = false
@@ -119,17 +120,18 @@ watch(open, (newValue) => {
 en:
   modal:
     title: Confirm Deletion
-    description: Deleting a model requires confirmation.
+    description: Deleting a world requires confirmation.
   content:
-    title: Delete Model
-    description: You are about to remove the model {name} from LMiX.
+    title: Delete World
+    description: You are about to remove the world {name} from LMiX.
     alert:
       title: Warning
-      description: Deleting a model is permanent and cannot be undone. Are you sure you want to delete it?
+      description: Deleting a world is permanent and cannot be undone. Are you sure you want to delete it?
   cancel: Cancel
   delete: Delete
   success:
-    title: Model Deleted
-    description: The model has been successfully deleted.
-  error: Failed to delete the model. Please try again.
+    title: World Deleted
+    description: The world has been successfully deleted.
+  error:
+    description: Failed to delete the world. Please try again.
 </i18n>

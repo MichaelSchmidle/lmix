@@ -18,17 +18,9 @@
 const { t } = useI18n()
 const localeRoute = useLocaleRoute()
 const title = t('title')
-const modelStore = useModelStore()
 
 useHead({
   title,
-})
-
-// Fetch models client-side after hydration
-onMounted(async () => {
-  if (!modelStore.models.length && !modelStore.loading) {
-    await modelStore.fetchModels()
-  }
 })
 </script>
 
